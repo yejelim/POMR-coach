@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { saveProblemsAction } from "@/app/cases/actions";
 import { getCaseBundle, listAiReviews } from "@/server/services/case-service";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ProblemListEditor } from "@/features/problems/problem-list-editor";
 import type { ProblemStatus } from "@/lib/types";
@@ -24,6 +25,7 @@ export default async function ProblemsPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="problems"
     >
       <div className="mb-5">
@@ -32,6 +34,11 @@ export default async function ProblemsPage({
           Define active/background problems before daily SOAP. AI feedback appears only after your draft exists.
         </p>
       </div>
+      {!caseRecord.problems.length ? (
+        <CoachingNote>
+          AI 제안을 보기 전에, 먼저 이 환자의 problem list를 직접 정의해보세요.
+        </CoachingNote>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <ProblemListEditor
           rows={caseRecord.problems.map((problem) => ({

@@ -50,12 +50,12 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
           Column
         </Button>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
         <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-slate-50">
+          <thead className="bg-teal-50">
             <tr>
               {columns.map((column) => (
-                <th key={column} className="min-w-36 border-b border-r border-slate-200 p-2 text-left font-semibold">
+                <th key={column} className="min-w-36 border-b border-r border-teal-100 p-2 text-left font-semibold text-teal-950">
                   <div className="flex items-center justify-between gap-2">
                     <span>{column}</span>
                     {columns.length > 1 ? (

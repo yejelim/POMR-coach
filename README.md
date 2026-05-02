@@ -10,6 +10,12 @@ Local-first web app for Korean medical clerkship POMR practice.
 - OpenAI-compatible server-side AI review route
 - Playwright HTML-to-PDF export
 
+## Brand Assets
+
+Place the primary logo at `public/POMR_coach_logo.png`. The app also mirrors it to
+`src/app/icon.png` for the Next.js app icon. Keep the file name stable so the sidebar,
+case library, metadata icon, and PDF export can use the same asset.
+
 ## Local Setup
 
 ```bash

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createCaseAction } from "@/app/cases/actions";
 import { genericTemplate } from "@/config/templates/generic";
+import { AppLogo } from "@/components/shared/app-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -18,6 +19,9 @@ export default function NewCasePage() {
               Cases
             </Link>
           </Button>
+          <div className="mb-5">
+            <AppLogo />
+          </div>
           <h1 className="text-2xl font-semibold text-slate-950">New anonymous case</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Do not enter patient identifiers. Use a case label such as “GI obstructive jaundice practice”.

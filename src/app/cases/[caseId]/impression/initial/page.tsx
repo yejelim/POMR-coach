@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { saveImpressionsAction } from "@/app/cases/actions";
 import { listAiReviews, getCaseBundle } from "@/server/services/case-service";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ImpressionTable } from "@/features/impressions/impression-table";
 
@@ -22,6 +23,7 @@ export default async function InitialImpressionPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="initial"
     >
       <div className="mb-5">
@@ -30,6 +32,12 @@ export default async function InitialImpressionPage({
           Rank DDx from interview, ROS, and PE before reviewing lab/image/procedure data.
         </p>
       </div>
+      {!caseRecord.impressionRows.some((row) => row.stage === "INITIAL") ? (
+        <CoachingNote>
+          검사 결과를 모두 보기 전에, 문진과 신체진찰을 바탕으로 initial impression을
+          먼저 작성해보세요.
+        </CoachingNote>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <ImpressionTable
           stage="INITIAL"

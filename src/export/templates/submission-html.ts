@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 
 type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/services/case-service").getCaseBundle>>>;
@@ -8,6 +10,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   const initialRows = caseRecord.impressionRows.filter((row) => row.stage === "INITIAL");
   const finalRows = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
   const labTable = normalizeLabTable(data?.labTable);
+  const logoDataUri = getLogoDataUri();
 
   return `<!doctype html>
 <html lang="ko">
@@ -22,18 +25,29 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
       font-size: 12px;
       line-height: 1.55;
     }
-    h1 { font-size: 22px; margin: 0 0 4px; }
-    h2 { border-bottom: 1px solid #cbd5e1; font-size: 15px; margin: 22px 0 8px; padding-bottom: 4px; }
+    h1 { font-size: 21px; margin: 0 0 4px; }
+    h2 { border-bottom: 1px solid #0f766e; color: #0f172a; font-size: 15px; margin: 22px 0 8px; padding-bottom: 4px; }
     h3 { font-size: 13px; margin: 14px 0 4px; }
     p { margin: 0 0 8px; white-space: pre-wrap; }
     table { border-collapse: collapse; margin: 8px 0 14px; width: 100%; }
-    th, td { border: 1px solid #cbd5e1; padding: 5px; text-align: left; vertical-align: top; }
-    th { background: #f1f5f9; font-weight: 700; }
+    th, td { border: 1px solid #e2e8f0; padding: 5px; text-align: left; vertical-align: top; }
+    th { background: #ccfbf1; color: #134e4a; font-weight: 700; }
+    .pdf-header { align-items: center; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; }
+    .pdf-logo { height: 30px; object-fit: contain; width: 30px; }
+    .brand { color: #0f766e; font-size: 13px; font-weight: 700; margin: 0; }
+    .tagline { color: #475569; font-size: 10px; margin: 0; }
     .meta { color: #475569; margin-bottom: 14px; }
     .footer { border-top: 1px solid #cbd5e1; color: #64748b; font-size: 10px; margin-top: 28px; padding-top: 8px; }
   </style>
 </head>
 <body>
+  <div class="pdf-header">
+    ${logoDataUri ? `<img class="pdf-logo" src="${logoDataUri}" alt="POMR Coach" />` : ""}
+    <div>
+      <p class="brand">POMR Coach</p>
+      <p class="tagline">Write first. Reflect with AI. Learn from every case.</p>
+    </div>
+  </div>
   <h1>${escapeHtml(caseRecord.title)}</h1>
   <p class="meta">Department: ${escapeHtml(caseRecord.department)} | Status: ${escapeHtml(caseRecord.status)}</p>
   ${section("Admission Note", [
@@ -63,6 +77,16 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   <div class="footer">Educational POMR practice submission. De-identified local export; AI feedback and scratchpad timeline are excluded.</div>
 </body>
 </html>`;
+}
+
+function getLogoDataUri() {
+  try {
+    const logoPath = path.join(process.cwd(), "public", "POMR_coach_logo.png");
+    const logo = fs.readFileSync(logoPath);
+    return `data:image/png;base64,${logo.toString("base64")}`;
+  } catch {
+    return "";
+  }
 }
 
 function section(title: string, parts: string[]) {

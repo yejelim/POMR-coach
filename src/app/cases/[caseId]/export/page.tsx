@@ -20,6 +20,7 @@ export default async function ExportPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="export"
     >
       <div className="mb-5">

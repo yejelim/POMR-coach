@@ -14,7 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "POMR Coach",
-  description: "Local-first POMR practice workspace for medical clerkship notes.",
+  description: "Write first. Reflect with AI. Learn from every case.",
+  icons: {
+    icon: "/POMR_coach_logo.png",
+    apple: "/POMR_coach_logo.png",
+  },
 };
 
 export const dynamic = "force-dynamic";

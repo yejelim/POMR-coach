@@ -1,36 +1,53 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { FileDown } from "lucide-react";
+import { AppLogo } from "@/components/shared/app-logo";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/shared/status-badge";
 
 export function CaseHeader({
+  caseId,
   title,
   department,
   status,
   tags,
+  updatedAt,
 }: {
+  caseId: string;
   title: string;
   department: string;
   status: string;
   tags: string[];
+  updatedAt?: Date | string;
 }) {
   return (
-    <header className="border-b border-slate-200 bg-white px-4 py-4">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3">
-        <Button asChild variant="ghost" size="sm" className="w-fit px-0">
-          <Link href="/cases">
-            <ArrowLeft className="h-4 w-4" />
-            Cases
-          </Link>
-        </Button>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-normal text-slate-950">{title}</h1>
-          <StatusBadge status={status} />
-          <Badge>{department}</Badge>
-          {tags.map((tag) => (
-            <Badge key={tag}>{tag}</Badge>
-          ))}
+    <header className="no-print border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 xl:max-w-7xl">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="mb-3 lg:hidden">
+              <AppLogo size="sm" />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-950">
+                {title}
+              </h1>
+              <Badge className="border-teal-100 bg-teal-50 text-teal-800">{department}</Badge>
+              <StatusBadge status={status} />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              {updatedAt ? <span>Last saved {new Date(updatedAt).toLocaleString()}</span> : null}
+              {tags.map((tag) => (
+                <Badge key={tag}>{tag}</Badge>
+              ))}
+            </div>
+          </div>
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href={`/cases/${caseId}/export`}>
+              <FileDown className="h-4 w-4" />
+              Export
+            </Link>
+          </Button>
         </div>
       </div>
     </header>

@@ -24,6 +24,7 @@ export default async function ProgressNotePage({
       department={note.case.department}
       status={note.case.status}
       tags={note.case.tags.map((tag) => tag.name)}
+      updatedAt={note.updatedAt}
       active="progress"
     >
       <div className="mb-5">

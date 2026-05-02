@@ -38,6 +38,7 @@ export default async function CaseOverviewPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="overview"
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

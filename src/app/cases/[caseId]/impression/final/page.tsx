@@ -22,6 +22,7 @@ export default async function FinalImpressionPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="final"
     >
       <div className="mb-5">

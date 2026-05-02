@@ -3,11 +3,31 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --brand-primary: #0f766e;
+  --brand-primary-light: #ccfbf1;
+  --brand-accent: #2563eb;
+  --brand-surface: #ffffff;
+  --brand-text-primary: #0f172a;
+  --brand-text-secondary: #475569;
+  --brand-border: #e2e8f0;
+  --brand-warning: #d97706;
+  --brand-danger: #dc2626;
+  --brand-success: #16a34a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-light: var(--brand-primary-light);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-text-primary: var(--brand-text-primary);
+  --color-brand-text-secondary: var(--brand-text-secondary);
+  --color-brand-border: var(--brand-border);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-success: var(--brand-success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,8 +36,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family:
-    var(--font-geist-sans), "Apple SD Gothic Neo", "Malgun Gothic", Arial,
-    Helvetica, sans-serif;
+    Pretendard, Inter, var(--font-geist-sans), "Apple SD Gothic Neo",
+    "Malgun Gothic", system-ui, sans-serif;
 }
 
 textarea,

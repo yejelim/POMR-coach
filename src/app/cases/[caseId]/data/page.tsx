@@ -25,6 +25,7 @@ export default async function DiagnosticDataPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="data"
     >
       <div className="mb-5">

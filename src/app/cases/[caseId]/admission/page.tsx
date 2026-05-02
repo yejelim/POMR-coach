@@ -27,6 +27,7 @@ export default async function AdmissionPage({
       department={caseRecord.department}
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
+      updatedAt={caseRecord.updatedAt}
       active="admission"
     >
       <div className="mb-5">

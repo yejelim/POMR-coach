@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FilePlus2, Search } from "lucide-react";
 import { listCases } from "@/server/services/case-service";
+import { AppLogo } from "@/components/shared/app-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,17 @@ export default async function CasesPage({
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">Local-first clerkship workspace</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-normal text-slate-950">POMR Coach</h1>
+            <AppLogo size="lg" />
+            <h1 className="mt-5 text-3xl font-semibold tracking-normal text-slate-950">
+              Case Library
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Write first. Reflect with AI. Learn from every case.
+            </p>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+              먼저 직접 쓰고, 인공지능 어시스트와 되돌아보며, 한 케이스마다 성장합니다.
+              이 서비스는 HealCode: We Heal Patient, with Code and Love에 의해 제작되었습니다.
+            </p>
           </div>
           <Button asChild>
             <Link href="/cases/new">
@@ -43,7 +53,7 @@ export default async function CasesPage({
             <Link
               key={caseRecord.id}
               href={`/cases/${caseRecord.id}`}
-              className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
+              className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 transition hover:border-teal-200 hover:shadow-md"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -69,7 +79,10 @@ export default async function CasesPage({
           ))}
           {!cases.length ? (
             <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-              <p className="text-sm text-slate-600">No cases yet. Create an anonymous case label to start.</p>
+              <p className="text-sm text-slate-600">
+                아직 케이스가 없습니다. 익명 case label을 만들고, 한 환자의 이야기를 POMR
+                workflow로 차근차근 정리해보세요.
+              </p>
             </div>
           ) : null}
         </div>
