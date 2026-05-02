@@ -1,0 +1,58 @@
+import { notFound } from "next/navigation";
+import { saveAdmissionAction } from "@/app/cases/actions";
+import { getCaseBundle } from "@/server/services/case-service";
+import { genericTemplate } from "@/config/templates/generic";
+import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { SaveBar } from "@/components/shared/save-bar";
+import { SectionTextarea } from "@/components/shared/section-textarea";
+import { VitalsEditor } from "@/components/shared/vitals-editor";
+import type { Vitals } from "@/lib/types";
+import { parseStoredJson } from "@/lib/utils";
+
+export default async function AdmissionPage({
+  params,
+}: {
+  params: Promise<{ caseId: string }>;
+}) {
+  const { caseId } = await params;
+  const caseRecord = await getCaseBundle(caseId);
+  if (!caseRecord) notFound();
+
+  const admission = caseRecord.admissionNote;
+
+  return (
+    <CasePageFrame
+      caseId={caseRecord.id}
+      title={caseRecord.title}
+      department={caseRecord.department}
+      status={caseRecord.status}
+      tags={caseRecord.tags.map((tag) => tag.name)}
+      active="admission"
+    >
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold">Admission Workspace</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Write interview, ROS, PE, and text findings here. Pre-test reasoning happens on the next page.
+        </p>
+      </div>
+      <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5 rounded-lg border border-slate-200 bg-white p-4">
+        <section>
+          <h3 className="mb-3 text-base font-semibold">Initial vital signs</h3>
+          <VitalsEditor values={parseStoredJson<Vitals>(admission?.initialVitals, {})} />
+        </section>
+        <div className="grid gap-4 md:grid-cols-2">
+          {genericTemplate.admissionSections.map(([name, label]) => (
+            <SectionTextarea
+              key={name}
+              name={name}
+              label={label}
+              defaultValue={admission?.[name] ?? ""}
+              rows={name === "hpi" || name === "physicalExam" ? 8 : 4}
+            />
+          ))}
+        </div>
+        <SaveBar label="Save admission" />
+      </form>
+    </CasePageFrame>
+  );
+}

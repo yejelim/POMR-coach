@@ -1,1 +1,55 @@
-# POMR-coach
+# POMR Coach
+
+Local-first web app for Korean medical clerkship POMR practice.
+
+## Stack
+
+- Next.js App Router + TypeScript
+- Tailwind CSS + shadcn-style UI primitives
+- Prisma 7 + SQLite + `@prisma/adapter-better-sqlite3`
+- OpenAI-compatible server-side AI review route
+- Playwright HTML-to-PDF export
+
+## Local Setup
+
+```bash
+npm install
+cp .env.example .env
+npm run prisma:generate
+npm run db:apply
+npx playwright install chromium
+npm run dev -- --hostname 127.0.0.1 --port 3000
+```
+
+Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
+
+`OPENAI_API_KEY` is optional for local development. Without it, AI review returns a deterministic local mock response so the write-first feedback workflow can still be tested.
+
+## MVP Workflow
+
+1. Case Library
+2. Timeline Scratchpad
+3. Admission Workspace
+4. Pre-test Initial Impression
+5. Lab / Image / Procedure Data
+6. Post-test Final Impression
+7. Problem List Draft
+8. Daily Progress Note SOAP
+9. Submission PDF Export
+
+The app is educational note-writing practice only. It does not provide diagnostic or treatment decision support, does not integrate with EHR, and does not support AI image interpretation.
+
+## Useful Commands
+
+```bash
+npm run dev
+npm run lint
+npm test
+npm run build
+npm run prisma:generate
+npm run db:apply
+```
+
+## Privacy Defaults
+
+Use anonymous case labels only. Do not enter patient name, registration number, resident ID, phone number, address, or exact birthdate.

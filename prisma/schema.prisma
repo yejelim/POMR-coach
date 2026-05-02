@@ -1,0 +1,198 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  title       String
+  department  String   @default("General")
+  status      String   @default("active")
+  summary     String   @default("")
+  templateKey String   @default("generic")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags            CaseTag[]
+  timelineEntries TimelineEntry[]
+  admissionNote   AdmissionNote?
+  diagnosticData  DiagnosticData?
+  impressionRows  ImpressionRow[]
+  problems        Problem[]
+  progressNotes   ProgressNote[]
+  aiReviews       AiReview[]
+}
+
+model CaseTag {
+  id        String   @id @default(cuid())
+  caseId    String
+  name      String
+  createdAt DateTime @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, name])
+  @@index([caseId])
+}
+
+model TimelineEntry {
+  id             String   @id @default(cuid())
+  caseId         String
+  timepoint      String   @default("")
+  event          String   @default("")
+  interpretation String   @default("")
+  question       String   @default("")
+  position       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, position])
+}
+
+model AdmissionNote {
+  id                 String   @id @default(cuid())
+  caseId             String   @unique
+  cc                 String   @default("")
+  hpi                String   @default("")
+  pmh                String   @default("")
+  psh                String   @default("")
+  medication         String   @default("")
+  allergy            String   @default("")
+  familyHistory      String   @default("")
+  socialHistory      String   @default("")
+  ros                String   @default("")
+  physicalExam       String   @default("")
+  initialVitals      String   @default("{}")
+  imageProcedureText String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosticData {
+  id                    String   @id @default(cuid())
+  caseId                String   @unique
+  labTable              String   @default("")
+  imageFindingsText     String   @default("")
+  procedureFindingsText String   @default("")
+  summaryText           String   @default("")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model ImpressionRow {
+  id              String   @id @default(cuid())
+  caseId          String
+  stage           String
+  rank            Int      @default(1)
+  title           String   @default("")
+  evidence        String   @default("")
+  evidenceAgainst String   @default("")
+  missingData     String   @default("")
+  dxPlan          String   @default("")
+  txPlan          String   @default("")
+  extra           String   @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  case     Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  problems Problem[]
+
+  @@index([caseId, stage, rank])
+}
+
+model Problem {
+  id                    String   @id @default(cuid())
+  caseId                String
+  priority              Int      @default(1)
+  title                 String   @default("")
+  status                String   @default("active")
+  evidence              String   @default("")
+  linkedImpressionRowId String?
+  notes                 String   @default("")
+  position              Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  case                Case                  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  linkedImpressionRow ImpressionRow?        @relation(fields: [linkedImpressionRowId], references: [id], onDelete: SetNull)
+  progressNoteItems   ProgressNoteProblem[]
+
+  @@index([caseId, position])
+}
+
+model ProgressNote {
+  id             String   @id @default(cuid())
+  caseId         String
+  date           String   @default("")
+  hospitalDay    String   @default("")
+  vitals         String   @default("{}")
+  diet           String   @default("")
+  io             String   @default("")
+  overnightEvent String   @default("")
+  drainTube      String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  case     Case                  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  problems ProgressNoteProblem[]
+
+  @@index([caseId, date])
+}
+
+model ProgressNoteProblem {
+  id                      String   @id @default(cuid())
+  progressNoteId          String
+  problemId               String?
+  titleSnapshot           String   @default("")
+  subjective              String   @default("")
+  objectivePe             String   @default("")
+  objectiveLab            String   @default("")
+  objectiveImageProcedure String   @default("")
+  objectiveDrain          String   @default("")
+  assessment              String   @default("")
+  planDx                  String   @default("")
+  planTx                  String   @default("")
+  planMonitoring          String   @default("")
+  planEducation           String   @default("")
+  position                Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  progressNote ProgressNote @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
+  problem      Problem?     @relation(fields: [problemId], references: [id], onDelete: SetNull)
+
+  @@index([progressNoteId, position])
+}
+
+model AiReview {
+  id            String   @id @default(cuid())
+  caseId        String
+  targetType    String
+  targetId      String?
+  reviewType    String
+  promptVersion String
+  model         String
+  inputHash     String
+  feedback      String
+  renderedText  String   @default("")
+  createdAt     DateTime @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId, reviewType, createdAt])
+}
