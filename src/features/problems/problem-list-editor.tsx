@@ -26,10 +26,16 @@ export function ProblemListEditor({
   rows: initialRows,
   finalImpressions,
   action,
+  currentHref,
+  previousHref,
+  nextHref,
 }: {
   rows: ProblemDraft[];
   finalImpressions: Array<{ id: string; rank: number; title: string }>;
   action: (formData: FormData) => void | Promise<void>;
+  currentHref?: string;
+  previousHref?: string;
+  nextHref?: string;
 }) {
   const [rows, setRows] = useState(initialRows.length ? initialRows : [blankProblem(1)]);
 
@@ -113,7 +119,12 @@ export function ProblemListEditor({
         <Plus className="h-4 w-4" />
         Add problem
       </Button>
-      <SaveBar label="Save problem list" />
+      <SaveBar
+        label="Save problem list"
+        currentHref={currentHref}
+        previousHref={previousHref}
+        nextHref={nextHref}
+      />
     </form>
   );
 }

@@ -24,10 +24,16 @@ export function ImpressionTable({
   rows: initialRows,
   stage,
   action,
+  currentHref,
+  previousHref,
+  nextHref,
 }: {
   rows: ImpressionDraft[];
   stage: ImpressionStage;
   action: (formData: FormData) => void | Promise<void>;
+  currentHref?: string;
+  previousHref?: string;
+  nextHref?: string;
 }) {
   const [rows, setRows] = useState(initialRows.length ? initialRows : [blankRow(1)]);
   const showMissingData = stage === "INITIAL";
@@ -110,7 +116,12 @@ export function ImpressionTable({
         <Plus className="h-4 w-4" />
         Add impression
       </Button>
-      <SaveBar label="Save impressions" />
+      <SaveBar
+        label="Save impressions"
+        currentHref={currentHref}
+        previousHref={previousHref}
+        nextHref={nextHref}
+      />
     </form>
   );
 }

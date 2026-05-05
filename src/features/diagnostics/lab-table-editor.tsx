@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,16 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
     );
   }
 
+  function moveColumn(index: number, direction: -1 | 1) {
+    setColumns((current) => {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= current.length) return current;
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  }
+
   return (
     <div className="space-y-3">
       <input type="hidden" name="labTable" value={JSON.stringify(labTable)} />
@@ -54,20 +64,40 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         <table className="min-w-full border-collapse text-sm">
           <thead className="bg-teal-50">
             <tr>
-              {columns.map((column) => (
+              {columns.map((column, columnIndex) => (
                 <th key={column} className="min-w-36 border-b border-r border-teal-100 p-2 text-left font-semibold text-teal-950">
                   <div className="flex items-center justify-between gap-2">
                     <span>{column}</span>
-                    {columns.length > 1 ? (
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="text-slate-400 hover:text-rose-600"
-                        onClick={() => removeColumn(column)}
-                        aria-label={`Remove ${column}`}
+                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-30"
+                        onClick={() => moveColumn(columnIndex, -1)}
+                        disabled={columnIndex === 0}
+                        aria-label={`Move ${column} left`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <ArrowLeft className="h-3.5 w-3.5" />
                       </button>
-                    ) : null}
+                      <button
+                        type="button"
+                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-30"
+                        onClick={() => moveColumn(columnIndex, 1)}
+                        disabled={columnIndex === columns.length - 1}
+                        aria-label={`Move ${column} right`}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                      {columns.length > 1 ? (
+                        <button
+                          type="button"
+                          className="rounded p-1 text-slate-400 hover:bg-white hover:text-rose-600"
+                          onClick={() => removeColumn(column)}
+                          aria-label={`Remove ${column}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </th>
               ))}

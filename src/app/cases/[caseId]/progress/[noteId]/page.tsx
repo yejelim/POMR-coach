@@ -4,7 +4,8 @@ import { getProgressNote, listAiReviews } from "@/server/services/case-service";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
-import type { Vitals } from "@/lib/types";
+import { workflowNav } from "@/lib/workflow";
+import type { SoapSubfield, Vitals } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
 
 export default async function ProgressNotePage({
@@ -16,6 +17,11 @@ export default async function ProgressNotePage({
   const note = await getProgressNote(noteId);
   if (!note || note.caseId !== caseId) notFound();
   const reviews = await listAiReviews(caseId, "SOAP_ASSESSMENT", noteId);
+  const nav = {
+    currentHref: `/cases/${caseId}/progress/${note.id}`,
+    previousHref: workflowNav(caseId, "progress").currentHref,
+    nextHref: workflowNav(caseId, "export").currentHref,
+  };
 
   return (
     <CasePageFrame
@@ -48,11 +54,13 @@ export default async function ProgressNotePage({
               problemId: problem.problemId ?? "",
               titleSnapshot: problem.titleSnapshot,
               subjective: problem.subjective,
+              objectiveItems: parseStoredJson<SoapSubfield[]>(problem.objectiveItems, []),
               objectivePe: problem.objectivePe,
               objectiveLab: problem.objectiveLab,
               objectiveImageProcedure: problem.objectiveImageProcedure,
               objectiveDrain: problem.objectiveDrain,
               assessment: problem.assessment,
+              planItems: parseStoredJson<SoapSubfield[]>(problem.planItems, []),
               planDx: problem.planDx,
               planTx: problem.planTx,
               planMonitoring: problem.planMonitoring,
@@ -65,6 +73,9 @@ export default async function ProgressNotePage({
             title: problem.title,
           }))}
           action={saveProgressNoteAction.bind(null, caseId, note.id)}
+          currentHref={nav.currentHref}
+          previousHref={nav.previousHref}
+          nextHref={nav.nextHref}
         />
         <AiFeedbackPanel
           caseId={caseId}

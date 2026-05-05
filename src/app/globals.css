@@ -28,16 +28,16 @@
   --color-brand-warning: var(--brand-warning);
   --color-brand-danger: var(--brand-danger);
   --color-brand-success: var(--brand-success);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: Pretendard, Inter, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family:
-    Pretendard, Inter, var(--font-geist-sans), "Apple SD Gothic Neo",
-    "Malgun Gothic", system-ui, sans-serif;
+    Pretendard, Inter, "Apple SD Gothic Neo", "Malgun Gothic", system-ui,
+    sans-serif;
 }
 
 textarea,

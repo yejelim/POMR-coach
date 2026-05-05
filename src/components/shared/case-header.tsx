@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileDown } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
+import { SaveStatusBanner } from "@/components/shared/save-status-banner";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export function CaseHeader({
                 <Badge key={tag}>{tag}</Badge>
               ))}
             </div>
+            <SaveStatusBanner />
           </div>
           <Button asChild variant="outline" className="shrink-0">
             <Link href={`/cases/${caseId}/export`}>

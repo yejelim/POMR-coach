@@ -6,6 +6,7 @@ import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ProblemListEditor } from "@/features/problems/problem-list-editor";
 import type { ProblemStatus } from "@/lib/types";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function ProblemsPage({
   params,
@@ -17,6 +18,7 @@ export default async function ProblemsPage({
   if (!caseRecord) notFound();
   const reviews = await listAiReviews(caseRecord.id, "PROBLEM_LIST");
   const finalImpressions = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
+  const nav = workflowNav(caseRecord.id, "problems");
 
   return (
     <CasePageFrame
@@ -56,6 +58,7 @@ export default async function ProblemsPage({
             title: row.title,
           }))}
           action={saveProblemsAction.bind(null, caseRecord.id)}
+          {...nav}
         />
         <AiFeedbackPanel caseId={caseRecord.id} reviewType="PROBLEM_LIST" history={reviews} />
       </div>

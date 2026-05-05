@@ -75,15 +75,23 @@ export type ProgressProblemDraft = {
   problemId?: string;
   titleSnapshot: string;
   subjective: string;
+  objectiveItems?: SoapSubfield[];
   objectivePe: string;
   objectiveLab: string;
   objectiveImageProcedure: string;
   objectiveDrain: string;
   assessment: string;
+  planItems?: SoapSubfield[];
   planDx: string;
   planTx: string;
   planMonitoring: string;
   planEducation: string;
+};
+
+export type SoapSubfield = {
+  id: string;
+  label: string;
+  value: string;
 };
 
 export type AiFeedback = {

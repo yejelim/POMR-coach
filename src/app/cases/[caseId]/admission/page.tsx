@@ -8,6 +8,7 @@ import { SectionTextarea } from "@/components/shared/section-textarea";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
 import type { Vitals } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function AdmissionPage({
   params,
@@ -19,6 +20,7 @@ export default async function AdmissionPage({
   if (!caseRecord) notFound();
 
   const admission = caseRecord.admissionNote;
+  const nav = workflowNav(caseRecord.id, "admission");
 
   return (
     <CasePageFrame
@@ -52,7 +54,7 @@ export default async function AdmissionPage({
             />
           ))}
         </div>
-        <SaveBar label="Save admission" />
+        <SaveBar label="Save admission" {...nav} />
       </form>
     </CasePageFrame>
   );

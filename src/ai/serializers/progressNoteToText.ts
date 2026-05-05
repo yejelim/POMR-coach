@@ -1,11 +1,15 @@
+import { objectiveItemsFromProblem, planItemsFromProblem } from "@/lib/soap-fields";
+
 type ProgressProblemLike = {
   titleSnapshot: string;
   subjective: string;
+  objectiveItems?: string | null;
   objectivePe: string;
   objectiveLab: string;
   objectiveImageProcedure: string;
   objectiveDrain: string;
   assessment: string;
+  planItems?: string | null;
   planDx: string;
   planTx: string;
   planMonitoring: string;
@@ -16,20 +20,20 @@ export function progressNoteToText(rows: ProgressProblemLike[]) {
   if (!rows.length) return "No SOAP problems entered.";
 
   return rows
-    .map((row, index) =>
-      [
+    .map((row, index) => {
+      const objectiveItems = objectiveItemsFromProblem(row)
+        .map((item) => `O/${item.label}: ${item.value || "-"}`)
+        .join("\n");
+      const planItems = planItemsFromProblem(row)
+        .map((item) => `P/${item.label}: ${item.value || "-"}`)
+        .join("\n");
+      return [
         `#${index + 1} ${row.titleSnapshot || "(untitled problem)"}`,
         `S: ${row.subjective || "-"}`,
-        `O/PE: ${row.objectivePe || "-"}`,
-        `O/Lab: ${row.objectiveLab || "-"}`,
-        `O/Image or procedure: ${row.objectiveImageProcedure || "-"}`,
-        `O/Drain: ${row.objectiveDrain || "-"}`,
+        objectiveItems,
         `A: ${row.assessment || "-"}`,
-        `P/Dx: ${row.planDx || "-"}`,
-        `P/Tx: ${row.planTx || "-"}`,
-        `P/Monitoring: ${row.planMonitoring || "-"}`,
-        `P/Education: ${row.planEducation || "-"}`,
-      ].join("\n"),
-    )
+        planItems,
+      ].join("\n");
+    })
     .join("\n\n");
 }

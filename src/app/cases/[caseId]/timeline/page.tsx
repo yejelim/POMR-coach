@@ -4,6 +4,7 @@ import { getCaseBundle } from "@/server/services/case-service";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
 import { TimelineEditor } from "@/features/timeline/timeline-editor";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function TimelinePage({
   params,
@@ -13,6 +14,7 @@ export default async function TimelinePage({
   const { caseId } = await params;
   const caseRecord = await getCaseBundle(caseId);
   if (!caseRecord) notFound();
+  const nav = workflowNav(caseRecord.id, "timeline");
 
   return (
     <CasePageFrame
@@ -45,6 +47,7 @@ export default async function TimelinePage({
           question: entry.question,
         }))}
         action={saveTimelineAction.bind(null, caseRecord.id)}
+        {...nav}
       />
     </CasePageFrame>
   );

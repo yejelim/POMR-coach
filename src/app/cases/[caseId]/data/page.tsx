@@ -6,6 +6,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
 import { LabTableEditor } from "@/features/diagnostics/lab-table-editor";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function DiagnosticDataPage({
   params,
@@ -17,6 +18,7 @@ export default async function DiagnosticDataPage({
   if (!caseRecord) notFound();
 
   const data = caseRecord.diagnosticData;
+  const nav = workflowNav(caseRecord.id, "data");
 
   return (
     <CasePageFrame
@@ -61,7 +63,7 @@ export default async function DiagnosticDataPage({
             />
           </div>
         </section>
-        <SaveBar label="Save data" />
+        <SaveBar label="Save data" {...nav} />
       </form>
     </CasePageFrame>
   );

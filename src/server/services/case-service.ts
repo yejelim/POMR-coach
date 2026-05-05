@@ -126,6 +126,8 @@ export async function upsertAdmission(
     allergy: string;
     familyHistory: string;
     socialHistory: string;
+    alcoholHistory: string;
+    smokingHistory: string;
     ros: string;
     physicalExam: string;
     initialVitals: Vitals;
@@ -255,19 +257,41 @@ export async function updateProgressNote(
   const cleanProblems = input.problems
     .map((row) => ({
       problemId: row.problemId || null,
-      titleSnapshot: row.titleSnapshot.trim(),
-      subjective: row.subjective.trim(),
-      objectivePe: row.objectivePe.trim(),
-      objectiveLab: row.objectiveLab.trim(),
-      objectiveImageProcedure: row.objectiveImageProcedure.trim(),
-      objectiveDrain: row.objectiveDrain.trim(),
-      assessment: row.assessment.trim(),
-      planDx: row.planDx.trim(),
-      planTx: row.planTx.trim(),
-      planMonitoring: row.planMonitoring.trim(),
-      planEducation: row.planEducation.trim(),
+      titleSnapshot: (row.titleSnapshot ?? "").trim(),
+      subjective: (row.subjective ?? "").trim(),
+      objectiveItems: row.objectiveItems ?? [],
+      objectivePe: (row.objectivePe ?? "").trim(),
+      objectiveLab: (row.objectiveLab ?? "").trim(),
+      objectiveImageProcedure: (row.objectiveImageProcedure ?? "").trim(),
+      objectiveDrain: (row.objectiveDrain ?? "").trim(),
+      assessment: (row.assessment ?? "").trim(),
+      planItems: row.planItems ?? [],
+      planDx: (row.planDx ?? "").trim(),
+      planTx: (row.planTx ?? "").trim(),
+      planMonitoring: (row.planMonitoring ?? "").trim(),
+      planEducation: (row.planEducation ?? "").trim(),
     }))
-    .filter((row) => Object.values(row).some((value) => String(value ?? "").trim()));
+    .filter(
+      (row) =>
+        row.titleSnapshot ||
+        row.subjective ||
+        row.assessment ||
+        row.objectiveItems.some((item) => item.label.trim() || item.value.trim()) ||
+        row.planItems.some((item) => item.label.trim() || item.value.trim()) ||
+        row.objectivePe ||
+        row.objectiveLab ||
+        row.objectiveImageProcedure ||
+        row.objectiveDrain ||
+        row.planDx ||
+        row.planTx ||
+        row.planMonitoring ||
+        row.planEducation,
+    )
+    .map((row) => ({
+      ...row,
+      objectiveItems: stringifyStoredJson(row.objectiveItems),
+      planItems: stringifyStoredJson(row.planItems),
+    }));
 
   return prisma.$transaction(async (tx) => {
     await tx.progressNoteProblem.deleteMany({ where: { progressNoteId: noteId } });

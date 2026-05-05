@@ -18,9 +18,15 @@ const blankEntry: TimelineDraft = {
 export function TimelineEditor({
   entries,
   action,
+  currentHref,
+  previousHref,
+  nextHref,
 }: {
   entries: TimelineDraft[];
   action: (formData: FormData) => void | Promise<void>;
+  currentHref?: string;
+  previousHref?: string;
+  nextHref?: string;
 }) {
   const [rows, setRows] = useState(entries.length ? entries : [blankEntry]);
 
@@ -89,7 +95,12 @@ export function TimelineEditor({
         <Plus className="h-4 w-4" />
         Add entry
       </Button>
-      <SaveBar label="Save timeline" />
+      <SaveBar
+        label="Save timeline"
+        currentHref={currentHref}
+        previousHref={previousHref}
+        nextHref={nextHref}
+      />
     </form>
   );
 }

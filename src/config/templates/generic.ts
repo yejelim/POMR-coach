@@ -23,6 +23,8 @@ export const genericTemplate = {
     ["allergy", "Allergy"],
     ["familyHistory", "Family history"],
     ["socialHistory", "Social history"],
+    ["alcoholHistory", "Alcohol history - duration / type / amount"],
+    ["smokingHistory", "Smoking history - duration / amount / pack-year"],
     ["ros", "ROS"],
     ["physicalExam", "Physical examination"],
     ["imageProcedureText", "Image/procedure text findings"],

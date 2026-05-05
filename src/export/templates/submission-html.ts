@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
+import { objectiveItemsFromProblem, planItemsFromProblem } from "@/lib/soap-fields";
 
 type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/services/case-service").getCaseBundle>>>;
 
@@ -59,6 +60,8 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
     field("Allergy", admission?.allergy),
     field("Family history", admission?.familyHistory),
     field("Social history", admission?.socialHistory),
+    field("Alcohol history", admission?.alcoholHistory),
+    field("Smoking history", admission?.smokingHistory),
     field("ROS", admission?.ros),
     field("Physical examination", admission?.physicalExam),
     field("Initial vital signs", vitalsToText(admission?.initialVitals)),
@@ -159,21 +162,19 @@ function progressNotes(notes: CaseBundle["progressNotes"]) {
           .map(
             (problem, index) => `<h3>#${index + 1} ${escapeHtml(problem.titleSnapshot)}</h3>
           ${field("S", problem.subjective)}
-          ${field("O - PE", problem.objectivePe)}
-          ${field("O - Lab", problem.objectiveLab)}
-          ${field("O - Image/Procedure", problem.objectiveImageProcedure)}
-          ${field("O - Drain", problem.objectiveDrain)}
+          ${soapSubfields("O", objectiveItemsFromProblem(problem))}
           ${field("A", problem.assessment)}
-          ${field("P - Dx", problem.planDx)}
-          ${field("P - Tx", problem.planTx)}
-          ${field("P - Monitoring", problem.planMonitoring)}
-          ${field("P - Education", problem.planEducation)}`,
+          ${soapSubfields("P", planItemsFromProblem(problem))}`,
           )
           .join("")}`,
           )
           .join("")
       : "<p>-</p>"
   }</section>`;
+}
+
+function soapSubfields(prefix: string, items: Array<{ label: string; value: string }>) {
+  return items.map((item) => field(`${prefix} - ${item.label}`, item.value)).join("");
 }
 
 function vitalsToText(value: unknown) {

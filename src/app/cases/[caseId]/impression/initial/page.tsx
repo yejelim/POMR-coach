@@ -5,6 +5,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ImpressionTable } from "@/features/impressions/impression-table";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function InitialImpressionPage({
   params,
@@ -15,6 +16,7 @@ export default async function InitialImpressionPage({
   const caseRecord = await getCaseBundle(caseId);
   if (!caseRecord) notFound();
   const reviews = await listAiReviews(caseRecord.id, "INITIAL_IMPRESSION");
+  const nav = workflowNav(caseRecord.id, "initial");
 
   return (
     <CasePageFrame
@@ -54,6 +56,7 @@ export default async function InitialImpressionPage({
               txPlan: row.txPlan,
             }))}
           action={saveImpressionsAction.bind(null, caseRecord.id, "INITIAL")}
+          {...nav}
         />
         <AiFeedbackPanel
           caseId={caseRecord.id}

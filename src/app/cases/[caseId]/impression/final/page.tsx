@@ -4,6 +4,7 @@ import { getCaseBundle, listAiReviews } from "@/server/services/case-service";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ImpressionTable } from "@/features/impressions/impression-table";
+import { workflowNav } from "@/lib/workflow";
 
 export default async function FinalImpressionPage({
   params,
@@ -14,6 +15,7 @@ export default async function FinalImpressionPage({
   const caseRecord = await getCaseBundle(caseId);
   if (!caseRecord) notFound();
   const reviews = await listAiReviews(caseRecord.id, "FINAL_IMPRESSION");
+  const nav = workflowNav(caseRecord.id, "final");
 
   return (
     <CasePageFrame
@@ -47,6 +49,7 @@ export default async function FinalImpressionPage({
               txPlan: row.txPlan,
             }))}
           action={saveImpressionsAction.bind(null, caseRecord.id, "FINAL")}
+          {...nav}
         />
         <AiFeedbackPanel
           caseId={caseRecord.id}

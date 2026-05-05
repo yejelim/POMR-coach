@@ -36,11 +36,13 @@ export async function updateCaseAction(caseId: string, formData: FormData) {
     tags: splitTags(toText(formData.get("tags"))),
   });
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function saveTimelineAction(caseId: string, formData: FormData) {
   await replaceTimeline(caseId, parseJsonField(formData.get("entries"), []));
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function saveAdmissionAction(caseId: string, formData: FormData) {
@@ -53,12 +55,15 @@ export async function saveAdmissionAction(caseId: string, formData: FormData) {
     allergy: toText(formData.get("allergy")),
     familyHistory: toText(formData.get("familyHistory")),
     socialHistory: toText(formData.get("socialHistory")),
+    alcoholHistory: toText(formData.get("alcoholHistory")),
+    smokingHistory: toText(formData.get("smokingHistory")),
     ros: toText(formData.get("ros")),
     physicalExam: toText(formData.get("physicalExam")),
     initialVitals: parseVitals(formData),
     imageProcedureText: toText(formData.get("imageProcedureText")),
   });
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function saveDiagnosticDataAction(caseId: string, formData: FormData) {
@@ -69,6 +74,7 @@ export async function saveDiagnosticDataAction(caseId: string, formData: FormDat
     summaryText: toText(formData.get("summaryText")),
   });
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function saveImpressionsAction(
@@ -78,11 +84,13 @@ export async function saveImpressionsAction(
 ) {
   await replaceImpressions(caseId, stage, parseJsonField(formData.get("rows"), []));
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function saveProblemsAction(caseId: string, formData: FormData) {
   await replaceProblems(caseId, parseJsonField(formData.get("rows"), []));
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 export async function createProgressNoteAction(caseId: string) {
@@ -106,6 +114,7 @@ export async function saveProgressNoteAction(
     problems: parseJsonField(formData.get("problems"), []),
   });
   revalidateCase(caseId);
+  redirectIfRequested(formData);
 }
 
 function parseVitals(formData: FormData): Vitals {
@@ -128,4 +137,11 @@ function splitTags(value: string) {
 function revalidateCase(caseId: string) {
   revalidatePath("/cases");
   revalidatePath(`/cases/${caseId}`);
+}
+
+function redirectIfRequested(formData: FormData) {
+  const redirectTo = toText(formData.get("redirectTo"));
+  if (redirectTo.startsWith("/cases")) {
+    redirect(redirectTo);
+  }
 }

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { workflowNav } from "@/lib/workflow";
 
 const workflowCards = [
   ["Timeline Scratchpad", "Informal EHR review and uncertainty tracking.", "timeline"],
@@ -30,6 +31,7 @@ export default async function CaseOverviewPage({
   const { caseId } = await params;
   const caseRecord = await getCaseBundle(caseId);
   if (!caseRecord) notFound();
+  const nav = workflowNav(caseRecord.id, "overview");
 
   return (
     <CasePageFrame
@@ -94,7 +96,7 @@ export default async function CaseOverviewPage({
                 <Badge>No PHI</Badge>
                 <Badge>Local SQLite</Badge>
               </div>
-              <SaveBar label="Save settings" />
+              <SaveBar label="Save settings" {...nav} />
             </form>
           </CardContent>
         </Card>
