@@ -2,6 +2,8 @@
 
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 
 export function SaveBar({
@@ -16,14 +18,33 @@ export function SaveBar({
   nextHref?: string;
 }) {
   const searchParams = useSearchParams();
-  const saved = searchParams.get("saved") === "1";
+  const { pending } = useFormStatus();
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const savedKey = searchParams.toString();
+  const savedFromUrl = searchParams.get("saved") === "1";
+  const [dirtyState, setDirtyState] = useState({ key: savedKey, dirty: false });
+  const dirty = dirtyState.key === savedKey && dirtyState.dirty;
+  const saved = savedFromUrl && !dirty && !pending;
   const currentTarget = withSaved(currentHref);
 
+  useEffect(() => {
+    const form = barRef.current?.closest("form");
+    if (!form) return;
+
+    const markDirty = () => setDirtyState({ key: savedKey, dirty: true });
+    form.addEventListener("input", markDirty);
+    form.addEventListener("change", markDirty);
+    return () => {
+      form.removeEventListener("input", markDirty);
+      form.removeEventListener("change", markDirty);
+    };
+  }, [savedKey]);
+
   return (
-    <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div ref={barRef} className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">
         {previousHref ? (
-          <Button type="submit" variant="outline" name="redirectTo" value={withSaved(previousHref)}>
+          <Button type="submit" variant="outline" name="redirectTo" value={withSaved(previousHref)} disabled={pending}>
             <ArrowLeft className="h-4 w-4" />
             Save & 이전
           </Button>
@@ -32,17 +53,21 @@ export function SaveBar({
           type="submit"
           name="redirectTo"
           value={currentTarget}
+          disabled={pending}
           className={saved ? "bg-emerald-600 hover:bg-emerald-700" : undefined}
         >
           <Save className="h-4 w-4" />
-          {saved ? "저장 완료" : label}
+          {pending ? "저장 중..." : saved ? "저장 완료" : label}
         </Button>
         {nextHref ? (
-          <Button type="submit" variant="secondary" name="redirectTo" value={withSaved(nextHref)}>
+          <Button type="submit" variant="secondary" name="redirectTo" value={withSaved(nextHref)} disabled={pending}>
             Save & 다음
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : null}
+        <span className={saved ? "text-sm font-medium text-emerald-700" : dirty ? "text-sm font-medium text-amber-700" : "text-sm text-slate-500"}>
+          {pending ? "저장하는 중입니다." : saved ? "최근 변경사항이 저장되었습니다." : dirty ? "수정됨 - 저장이 필요합니다." : ""}
+        </span>
       </div>
     </div>
   );

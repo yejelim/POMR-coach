@@ -87,6 +87,7 @@ model DiagnosticData {
   id                    String   @id @default(cuid())
   caseId                String   @unique
   labTable              String   @default("")
+  imageAttachments      String   @default("")
   imageFindingsText     String   @default("")
   procedureFindingsText String   @default("")
   summaryText           String   @default("")
@@ -167,6 +168,7 @@ model ProgressNoteProblem {
   objectiveImageProcedure String   @default("")
   objectiveDrain          String   @default("")
   objectiveItems          String   @default("")
+  objectiveImages         String   @default("")
   assessment              String   @default("")
   planDx                  String   @default("")
   planTx                  String   @default("")

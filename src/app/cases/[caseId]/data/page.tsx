@@ -5,7 +5,10 @@ import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
+import { DiagnosticImageSection } from "@/features/diagnostics/diagnostic-image-section";
 import { LabTableEditor } from "@/features/diagnostics/lab-table-editor";
+import type { UploadedImage } from "@/lib/types";
+import { parseStoredJson } from "@/lib/utils";
 import { workflowNav } from "@/lib/workflow";
 
 export default async function DiagnosticDataPage({
@@ -33,7 +36,7 @@ export default async function DiagnosticDataPage({
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Lab / Image / Procedure Data</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Enter user-interpreted lab tables and official text reports. MVP does not parse EHR or interpret images.
+          Enter lab tables, official text reports, and de-identified images for export. MVP does not interpret images.
         </p>
       </div>
       <form action={saveDiagnosticDataAction.bind(null, caseRecord.id)} className="space-y-5">
@@ -41,6 +44,9 @@ export default async function DiagnosticDataPage({
           <h3 className="mb-3 text-base font-semibold">Lab table</h3>
           <LabTableEditor table={normalizeLabTable(data?.labTable)} />
         </section>
+        <DiagnosticImageSection
+          images={parseStoredJson<UploadedImage[]>(data?.imageAttachments, [])}
+        />
         <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-2">
           <SectionTextarea
             name="imageFindingsText"

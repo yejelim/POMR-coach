@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { objectiveItemsFromProblem, planItemsFromProblem } from "@/lib/soap-fields";
+import type { UploadedImage } from "@/lib/types";
+import { parseStoredJson } from "@/lib/utils";
 
 type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/services/case-service").getCaseBundle>>>;
 
@@ -11,6 +13,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   const initialRows = caseRecord.impressionRows.filter((row) => row.stage === "INITIAL");
   const finalRows = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
   const labTable = normalizeLabTable(data?.labTable);
+  const diagnosticImages = parseStoredJson<UploadedImage[]>(data?.imageAttachments, []);
   const logoDataUri = getLogoDataUri();
 
   return `<!doctype html>
@@ -33,6 +36,12 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
     table { border-collapse: collapse; margin: 8px 0 14px; width: 100%; }
     th, td { border: 1px solid #e2e8f0; padding: 5px; text-align: left; vertical-align: top; }
     th { background: #ccfbf1; color: #134e4a; font-weight: 700; }
+    .soap-table th:first-child { width: 84px; }
+    .image-grid { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 8px 0 14px; }
+    .image-card { break-inside: avoid; border: 1px solid #e2e8f0; padding: 6px; }
+    .image-card img { display: block; max-height: 220px; max-width: 100%; object-fit: contain; width: 100%; }
+    .image-caption { color: #334155; font-size: 11px; font-weight: 700; margin-top: 4px; }
+    .image-note { color: #64748b; font-size: 10px; margin-top: 2px; white-space: pre-wrap; }
     .pdf-header { align-items: center; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; }
     .pdf-logo { height: 30px; object-fit: contain; width: 30px; }
     .brand { color: #0f766e; font-size: 13px; font-weight: 700; margin: 0; }
@@ -70,6 +79,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   ${impressionTable("Pre-test Initial Impression", initialRows, true)}
   ${section("Lab / Image / Procedure Summary", [
     labTableHtml(labTable),
+    renderImages("Uploaded images", diagnosticImages),
     field("Image findings", data?.imageFindingsText),
     field("Procedure findings", data?.procedureFindingsText),
     field("Summary", data?.summaryText),
@@ -93,88 +103,152 @@ function getLogoDataUri() {
 }
 
 function section(title: string, parts: string[]) {
-  return `<section><h2>${escapeHtml(title)}</h2>${parts.join("\n")}</section>`;
+  const meaningfulParts = parts.filter((part) => part.trim());
+  if (!meaningfulParts.length) return "";
+  return `<section><h2>${escapeHtml(title)}</h2>${meaningfulParts.join("\n")}</section>`;
 }
 
 function field(label: string, value: unknown) {
   const text = String(value ?? "").trim();
-  if (!text) return `<h3>${escapeHtml(label)}</h3><p>-</p>`;
+  if (!text) return "";
   return `<h3>${escapeHtml(label)}</h3><p>${escapeHtml(text)}</p>`;
 }
 
 function impressionTable(title: string, rows: CaseBundle["impressionRows"], includeMissing: boolean) {
+  const meaningfulRows = rows.filter((row) =>
+    [row.title, row.evidence, row.evidenceAgainst, row.missingData, row.dxPlan, row.txPlan].some(hasText),
+  );
+  if (!meaningfulRows.length) return "";
+
   return `<section><h2>${escapeHtml(title)}</h2><table><thead><tr>
     <th>Rank</th><th>Impression</th><th>Evidence</th><th>Against / uncertainty</th>
     ${includeMissing ? "<th>Missing Data</th>" : ""}<th>Dx Plan</th><th>Tx Plan</th>
   </tr></thead><tbody>
     ${
-      rows.length
-        ? rows
+      meaningfulRows
             .map(
               (row) => `<tr><td>${row.rank}</td><td>${escapeHtml(row.title)}</td><td>${escapeHtml(row.evidence)}</td><td>${escapeHtml(row.evidenceAgainst)}</td>${includeMissing ? `<td>${escapeHtml(row.missingData)}</td>` : ""}<td>${escapeHtml(row.dxPlan)}</td><td>${escapeHtml(row.txPlan)}</td></tr>`,
             )
             .join("")
-        : `<tr><td colspan="${includeMissing ? 7 : 6}">-</td></tr>`
     }
   </tbody></table></section>`;
 }
 
 function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
+  const meaningfulRows = table.rows.filter((row) =>
+    table.columns.some((column) => hasText(row[column])),
+  );
+  if (!meaningfulRows.length) return "";
+
   return `<h3>Lab table</h3><table><thead><tr>${table.columns
     .map((column) => `<th>${escapeHtml(column)}</th>`)
     .join("")}</tr></thead><tbody>${
-    table.rows.length
-      ? table.rows
+    meaningfulRows
           .map(
             (row) =>
               `<tr>${table.columns.map((column) => `<td>${escapeHtml(row[column] ?? "")}</td>`).join("")}</tr>`,
           )
           .join("")
-      : `<tr><td colspan="${table.columns.length}">-</td></tr>`
   }</tbody></table>`;
 }
 
 function problemList(problems: CaseBundle["problems"]) {
+  const meaningfulProblems = problems.filter((problem) =>
+    [problem.title, problem.evidence, problem.notes].some(hasText),
+  );
+  if (!meaningfulProblems.length) return "";
+
   return `<section><h2>Problem List</h2><table><thead><tr><th>Priority</th><th>Problem</th><th>Status</th><th>Evidence</th><th>Notes</th></tr></thead><tbody>${
-    problems.length
-      ? problems
+    meaningfulProblems
           .map(
             (problem) =>
               `<tr><td>${problem.priority}</td><td>${escapeHtml(problem.title)}</td><td>${escapeHtml(problem.status)}</td><td>${escapeHtml(problem.evidence)}</td><td>${escapeHtml(problem.notes)}</td></tr>`,
           )
           .join("")
-      : "<tr><td colspan=\"5\">-</td></tr>"
   }</tbody></table></section>`;
 }
 
 function progressNotes(notes: CaseBundle["progressNotes"]) {
-  return `<section><h2>Progress Notes</h2>${
-    notes.length
-      ? notes
-          .map(
-            (note) => `<h3>${escapeHtml(note.date || "Undated")} ${escapeHtml(note.hospitalDay || "")}</h3>
-        ${field("Vitals", vitalsToText(note.vitals))}
-        ${field("Diet", note.diet)}
-        ${field("I/O", note.io)}
-        ${field("Overnight event", note.overnightEvent)}
-        ${field("Drain/tube", note.drainTube)}
-        ${note.problems
-          .map(
-            (problem, index) => `<h3>#${index + 1} ${escapeHtml(problem.titleSnapshot)}</h3>
-          ${field("S", problem.subjective)}
-          ${soapSubfields("O", objectiveItemsFromProblem(problem))}
-          ${field("A", problem.assessment)}
-          ${soapSubfields("P", planItemsFromProblem(problem))}`,
-          )
-          .join("")}`,
-          )
-          .join("")
-      : "<p>-</p>"
-  }</section>`;
+  const renderedNotes = notes
+    .map(renderProgressNote)
+    .filter((note) => note.trim())
+    .join("");
+  if (!renderedNotes) return "";
+
+  return `<section><h2>Progress Notes</h2>${renderedNotes}</section>`;
 }
 
-function soapSubfields(prefix: string, items: Array<{ label: string; value: string }>) {
-  return items.map((item) => field(`${prefix} - ${item.label}`, item.value)).join("");
+function renderProgressNote(note: CaseBundle["progressNotes"][number]) {
+  const headerParts = [
+    note.date ? escapeHtml(note.date) : "",
+    note.hospitalDay ? escapeHtml(note.hospitalDay) : "",
+  ].filter(Boolean);
+  const sharedFields = [
+    field("Vitals", vitalsToText(note.vitals)),
+    field("Diet", note.diet),
+    field("I/O", note.io),
+    field("Overnight event", note.overnightEvent),
+    field("Drain/tube", note.drainTube),
+  ].filter((item) => item.trim());
+  const problemTables = note.problems.map(renderSoapProblem).filter((item) => item.trim());
+
+  if (!headerParts.length && !sharedFields.length && !problemTables.length) return "";
+
+  return `<section>
+    ${headerParts.length ? `<h3>${headerParts.join(" ")}</h3>` : ""}
+    ${sharedFields.join("")}
+    ${problemTables.join("")}
+  </section>`;
+}
+
+function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problems"][number]) {
+  const objectiveItems = objectiveItemsFromProblem(problem).filter((item) => hasText(item.label) || hasText(item.value));
+  const objectiveImages = parseStoredJson<UploadedImage[]>(problem.objectiveImages, []);
+  const planItems = planItemsFromProblem(problem).filter((item) => hasText(item.label) || hasText(item.value));
+  const rows = [
+    problem.titleSnapshot ? ["Problem", escapeHtml(problem.titleSnapshot)] : null,
+    hasText(problem.subjective) ? ["S", escapeHtml(problem.subjective)] : null,
+    objectiveItems.length || objectiveImages.length
+      ? [
+          "O",
+          `${soapSubfields(objectiveItems)}${renderImages("", objectiveImages)}`,
+        ]
+      : null,
+    hasText(problem.assessment) ? ["A", escapeHtml(problem.assessment)] : null,
+    planItems.length ? ["P", soapSubfields(planItems)] : null,
+  ].filter((row): row is [string, string] => Boolean(row));
+
+  if (!rows.length) return "";
+
+  return `<section>${
+    problem.titleSnapshot ? `<h3>Problem: ${escapeHtml(problem.titleSnapshot)}</h3>` : ""
+  }<table class="soap-table"><thead><tr><th>SOAP item</th><th>Content</th></tr></thead><tbody>${rows
+    .map(([label, content]) => `<tr><th>${escapeHtml(label)}</th><td>${content}</td></tr>`)
+    .join("")}</tbody></table></section>`;
+}
+
+function soapSubfields(items: Array<{ label: string; value: string }>) {
+  if (!items.length) return "";
+  return `<table><tbody>${items
+    .map(
+      (item) =>
+        `<tr><th>${escapeHtml(item.label || "Item")}</th><td>${escapeHtml(item.value)}</td></tr>`,
+    )
+    .join("")}</tbody></table>`;
+}
+
+function renderImages(title: string, images: UploadedImage[]) {
+  const meaningfulImages = images.filter((image) => image.dataUrl);
+  if (!meaningfulImages.length) return "";
+  return `${title ? `<h3>${escapeHtml(title)}</h3>` : ""}<div class="image-grid">${meaningfulImages
+    .map(
+      (image) => `<figure class="image-card">
+        <img src="${escapeAttribute(image.dataUrl)}" alt="${escapeAttribute(image.caption || image.fileName)}" />
+        ${hasText(image.caption) ? `<figcaption class="image-caption">${escapeHtml(image.caption)}</figcaption>` : ""}
+        ${hasText(image.note) ? `<div class="image-note">${escapeHtml(image.note)}</div>` : ""}
+      </figure>`,
+    )
+    .join("")}</div>`;
 }
 
 function vitalsToText(value: unknown) {
@@ -205,4 +279,12 @@ function escapeHtml(value: unknown) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttribute(value: unknown) {
+  return escapeHtml(value);
+}
+
+function hasText(value: unknown) {
+  return String(value ?? "").trim().length > 0;
 }

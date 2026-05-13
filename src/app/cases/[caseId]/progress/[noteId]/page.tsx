@@ -5,7 +5,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
 import { workflowNav } from "@/lib/workflow";
-import type { SoapSubfield, Vitals } from "@/lib/types";
+import type { SoapSubfield, UploadedImage, Vitals } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
 
 export default async function ProgressNotePage({
@@ -55,6 +55,7 @@ export default async function ProgressNotePage({
               titleSnapshot: problem.titleSnapshot,
               subjective: problem.subjective,
               objectiveItems: parseStoredJson<SoapSubfield[]>(problem.objectiveItems, []),
+              objectiveImages: parseStoredJson<UploadedImage[]>(problem.objectiveImages, []),
               objectivePe: problem.objectivePe,
               objectiveLab: problem.objectiveLab,
               objectiveImageProcedure: problem.objectiveImageProcedure,

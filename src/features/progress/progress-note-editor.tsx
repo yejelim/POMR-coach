@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { SaveBar } from "@/components/shared/save-bar";
+import { ImageAttachmentEditor } from "@/components/shared/image-attachment-editor";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ function blankProblem(): ProgressProblemDraft {
     titleSnapshot: "",
     subjective: "",
     objectiveItems: objectiveItemsFromProblem({}),
+    objectiveImages: [],
     objectivePe: "",
     objectiveLab: "",
     objectiveImageProcedure: "",
@@ -172,6 +174,13 @@ export function ProgressNoteEditor({
                     addLabel="Add O item"
                     onChange={(items) => updateItems(index, "objectiveItems", items)}
                   />
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <ImageAttachmentEditor
+                      images={row.objectiveImages ?? []}
+                      onChange={(images) => update(index, { objectiveImages: images })}
+                      label="Upload O image"
+                    />
+                  </div>
                 </SoapRow>
                 <SoapRow label="A">
                   <Textarea

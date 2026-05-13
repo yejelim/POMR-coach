@@ -2,12 +2,14 @@
 
 Local-first web app for Korean medical clerkship POMR practice.
 
+POMR Coach can be used as an AI-free local note-writing and PDF export tool. AI review is optional and remains framed as educational feedback, not diagnosis or treatment support.
+
 ## Stack
 
 - Next.js App Router + TypeScript
 - Tailwind CSS + shadcn-style UI primitives
 - Prisma 7 + SQLite + `@prisma/adapter-better-sqlite3`
-- OpenAI-compatible server-side AI review route
+- Optional OpenAI-compatible server-side AI review route
 - Playwright HTML-to-PDF export
 
 ## Brand Assets
@@ -44,6 +46,15 @@ Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 9. Submission PDF Export
 
 The app is educational note-writing practice only. It does not provide diagnostic or treatment decision support, does not integrate with EHR, and does not support AI image interpretation.
+
+## Current Export Features
+
+- Submission-oriented admission, impression, lab/image/procedure, problem list, and progress note export
+- Empty fields are skipped in the exported PDF for cleaner submission notes
+- De-identified image attachments can be added to diagnostic data and SOAP Objective sections for export
+- Lab tables can be edited manually or populated from `.xlsx` files copied/exported from an EHR
+
+Image attachments are stored locally as data URLs in SQLite for MVP simplicity. Keep uploads de-identified, under 5MB per image, and under 10MB per section.
 
 ## Useful Commands
 

@@ -69,6 +69,7 @@ export async function saveAdmissionAction(caseId: string, formData: FormData) {
 export async function saveDiagnosticDataAction(caseId: string, formData: FormData) {
   await upsertDiagnosticData(caseId, {
     labTable: parseJsonField(formData.get("labTable"), defaultLabTable),
+    imageAttachments: parseJsonField(formData.get("imageAttachments"), []),
     imageFindingsText: toText(formData.get("imageFindingsText")),
     procedureFindingsText: toText(formData.get("procedureFindingsText")),
     summaryText: toText(formData.get("summaryText")),

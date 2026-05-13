@@ -26,6 +26,16 @@ export type LabTable = {
   rows: Array<Record<string, string>>;
 };
 
+export type UploadedImage = {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  dataUrl: string;
+  caption?: string;
+  note?: string;
+  createdAt?: string;
+};
+
 export const defaultLabTable: LabTable = {
   schemaVersion: 1,
   columns: [
@@ -76,6 +86,7 @@ export type ProgressProblemDraft = {
   titleSnapshot: string;
   subjective: string;
   objectiveItems?: SoapSubfield[];
+  objectiveImages?: UploadedImage[];
   objectivePe: string;
   objectiveLab: string;
   objectiveImageProcedure: string;

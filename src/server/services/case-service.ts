@@ -7,6 +7,7 @@ import {
   type ProblemDraft,
   type ProgressProblemDraft,
   type TimelineDraft,
+  type UploadedImage,
   type Vitals,
 } from "@/lib/types";
 import { stringifyStoredJson } from "@/lib/utils";
@@ -145,6 +146,7 @@ export async function upsertDiagnosticData(
   caseId: string,
   input: {
     labTable: LabTable;
+    imageAttachments: UploadedImage[];
     imageFindingsText: string;
     procedureFindingsText: string;
     summaryText: string;
@@ -152,8 +154,17 @@ export async function upsertDiagnosticData(
 ) {
   return prisma.diagnosticData.upsert({
     where: { caseId },
-    create: { ...input, caseId, labTable: stringifyStoredJson(input.labTable) },
-    update: { ...input, labTable: stringifyStoredJson(input.labTable) },
+    create: {
+      ...input,
+      caseId,
+      labTable: stringifyStoredJson(input.labTable),
+      imageAttachments: stringifyStoredJson(input.imageAttachments),
+    },
+    update: {
+      ...input,
+      labTable: stringifyStoredJson(input.labTable),
+      imageAttachments: stringifyStoredJson(input.imageAttachments),
+    },
   });
 }
 
@@ -260,6 +271,7 @@ export async function updateProgressNote(
       titleSnapshot: (row.titleSnapshot ?? "").trim(),
       subjective: (row.subjective ?? "").trim(),
       objectiveItems: row.objectiveItems ?? [],
+      objectiveImages: row.objectiveImages ?? [],
       objectivePe: (row.objectivePe ?? "").trim(),
       objectiveLab: (row.objectiveLab ?? "").trim(),
       objectiveImageProcedure: (row.objectiveImageProcedure ?? "").trim(),
@@ -277,6 +289,7 @@ export async function updateProgressNote(
         row.subjective ||
         row.assessment ||
         row.objectiveItems.some((item) => item.label.trim() || item.value.trim()) ||
+        row.objectiveImages.some((image) => image.dataUrl || image.caption?.trim() || image.note?.trim()) ||
         row.planItems.some((item) => item.label.trim() || item.value.trim()) ||
         row.objectivePe ||
         row.objectiveLab ||
@@ -290,6 +303,7 @@ export async function updateProgressNote(
     .map((row) => ({
       ...row,
       objectiveItems: stringifyStoredJson(row.objectiveItems),
+      objectiveImages: stringifyStoredJson(row.objectiveImages),
       planItems: stringifyStoredJson(row.planItems),
     }));
 
