@@ -25,10 +25,9 @@ export default async function CasesPage({
               Case Library
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Write first and reflect with AI.
+              Write your own POMR first and reflect with AI.
             </p>
             <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
-              먼저 직접 쓰고, 인공지능 어시스트와 되돌아보며, 한 케이스마다 성장합니다.
               이 서비스는 HealCode: We Heal Patient, with Code and Love에 의해 제작되었습니다.
             </p>
           </div>

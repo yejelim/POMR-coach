@@ -37,7 +37,7 @@ export function WorkflowNav({
       <div className="border-b border-slate-200 p-5">
         <AppLogo />
         <p className="mt-4 text-xs leading-5 text-slate-500">
-          먼저 직접 쓰고, AI feedback으로 reasoning을 되돌아봅니다.
+          Write your own POMR first and reflect with AI.
         </p>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

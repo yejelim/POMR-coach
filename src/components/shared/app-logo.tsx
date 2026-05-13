@@ -35,7 +35,7 @@ export function AppLogo({
           <div className="truncate text-sm font-semibold tracking-normal text-slate-950">
             POMR Coach
           </div>
-          <div className="truncate text-xs text-slate-500">Write first. Reflect with AI.</div>
+          <div className="truncate text-xs text-slate-500">Write your own POMR first and reflect with AI.</div>
         </div>
       ) : null}
     </Link>

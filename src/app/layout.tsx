@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "POMR Coach",
-  description: "Write first and reflect with AI.",
+  description: "Write your own POMR first and reflect with AI.",
   icons: {
     icon: "/POMR_coach_logo.png",
     apple: "/POMR_coach_logo.png",

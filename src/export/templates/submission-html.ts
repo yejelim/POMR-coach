@@ -55,7 +55,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
     ${logoDataUri ? `<img class="pdf-logo" src="${logoDataUri}" alt="POMR Coach" />` : ""}
     <div>
       <p class="brand">POMR Coach</p>
-      <p class="tagline">Write first. Reflect with AI. Learn from every case.</p>
+      <p class="tagline">Write your own POMR first and reflect with AI.</p>
     </div>
   </div>
   <h1>${escapeHtml(caseRecord.title)}</h1>

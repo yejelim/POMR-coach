@@ -1,5 +1,6 @@
 # POMR Coach
 
+This application was made by HealCode:We heal patients, with code and love.
 Local-first web app for Korean medical clerkship POMR practice.
 
 POMR Coach can be used as an AI-free local note-writing and PDF export tool. AI review is optional and remains framed as educational feedback, not diagnosis or treatment support.
