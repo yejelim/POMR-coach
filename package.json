@@ -1,23 +1,65 @@
 {
   "name": "pomr-coach",
   "version": "0.1.0",
+  "description": "Local-first POMR practice workspace for medical clerkship students.",
+  "author": "HealCode",
   "private": true,
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "desktop:prepare": "npm run build && node scripts/prepare-electron-build.mjs",
+    "desktop:dev": "npm run desktop:prepare && electron .",
+    "desktop:pack": "npm run desktop:prepare && electron-builder --dir",
+    "desktop:dist": "npm run desktop:prepare && electron-builder",
     "prisma:generate": "prisma generate",
     "db:apply": "prisma db push && prisma generate",
     "db:studio": "prisma studio"
+  },
+  "build": {
+    "appId": "com.healcode.pomrcoach",
+    "productName": "POMR Coach",
+    "asar": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      ".next/standalone/**/*",
+      "prisma/migrations/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education"
+    }
   },
   "dependencies": {
     "@playwright/test": "^1.59.1",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-slot": "^1.2.4",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.14.0",
@@ -35,6 +77,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^38.8.6",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "prisma": "^7.8.0",

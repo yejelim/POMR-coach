@@ -34,6 +34,22 @@ Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 
 `OPENAI_API_KEY` is optional for local development. Without it, AI review returns a deterministic local mock response so the write-first feedback workflow can still be tested.
 
+## Desktop App Builds
+
+For non-developer users, POMR Coach can be distributed as an Electron desktop app. The desktop app opens its own local window and stores data in the user's local app data folder.
+
+```bash
+npm run desktop:pack
+```
+
+Installer builds can be created with:
+
+```bash
+npm run desktop:dist
+```
+
+See [docs/DESKTOP_RELEASE.md](docs/DESKTOP_RELEASE.md) for GitHub Release packaging notes, unsigned build limitations, and future signing requirements.
+
 ## MVP Workflow
 
 1. Case Library
@@ -64,6 +80,8 @@ npm run dev
 npm run lint
 npm test
 npm run build
+npm run desktop:pack
+npm run desktop:dist
 npm run prisma:generate
 npm run db:apply
 ```
