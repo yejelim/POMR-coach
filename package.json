@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "desktop:prepare": "npm run build && node scripts/prepare-electron-build.mjs",
+    "icons:generate": "node scripts/generate-app-icons.mjs",
+    "desktop:prepare": "npm run icons:generate && npm run build && node scripts/prepare-electron-build.mjs",
     "desktop:dev": "npm run desktop:prepare && electron .",
     "desktop:pack": "npm run desktop:prepare && electron-builder --dir",
     "desktop:dist": "npm run desktop:prepare && electron-builder",
@@ -34,6 +35,7 @@
       "package.json"
     ],
     "mac": {
+      "icon": "build/icon.icns",
       "category": "public.app-category.education",
       "target": [
         "dmg",
@@ -41,12 +43,14 @@
       ]
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "zip"
       ]
     },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage",
         "deb"
@@ -82,6 +86,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "prisma": "^7.8.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",

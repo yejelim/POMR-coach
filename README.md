@@ -15,9 +15,16 @@ POMR Coach can be used as an AI-free local note-writing and PDF export tool. AI 
 
 ## Brand Assets
 
-Place the primary logo at `public/POMR_coach_logo.png`. The app also mirrors it to
-`src/app/icon.png` for the Next.js app icon. Keep the file name stable so the sidebar,
-case library, metadata icon, and PDF export can use the same asset.
+Place the primary logo at `public/POMR_coach_logo.png`. Keep the file name stable so
+the sidebar, case library, and PDF export can use the same full logo asset.
+
+Desktop/app icons are generated from the large P symbol in the primary logo:
+
+```bash
+npm run icons:generate
+```
+
+This creates `public/app-icon.png`, `src/app/icon.png`, and Electron packaging icons under `build/`.
 
 ## Local Setup
 
@@ -37,6 +44,18 @@ Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 ## Desktop App Builds
 
 For non-developer users, POMR Coach can be distributed as an Electron desktop app. The desktop app opens its own local window and stores data in the user's local app data folder.
+
+### Download
+
+Desktop installers are intended to be attached to GitHub Releases.
+
+| Platform | File |
+| --- | --- |
+| macOS Apple Silicon | `POMR Coach-0.1.0-arm64.dmg` |
+| Windows | `.exe` installer from the Windows release build |
+| Linux | `.AppImage` or `.deb` from the Linux release build |
+
+The current macOS build is unsigned, so macOS may show a security warning on first launch.
 
 ```bash
 npm run desktop:pack
@@ -80,6 +99,7 @@ npm run dev
 npm run lint
 npm test
 npm run build
+npm run icons:generate
 npm run desktop:pack
 npm run desktop:dist
 npm run prisma:generate

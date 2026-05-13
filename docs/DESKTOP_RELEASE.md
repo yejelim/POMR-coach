@@ -12,10 +12,18 @@ For non-developer users, distribute platform-specific files through GitHub Relea
 
 The app stores its SQLite database in the OS user data folder, not in the downloaded project folder.
 
+`npm run icons:generate` creates platform icon assets from the large P symbol in
+`public/POMR_coach_logo.png`. Electron Builder uses:
+
+- macOS: `build/icon.icns`
+- Windows: `build/icon.ico`
+- Linux: `build/icon.png`
+
 ## Local Build
 
 ```bash
 npm install
+npm run icons:generate
 npm run desktop:pack
 ```
 

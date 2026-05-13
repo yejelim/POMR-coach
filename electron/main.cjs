@@ -65,7 +65,7 @@ async function createWindow() {
     minWidth: 1100,
     minHeight: 760,
     title: "POMR Coach",
-    icon: path.join(appRoot, "public", "POMR_coach_logo.png"),
+    icon: path.join(appRoot, "build", "icon.png"),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

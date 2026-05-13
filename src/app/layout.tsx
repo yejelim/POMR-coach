@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: "POMR Coach",
   description: "Write your own POMR first and reflect with AI.",
   icons: {
-    icon: "/POMR_coach_logo.png",
-    apple: "/POMR_coach_logo.png",
+    icon: "/app-icon.png",
+    apple: "/app-icon.png",
   },
 };
 
