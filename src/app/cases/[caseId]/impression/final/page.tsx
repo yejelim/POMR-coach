@@ -29,9 +29,6 @@ export default async function FinalImpressionPage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Post-test Final Impression</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Revise ranked impressions after labs, image reports, and procedure findings.
-        </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <ImpressionTable

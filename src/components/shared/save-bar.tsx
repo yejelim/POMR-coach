@@ -41,7 +41,7 @@ export function SaveBar({
   }, [savedKey]);
 
   return (
-    <div ref={barRef} className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div ref={barRef} className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-app-border bg-app-surface/95 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">
         {previousHref ? (
           <Button type="submit" variant="outline" name="redirectTo" value={withSaved(previousHref)} disabled={pending}>
@@ -54,7 +54,7 @@ export function SaveBar({
           name="redirectTo"
           value={currentTarget}
           disabled={pending}
-          className={saved ? "bg-emerald-600 hover:bg-emerald-700" : undefined}
+          className={saved ? "bg-app-success hover:brightness-95" : undefined}
         >
           <Save className="h-4 w-4" />
           {pending ? "저장 중..." : saved ? "저장 완료" : label}
@@ -65,7 +65,7 @@ export function SaveBar({
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : null}
-        <span className={saved ? "text-sm font-medium text-emerald-700" : dirty ? "text-sm font-medium text-amber-700" : "text-sm text-slate-500"}>
+        <span className={saved ? "text-sm font-medium text-app-success" : dirty ? "text-sm font-medium text-app-warning" : "text-sm text-app-text-muted"}>
           {pending ? "저장하는 중입니다." : saved ? "최근 변경사항이 저장되었습니다." : dirty ? "수정됨 - 저장이 필요합니다." : ""}
         </span>
       </div>

@@ -7,14 +7,21 @@ import { parseStoredJson } from "@/lib/utils";
 
 type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/services/case-service").getCaseBundle>>>;
 
-export function renderSubmissionHtml(caseRecord: CaseBundle) {
+export type SubmissionHtmlOptions = {
+  includeBranding?: boolean;
+  includeFooter?: boolean;
+};
+
+export function renderSubmissionHtml(caseRecord: CaseBundle, options: SubmissionHtmlOptions = {}) {
   const admission = caseRecord.admissionNote;
   const data = caseRecord.diagnosticData;
   const initialRows = caseRecord.impressionRows.filter((row) => row.stage === "INITIAL");
   const finalRows = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
   const labTable = normalizeLabTable(data?.labTable);
   const diagnosticImages = parseStoredJson<UploadedImage[]>(data?.imageAttachments, []);
-  const logoDataUri = getLogoDataUri();
+  const includeBranding = options.includeBranding ?? true;
+  const includeFooter = options.includeFooter ?? true;
+  const logoDataUri = includeBranding ? getLogoDataUri() : "";
 
   return `<!doctype html>
 <html lang="ko">
@@ -30,7 +37,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
       line-height: 1.55;
     }
     h1 { font-size: 21px; margin: 0 0 4px; }
-    h2 { border-bottom: 1px solid #0f766e; color: #0f172a; font-size: 15px; margin: 22px 0 8px; padding-bottom: 4px; }
+    h2 { border-bottom: 1px solid #cbd5e1; color: #0f172a; font-size: 15px; margin: 22px 0 8px; padding-bottom: 4px; }
     h3 { font-size: 13px; margin: 14px 0 4px; }
     p { margin: 0 0 8px; white-space: pre-wrap; }
     table { border-collapse: collapse; margin: 8px 0 14px; width: 100%; }
@@ -51,13 +58,17 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   </style>
 </head>
 <body>
-  <div class="pdf-header">
+  ${
+    includeBranding
+      ? `<div class="pdf-header">
     ${logoDataUri ? `<img class="pdf-logo" src="${logoDataUri}" alt="POMR Coach" />` : ""}
     <div>
       <p class="brand">POMR Coach</p>
-      <p class="tagline">Write your own POMR first and reflect with AI.</p>
+      <p class="tagline">by HealCode</p>
     </div>
-  </div>
+  </div>`
+      : ""
+  }
   <h1>${escapeHtml(caseRecord.title)}</h1>
   <p class="meta">Department: ${escapeHtml(caseRecord.department)} | Status: ${escapeHtml(caseRecord.status)}</p>
   ${section("Admission Note", [
@@ -87,7 +98,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle) {
   ${impressionTable("Post-test Final Impression", finalRows, false)}
   ${problemList(caseRecord.problems)}
   ${progressNotes(caseRecord.progressNotes)}
-  <div class="footer">Educational POMR practice submission. De-identified local export; AI feedback and scratchpad timeline are excluded.</div>
+  ${includeFooter ? `<div class="footer">POMR Coach에서 생성됨 — 학습용 POMR 작성 워크스페이스. AI feedback과 timeline scratchpad는 제외되었습니다.</div>` : ""}
 </body>
 </html>`;
 }

@@ -48,10 +48,10 @@ export function ImpressionTable({
     <form action={action} className="space-y-4">
       <input type="hidden" name="rows" value={JSON.stringify(rows)} />
       {rows.map((row, index) => (
-        <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
+        <div key={index} className="rounded-xl border border-app-border bg-app-surface p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-700">Rank</span>
+              <span className="text-sm font-semibold text-app-text-secondary">Rank</span>
               <Input
                 className="w-20"
                 type="number"
@@ -72,19 +72,19 @@ export function ImpressionTable({
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-2 md:col-span-2">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-app-text-secondary">
                 {stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
               </span>
               <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-app-text-secondary">
                 {stage === "INITIAL" ? "Evidence from Hx/ROS/PE" : "Supporting Data"}
               </span>
               <Textarea value={row.evidence} onChange={(event) => update(index, { evidence: event.target.value })} />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-app-text-secondary">
                 Evidence Against / Remaining Uncertainty
               </span>
               <Textarea
@@ -94,7 +94,7 @@ export function ImpressionTable({
             </label>
             {showMissingData ? (
               <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Missing Data</span>
+                <span className="text-sm font-medium text-app-text-secondary">Missing Data</span>
                 <Textarea
                   value={row.missingData ?? ""}
                   onChange={(event) => update(index, { missingData: event.target.value })}
@@ -102,11 +102,11 @@ export function ImpressionTable({
               </label>
             ) : null}
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Dx Plan</span>
+              <span className="text-sm font-medium text-app-text-secondary">Dx Plan</span>
               <Textarea value={row.dxPlan} onChange={(event) => update(index, { dxPlan: event.target.value })} />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Tx Plan</span>
+              <span className="text-sm font-medium text-app-text-secondary">Tx Plan</span>
               <Textarea value={row.txPlan} onChange={(event) => update(index, { txPlan: event.target.value })} />
             </label>
           </div>

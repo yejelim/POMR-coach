@@ -35,9 +35,6 @@ export default async function ProgressNotePage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Progress Note SOAP</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Write the Assessment first in your own words, then request focused feedback.
-        </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <ProgressNoteEditor

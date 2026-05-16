@@ -34,9 +34,6 @@ export default async function AdmissionPage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Admission Workspace</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Write interview, ROS, PE, and text findings here. Pre-test reasoning happens on the next page.
-        </p>
       </div>
       <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5 rounded-lg border border-slate-200 bg-white p-4">
         <section>

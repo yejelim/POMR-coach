@@ -32,9 +32,6 @@ export default async function ProblemsPage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Problem List Draft</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Define active/background problems before daily SOAP. AI feedback appears only after your draft exists.
-        </p>
       </div>
       {!caseRecord.problems.length ? (
         <CoachingNote>

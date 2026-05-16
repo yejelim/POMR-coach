@@ -51,44 +51,36 @@ export function AiFeedbackPanel({
   }
 
   return (
-    <aside className="rounded-lg border border-teal-100 bg-white p-4 shadow-sm shadow-teal-100/50 lg:sticky lg:top-6 lg:self-start">
+    <aside className="rounded-xl border border-app-ai-border bg-app-ai-surface p-4 text-app-ai-text shadow-none lg:sticky lg:top-6 lg:self-start">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-teal-50 text-teal-800">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md border border-app-ai-border bg-app-surface text-app-primary">
             <Bot className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-base font-semibold text-slate-950">AI feedback</h2>
-            <p className="text-xs text-slate-500">Coach panel</p>
+            <h2 className="text-base font-semibold text-app-ai-text">Coach Feedback</h2>
           </div>
         </div>
-        <Button type="button" onClick={requestReview} disabled={isPending} size="sm">
+        <Button type="button" onClick={requestReview} disabled={isPending} size="sm" variant="secondary">
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           {reviewButtonLabels[reviewType]}
         </Button>
       </div>
-      <p className="mb-3 text-sm leading-6 text-slate-600">
-        사용자의 초안을 먼저 둔 뒤 reasoning을 함께 점검합니다. Feedback은 저장되지만 초안을
-        자동으로 바꾸지 않습니다.
-      </p>
-      <p className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-900">
-        AI 피드백은 학습 보조용이며, 진료 판단을 대체하지 않습니다.
-      </p>
       {message ? (
-        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="mb-4 rounded-md border border-app-warning/30 bg-app-surface p-3 text-sm text-app-warning">
           {message}
         </div>
       ) : null}
       {feedback ? <FeedbackView feedback={feedback} /> : null}
       {!feedback && history.length ? (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700">Recent feedback</h3>
+          <h3 className="text-sm font-semibold text-app-ai-text">Recent feedback</h3>
           {history.map((item) => (
-            <details key={item.id} className="rounded-md border border-slate-200 p-3">
-              <summary className="cursor-pointer text-sm font-medium text-slate-700">
-                {new Date(item.createdAt).toLocaleString()}
+            <details key={item.id} className="rounded-md border border-app-ai-border bg-app-surface/70 p-3">
+              <summary className="cursor-pointer text-sm font-medium text-app-ai-text">
+                {formatReviewTimestamp(item.createdAt)}
               </summary>
-              <pre className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">{item.renderedText}</pre>
+              <pre className="mt-3 whitespace-pre-wrap text-sm leading-6 text-app-text-secondary">{item.renderedText}</pre>
             </details>
           ))}
         </div>
@@ -97,10 +89,18 @@ export function AiFeedbackPanel({
   );
 }
 
+function formatReviewTimestamp(value: Date | string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Seoul",
+  }).format(new Date(value));
+}
+
 function FeedbackView({ feedback }: { feedback: AiFeedback }) {
   return (
     <div className="space-y-4 text-sm leading-6">
-      <p className="rounded-md bg-teal-50 p-3 text-teal-950">{feedback.summary}</p>
+      <p className="rounded-md border border-app-ai-border bg-app-surface/70 p-3 text-app-ai-text">{feedback.summary}</p>
       <FeedbackList title="Strengths" items={feedback.strengths} />
       <FeedbackList title="Missing data" items={feedback.missingData} />
       <FeedbackList title="Reasoning concerns" items={feedback.concerns} />
@@ -113,8 +113,8 @@ function FeedbackView({ feedback }: { feedback: AiFeedback }) {
 function FeedbackList({ title, items }: { title: string; items: string[] }) {
   return (
     <section>
-      <h3 className="mb-1 font-semibold text-slate-800">{title}</h3>
-      <ul className="list-disc space-y-1 pl-5 text-slate-700">
+      <h3 className="mb-1 font-semibold text-app-ai-text">{title}</h3>
+      <ul className="list-disc space-y-1 pl-5 text-app-text-secondary">
         {items.map((item, index) => (
           <li key={index}>{item}</li>
         ))}

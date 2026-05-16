@@ -109,22 +109,22 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         </Button>
       </div>
       {importMessage ? (
-        <div className="rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+        <div className="rounded-md border border-app-accent/20 bg-app-accent-soft px-3 py-2 text-sm text-app-text">
           {importMessage}
         </div>
       ) : null}
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-        <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-teal-50">
+      <div className="overflow-x-auto rounded-xl border border-app-border bg-app-surface shadow-none">
+        <table className="clinical-table min-w-full border-collapse">
+          <thead>
             <tr>
               {columns.map((column, columnIndex) => (
-                <th key={column} className="min-w-36 border-b border-r border-teal-100 p-2 text-left font-semibold text-teal-950">
+                <th key={column} className="sticky top-0 min-w-36 border-b border-r p-2 text-left">
                   <div className="flex items-center justify-between gap-2">
                     <span>{column}</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-30"
+                        className="rounded p-1 text-app-text-faint hover:bg-app-surface hover:text-app-primary disabled:cursor-not-allowed disabled:opacity-30"
                         onClick={() => moveColumn(columnIndex, -1)}
                         disabled={columnIndex === 0}
                         aria-label={`Move ${column} left`}
@@ -133,7 +133,7 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                       </button>
                       <button
                         type="button"
-                        className="rounded p-1 text-slate-400 hover:bg-white hover:text-teal-700 disabled:cursor-not-allowed disabled:opacity-30"
+                        className="rounded p-1 text-app-text-faint hover:bg-app-surface hover:text-app-primary disabled:cursor-not-allowed disabled:opacity-30"
                         onClick={() => moveColumn(columnIndex, 1)}
                         disabled={columnIndex === columns.length - 1}
                         aria-label={`Move ${column} right`}
@@ -143,7 +143,7 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                       {columns.length > 1 ? (
                         <button
                           type="button"
-                          className="rounded p-1 text-slate-400 hover:bg-white hover:text-rose-600"
+                          className="rounded p-1 text-app-text-faint hover:bg-app-surface hover:text-app-danger"
                           onClick={() => removeColumn(column)}
                           aria-label={`Remove ${column}`}
                         >
@@ -154,14 +154,14 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                   </div>
                 </th>
               ))}
-              <th className="w-10 border-b border-slate-200 p-2" />
+              <th className="w-10 border-b p-2" />
             </tr>
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
               <tr key={rowIndex}>
                 {columns.map((column) => (
-                  <td key={column} className="border-r border-t border-slate-200 p-1 align-top">
+                  <td key={column} className="border-r border-t p-1 align-top">
                     <Input
                       className="min-w-32 border-0 shadow-none focus:ring-0"
                       value={row[column] ?? ""}
@@ -169,7 +169,7 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                     />
                   </td>
                 ))}
-                <td className="border-t border-slate-200 p-1 align-middle">
+                <td className="border-t p-1 align-middle">
                   <Button
                     type="button"
                     variant="ghost"
@@ -184,8 +184,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
             ))}
             {!rows.length ? (
               <tr>
-                <td colSpan={columns.length + 1} className="p-6 text-center text-sm text-slate-500">
-                  Add rows for lab trends. Interpretation remains user-written.
+                <td colSpan={columns.length + 1} className="p-6 text-center text-sm text-app-text-muted">
+                  검사 항목과 결과를 표로 정리하세요. 필요한 시점은 열로 추가할 수 있습니다.
                 </td>
               </tr>
             ) : null}

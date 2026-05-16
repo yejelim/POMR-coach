@@ -35,9 +35,6 @@ export default async function DiagnosticDataPage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Lab / Image / Procedure Data</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Enter lab tables, official text reports, and de-identified images for export. MVP does not interpret images.
-        </p>
       </div>
       <form action={saveDiagnosticDataAction.bind(null, caseRecord.id)} className="space-y-5">
         <section className="rounded-lg border border-slate-200 bg-white p-4">

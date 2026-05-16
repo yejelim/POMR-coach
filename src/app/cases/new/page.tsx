@@ -23,16 +23,14 @@ export default function NewCasePage() {
             <AppLogo />
           </div>
           <h1 className="text-2xl font-semibold text-slate-950">New anonymous case</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Do not enter patient identifiers. Use a case label such as “GI obstructive jaundice practice”.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">환자 식별정보 없이 익명 case label로 작성하세요.</p>
         </div>
       </header>
       <section className="mx-auto max-w-3xl px-4 py-6">
         <form action={createCaseAction} className="space-y-4 rounded-lg border border-slate-200 bg-white p-5">
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Title</span>
-            <Input name="title" required placeholder="Anonymous case label" />
+            <Input name="title" required placeholder="익명 case label" />
           </label>
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Department</span>
@@ -50,7 +48,7 @@ export default function NewCasePage() {
           </label>
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Short summary</span>
-            <Textarea name="summary" rows={4} placeholder="One-line anonymous case summary" />
+            <Textarea name="summary" rows={4} placeholder="익명 case 요약" />
           </label>
           <Button type="submit">Create case</Button>
         </form>

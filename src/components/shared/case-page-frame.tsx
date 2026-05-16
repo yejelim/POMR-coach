@@ -22,7 +22,7 @@ export function CasePageFrame({
   children: ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen bg-slate-50">
+    <main className="flex min-h-screen bg-app-bg">
       <WorkflowNav caseId={caseId} active={active} />
       <div className="min-w-0 flex-1">
         <CaseHeader
@@ -34,7 +34,7 @@ export function CasePageFrame({
           updatedAt={updatedAt}
         />
         <MobileWorkflowNav caseId={caseId} active={active} />
-        <section className="mx-auto max-w-6xl px-4 py-6 xl:max-w-7xl">{children}</section>
+        <section className="mx-auto max-w-6xl px-4 py-6 md:px-8">{children}</section>
       </div>
     </main>
   );

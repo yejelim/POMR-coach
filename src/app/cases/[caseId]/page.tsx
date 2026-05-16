@@ -13,14 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { workflowNav } from "@/lib/workflow";
 
 const workflowCards = [
-  ["Timeline Scratchpad", "Informal EHR review and uncertainty tracking.", "timeline"],
-  ["Admission Workspace", "CC, HPI, histories, ROS, PE, vitals, text findings.", "admission"],
-  ["Pre-test Initial Impression", "Ranked DDx before labs/images/procedures.", "impression/initial"],
-  ["Lab / Image / Procedure Data", "Editable lab table and official text findings.", "data"],
-  ["Post-test Final Impression", "Revised ranked impression after data.", "impression/final"],
-  ["Problem List Draft", "Prioritized active/background problems for SOAP.", "problems"],
-  ["Daily Progress SOAP", "Problem-based progress note writing.", "progress"],
-  ["Submission PDF Export", "Submission-oriented printable output.", "export"],
+  ["Timeline Scratchpad", "시간순 사건 정리", "timeline"],
+  ["Admission Workspace", "입원 정보 정리", "admission"],
+  ["Pre-test Initial Impression", "검사 전 DDx", "impression/initial"],
+  ["Lab / Image / Procedure Data", "검사와 이미지 자료", "data"],
+  ["Post-test Final Impression", "검사 후 impression", "impression/final"],
+  ["Problem List Draft", "SOAP 전 problem 정리", "problems"],
+  ["Daily Progress SOAP", "날짜별 progress note", "progress"],
+  ["Submission PDF Export", "제출용 PDF", "export"],
 ] as const;
 
 export default async function CaseOverviewPage({
@@ -92,7 +92,7 @@ export default async function CaseOverviewPage({
                 <Textarea name="summary" defaultValue={caseRecord.summary} rows={5} />
               </label>
               <div className="flex flex-wrap gap-2">
-                <Badge>Educational only</Badge>
+                <Badge>학습용</Badge>
                 <Badge>No PHI</Badge>
                 <Badge>Local SQLite</Badge>
               </div>

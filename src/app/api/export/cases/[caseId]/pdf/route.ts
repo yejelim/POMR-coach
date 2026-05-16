@@ -6,7 +6,7 @@ import { getCaseBundle } from "@/server/services/case-service";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ caseId: string }> },
 ) {
   const { caseId } = await params;
@@ -15,7 +15,11 @@ export async function GET(
     return NextResponse.json({ message: "Case not found." }, { status: 404 });
   }
 
-  const html = renderSubmissionHtml(caseRecord);
+  const searchParams = new URL(request.url).searchParams;
+  const html = renderSubmissionHtml(caseRecord, {
+    includeBranding: searchParams.get("branding") !== "0",
+    includeFooter: searchParams.get("footer") !== "0",
+  });
 
   try {
     const browser = await chromium.launch({ headless: true });

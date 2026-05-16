@@ -6,8 +6,8 @@ export function StatusBadge({ status }: { status: string }) {
     <Badge
       className={
         isClosed
-          ? "border-slate-300 bg-slate-100 text-slate-700"
-          : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          ? "border-app-border-strong bg-app-surface-soft text-app-text-secondary"
+          : "border-app-primary-soft bg-app-primary-muted text-app-primary"
       }
     >
       {status}

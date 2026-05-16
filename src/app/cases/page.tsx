@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { SafetyNote } from "@/components/shared/safety-note";
+import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 
 export default async function CasesPage({
   searchParams,
@@ -24,28 +26,28 @@ export default async function CasesPage({
             <h1 className="mt-5 text-3xl font-semibold tracking-normal text-slate-950">
               Case Library
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Write your own POMR first and reflect with AI.
-            </p>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
-              이 서비스는 HealCode: We Heal Patient, with Code and Love에 의해 제작되었습니다.
-            </p>
+            <div className="mt-2">
+              <SafetyNote />
+            </div>
           </div>
-          <Button asChild>
-            <Link href="/cases/new">
-              <FilePlus2 className="h-4 w-4" />
-              New case
-            </Link>
-          </Button>
+          <div className="flex flex-col gap-3 md:w-56">
+            <ThemeSwitcher />
+            <Button asChild>
+              <Link href="/cases/new">
+                <FilePlus2 className="h-4 w-4" />
+                New case
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
       <section className="mx-auto max-w-6xl px-4 py-6">
         <form className="mb-5 flex max-w-xl gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <Input name="q" defaultValue={q} className="pl-9" placeholder="Search title, department, summary, tags" />
+            <Input name="q" defaultValue={q} className="pl-9" placeholder="제목, 과, 요약, 태그 검색" />
           </div>
-          <Button type="submit" variant="secondary">Search</Button>
+          <Button type="submit" variant="secondary">검색</Button>
         </form>
         <div className="grid gap-3">
           {cases.map((caseRecord) => (
@@ -57,7 +59,7 @@ export default async function CasesPage({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold text-slate-950">{caseRecord.title}</h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{caseRecord.summary || "No summary yet."}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{caseRecord.summary || "요약 없음"}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
                   <StatusBadge status={caseRecord.status} />
@@ -72,7 +74,7 @@ export default async function CasesPage({
                 </div>
               ) : null}
               <p className="mt-3 text-xs text-slate-500">
-                Updated {caseRecord.updatedAt.toLocaleString()}
+                수정일 {caseRecord.updatedAt.toLocaleString()}
               </p>
             </Link>
           ))}

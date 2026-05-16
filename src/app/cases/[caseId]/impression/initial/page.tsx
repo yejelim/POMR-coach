@@ -30,9 +30,6 @@ export default async function InitialImpressionPage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Pre-test Initial Impression</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Rank DDx from interview, ROS, and PE before reviewing lab/image/procedure data.
-        </p>
       </div>
       {!caseRecord.impressionRows.some((row) => row.stage === "INITIAL") ? (
         <CoachingNote>

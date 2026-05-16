@@ -81,13 +81,13 @@ export function ImageAttachmentEditor({
               <div className="space-y-2">
                 <Input
                   value={image.caption ?? ""}
-                  placeholder="Caption"
+                  placeholder="캡션"
                   onChange={(event) => updateImage(index, { caption: event.target.value })}
                 />
                 <Textarea
                   value={image.note ?? ""}
                   rows={2}
-                  placeholder="Optional note"
+                  placeholder="메모"
                   onChange={(event) => updateImage(index, { note: event.target.value })}
                 />
                 <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
@@ -99,7 +99,7 @@ export function ImageAttachmentEditor({
                     onClick={() => onChange(images.filter((_, imageIndex) => imageIndex !== index))}
                   >
                     <Trash2 className="h-4 w-4" />
-                    Remove
+                    삭제
                   </Button>
                 </div>
               </div>
@@ -108,8 +108,7 @@ export function ImageAttachmentEditor({
         </div>
       ) : (
         <p className="text-sm text-slate-500">
-          PNG, JPG, JPEG, WebP 이미지를 첨부할 수 있습니다. AI feedback prompt에는 이미지를
-          보내지 않고 export에만 사용합니다.
+          PNG, JPG, JPEG, WebP 이미지를 첨부할 수 있습니다.
         </p>
       )}
     </div>

@@ -28,9 +28,6 @@ export default async function TimelinePage({
     >
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Timeline Scratchpad</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Informal reasoning space for EHR review. This section is excluded from submission PDF.
-        </p>
       </div>
       {!caseRecord.timelineEntries.length ? (
         <CoachingNote>

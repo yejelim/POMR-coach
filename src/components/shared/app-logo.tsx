@@ -16,7 +16,7 @@ export function AppLogo({
   return (
     <Link
       href={href}
-      className="flex min-w-0 items-center gap-3 rounded-md outline-none transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-teal-700/25"
+      className="flex min-w-0 items-center gap-3 rounded-md outline-none transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-app-primary/25"
       aria-label="Go to POMR Coach home"
     >
       <Image
@@ -32,10 +32,10 @@ export function AppLogo({
       />
       {showText ? (
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold tracking-normal text-slate-950">
+          <div className="truncate text-sm font-semibold tracking-normal text-app-text">
             POMR Coach
           </div>
-          <div className="truncate text-xs text-slate-500">Write your own POMR first and reflect with AI.</div>
+          <div className="truncate text-xs text-app-text-muted">by HealCode</div>
         </div>
       ) : null}
     </Link>

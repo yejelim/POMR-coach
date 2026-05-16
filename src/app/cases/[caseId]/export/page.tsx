@@ -24,12 +24,29 @@ export default async function ExportPage({
       active="export"
     >
       <div className="mb-5">
-        <h2 className="text-xl font-semibold">Submission PDF Export</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Export excludes timeline scratchpad, AI feedback, flashcards, study notes, and reflection.
-        </p>
+        <h2 className="text-xl font-semibold text-app-text">Submission PDF Export</h2>
       </div>
-      <ExportPreview caseId={caseRecord.id} html={renderSubmissionHtml(caseRecord)} />
+      <ExportPreview
+        caseId={caseRecord.id}
+        html={{
+          brandedFooter: renderSubmissionHtml(caseRecord, {
+            includeBranding: true,
+            includeFooter: true,
+          }),
+          branded: renderSubmissionHtml(caseRecord, {
+            includeBranding: true,
+            includeFooter: false,
+          }),
+          footer: renderSubmissionHtml(caseRecord, {
+            includeBranding: false,
+            includeFooter: true,
+          }),
+          plain: renderSubmissionHtml(caseRecord, {
+            includeBranding: false,
+            includeFooter: false,
+          }),
+        }}
+      />
     </CasePageFrame>
   );
 }
