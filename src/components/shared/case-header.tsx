@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileDown } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
+import { AuthStatus } from "@/components/shared/auth-status";
 import { SaveStatusBanner } from "@/components/shared/save-status-banner";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,8 @@ export function CaseHeader({
   status,
   tags,
   updatedAt,
+  userEmail,
+  isLocalFallback,
 }: {
   caseId: string;
   title: string;
@@ -20,6 +23,8 @@ export function CaseHeader({
   status: string;
   tags: string[];
   updatedAt?: Date | string;
+  userEmail?: string;
+  isLocalFallback?: boolean;
 }) {
   return (
     <header className="no-print border-b border-app-border bg-app-surface/95 px-4 py-4 backdrop-blur">
@@ -43,6 +48,11 @@ export function CaseHeader({
               ))}
             </div>
             <SaveStatusBanner />
+            {userEmail ? (
+              <div className="mt-3">
+                <AuthStatus email={userEmail} isLocalFallback={Boolean(isLocalFallback)} />
+              </div>
+            ) : null}
           </div>
           <Button asChild variant="outline" className="shrink-0">
             <Link href={`/cases/${caseId}/export`}>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { chromium } from "playwright";
 import { renderSubmissionHtml } from "@/export/templates/submission-html";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ export async function GET(
   { params }: { params: Promise<{ caseId: string }> },
 ) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) {
     return NextResponse.json({ message: "Case not found." }, { status: 404 });
   }

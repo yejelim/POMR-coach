@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { saveDiagnosticDataAction } from "@/app/cases/actions";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
@@ -17,7 +18,8 @@ export default async function DiagnosticDataPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   const data = caseRecord.diagnosticData;
@@ -31,6 +33,8 @@ export default async function DiagnosticDataPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="data"
     >
       <div className="mb-5">

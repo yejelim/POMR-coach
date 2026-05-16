@@ -3,12 +3,16 @@ import { ArrowLeft } from "lucide-react";
 import { createCaseAction } from "@/app/cases/actions";
 import { genericTemplate } from "@/config/templates/generic";
 import { AppLogo } from "@/components/shared/app-logo";
+import { AuthStatus } from "@/components/shared/auth-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { requireCurrentUser } from "@/server/auth/current-user";
 
-export default function NewCasePage() {
+export default async function NewCasePage() {
+  const user = await requireCurrentUser();
+
   return (
     <main className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white px-4 py-5">
@@ -22,6 +26,7 @@ export default function NewCasePage() {
           <div className="mb-5">
             <AppLogo />
           </div>
+          <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} />
           <h1 className="text-2xl font-semibold text-slate-950">New anonymous case</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">환자 식별정보 없이 익명 case label로 작성하세요.</p>
         </div>

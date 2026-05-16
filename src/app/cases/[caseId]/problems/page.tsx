@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { saveProblemsAction } from "@/app/cases/actions";
-import { getCaseBundle, listAiReviews } from "@/server/services/case-service";
+import { getCaseBundleForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
@@ -14,9 +15,11 @@ export default async function ProblemsPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const ownerId = ownerIdForQuery(user);
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerId);
   if (!caseRecord) notFound();
-  const reviews = await listAiReviews(caseRecord.id, "PROBLEM_LIST");
+  const reviews = await listAiReviewsForOwner(caseRecord.id, "PROBLEM_LIST", undefined, ownerId);
   const finalImpressions = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
   const nav = workflowNav(caseRecord.id, "problems");
 
@@ -28,6 +31,8 @@ export default async function ProblemsPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="problems"
     >
       <div className="mb-5">

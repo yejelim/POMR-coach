@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { runAiReview } from "@/ai/review";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runAiReview(parsed.data);
+    const user = await requireCurrentUser();
+    const result = await runAiReview(parsed.data, ownerIdForQuery(user));
     if (!result.ok) {
       return NextResponse.json({ message: result.message }, { status: result.status });
     }

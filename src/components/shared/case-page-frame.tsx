@@ -9,6 +9,8 @@ export function CasePageFrame({
   status,
   tags,
   updatedAt,
+  userEmail,
+  isLocalFallback,
   active,
   children,
 }: {
@@ -18,6 +20,8 @@ export function CasePageFrame({
   status: string;
   tags: string[];
   updatedAt?: Date | string;
+  userEmail?: string;
+  isLocalFallback?: boolean;
   active: Parameters<typeof WorkflowNav>[0]["active"];
   children: ReactNode;
 }) {
@@ -32,6 +36,8 @@ export function CasePageFrame({
           status={status}
           tags={tags}
           updatedAt={updatedAt}
+          userEmail={userEmail}
+          isLocalFallback={isLocalFallback}
         />
         <MobileWorkflowNav caseId={caseId} active={active} />
         <section className="mx-auto max-w-6xl px-4 py-6 md:px-8">{children}</section>

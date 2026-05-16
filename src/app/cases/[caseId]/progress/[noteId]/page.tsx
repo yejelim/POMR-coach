@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { saveProgressNoteAction } from "@/app/cases/actions";
-import { getProgressNote, listAiReviews } from "@/server/services/case-service";
+import { getProgressNoteForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
@@ -14,9 +15,11 @@ export default async function ProgressNotePage({
   params: Promise<{ caseId: string; noteId: string }>;
 }) {
   const { caseId, noteId } = await params;
-  const note = await getProgressNote(noteId);
+  const user = await requireCurrentUser();
+  const ownerId = ownerIdForQuery(user);
+  const note = await getProgressNoteForOwner(noteId, ownerId);
   if (!note || note.caseId !== caseId) notFound();
-  const reviews = await listAiReviews(caseId, "SOAP_ASSESSMENT", noteId);
+  const reviews = await listAiReviewsForOwner(caseId, "SOAP_ASSESSMENT", noteId, ownerId);
   const nav = {
     currentHref: `/cases/${caseId}/progress/${note.id}`,
     previousHref: workflowNav(caseId, "progress").currentHref,
@@ -31,6 +34,8 @@ export default async function ProgressNotePage({
       status={note.case.status}
       tags={note.case.tags.map((tag) => tag.name)}
       updatedAt={note.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="progress"
     >
       <div className="mb-5">

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db";
-import { getCaseBundle, getProgressNote } from "@/server/services/case-service";
+import { getCaseBundleForOwner, getProgressNoteForOwner } from "@/server/services/case-service";
 import { caseToPrompt } from "@/ai/serializers/caseToPrompt";
 import { impressionTableToText } from "@/ai/serializers/impressionTableToText";
 import { labTableToText } from "@/ai/serializers/labTableToText";
@@ -17,8 +17,8 @@ export async function runAiReview(input: {
   caseId: string;
   reviewType: AiReviewType;
   targetId?: string;
-}) {
-  const reviewRequest = await buildReviewPrompt(input);
+}, ownerId?: string) {
+  const reviewRequest = await buildReviewPrompt(input, ownerId);
   if (!reviewRequest.ok) return reviewRequest;
 
   const { feedback, model } = await requestAiFeedback(reviewRequest.prompt);
@@ -44,8 +44,8 @@ async function buildReviewPrompt(input: {
   caseId: string;
   reviewType: AiReviewType;
   targetId?: string;
-}) {
-  const bundle = await getCaseBundle(input.caseId);
+}, ownerId?: string) {
+  const bundle = await getCaseBundleForOwner(input.caseId, ownerId);
   if (!bundle) return { ok: false as const, status: 404, message: "Case not found." };
 
   const caseText = caseToPrompt(bundle);
@@ -106,7 +106,7 @@ async function buildReviewPrompt(input: {
   if (!input.targetId) {
     return { ok: false as const, status: 400, message: "SOAP review requires a progress note id." };
   }
-  const note = await getProgressNote(input.targetId);
+  const note = await getProgressNoteForOwner(input.targetId, ownerId);
   if (!note) return { ok: false as const, status: 404, message: "Progress note not found." };
   if (!hasMeaningfulRows(note.problems, ["assessment"])) {
     return draftFirst("SOAP Assessment를 먼저 작성한 뒤 feedback을 요청하세요.");

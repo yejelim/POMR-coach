@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { FilePlus2, Search } from "lucide-react";
-import { listCases } from "@/server/services/case-service";
+import { listCasesForOwner } from "@/server/services/case-service";
 import { AppLogo } from "@/components/shared/app-logo";
+import { AuthStatus } from "@/components/shared/auth-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { SafetyNote } from "@/components/shared/safety-note";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export default async function CasesPage({
   searchParams,
@@ -15,7 +17,8 @@ export default async function CasesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const cases = await listCases(q);
+  const user = await requireCurrentUser();
+  const cases = await listCasesForOwner(q, ownerIdForQuery(user));
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -31,6 +34,7 @@ export default async function CasesPage({
             </div>
           </div>
           <div className="flex flex-col gap-3 md:w-56">
+            <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} />
             <ThemeSwitcher />
             <Button asChild>
               <Link href="/cases/new">

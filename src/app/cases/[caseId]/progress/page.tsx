@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createProgressNoteAction } from "@/app/cases/actions";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { Button } from "@/components/ui/button";
 
@@ -12,7 +13,8 @@ export default async function ProgressNotesPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   return (
@@ -23,6 +25,8 @@ export default async function ProgressNotesPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="progress"
     >
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">

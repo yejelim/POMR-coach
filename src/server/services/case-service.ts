@@ -13,18 +13,24 @@ import {
 import { stringifyStoredJson } from "@/lib/utils";
 
 export async function listCases(query = "") {
+  return listCasesForOwner(query);
+}
+
+export async function listCasesForOwner(query = "", ownerId?: string) {
   const q = query.trim();
+  const searchWhere = q
+    ? {
+        OR: [
+          { title: { contains: q } },
+          { department: { contains: q } },
+          { summary: { contains: q } },
+          { tags: { some: { name: { contains: q } } } },
+        ],
+      }
+    : undefined;
+
   return prisma.case.findMany({
-    where: q
-      ? {
-          OR: [
-            { title: { contains: q } },
-            { department: { contains: q } },
-            { summary: { contains: q } },
-            { tags: { some: { name: { contains: q } } } },
-          ],
-        }
-      : undefined,
+    where: ownerId ? { AND: [{ ownerId }, ...(searchWhere ? [searchWhere] : [])] } : searchWhere,
     include: { tags: true },
     orderBy: { updatedAt: "desc" },
   });
@@ -35,9 +41,11 @@ export async function createCase(input: {
   department: string;
   summary: string;
   tags: string[];
+  ownerId?: string;
 }) {
   return prisma.case.create({
     data: {
+      ownerId: input.ownerId,
       title: input.title || "Untitled anonymous case",
       department: input.department || "General",
       summary: input.summary,
@@ -49,8 +57,13 @@ export async function createCase(input: {
 }
 
 export async function getCaseBundle(caseId: string) {
-  return prisma.case.findUnique({
-    where: { id: caseId },
+  return getCaseBundleForOwner(caseId);
+}
+
+export async function getCaseBundleForOwner(caseId: string, ownerId?: string) {
+  const where = ownerId ? { id: caseId, ownerId } : { id: caseId };
+  return prisma.case.findFirst({
+    where,
     include: {
       tags: { orderBy: { name: "asc" } },
       timelineEntries: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
@@ -81,9 +94,11 @@ export async function updateCaseMeta(
     summary: string;
     tags: string[];
   },
+  ownerId?: string,
 ) {
   const tags = normalizeTags(input.tags);
   return prisma.$transaction(async (tx) => {
+    await assertCaseOwner(caseId, ownerId);
     await tx.caseTag.deleteMany({ where: { caseId } });
     return tx.case.update({
       where: { id: caseId },
@@ -98,7 +113,7 @@ export async function updateCaseMeta(
   });
 }
 
-export async function replaceTimeline(caseId: string, rows: TimelineDraft[]) {
+export async function replaceTimeline(caseId: string, rows: TimelineDraft[], ownerId?: string) {
   const cleanRows = rows
     .map((row) => ({
       timepoint: row.timepoint.trim(),
@@ -109,6 +124,7 @@ export async function replaceTimeline(caseId: string, rows: TimelineDraft[]) {
     .filter((row) => Object.values(row).some(Boolean));
 
   return prisma.$transaction(async (tx) => {
+    await assertCaseOwner(caseId, ownerId);
     await tx.timelineEntry.deleteMany({ where: { caseId } });
     await tx.timelineEntry.createMany({
       data: cleanRows.map((row, position) => ({ ...row, caseId, position })),
@@ -134,7 +150,9 @@ export async function upsertAdmission(
     initialVitals: Vitals;
     imageProcedureText: string;
   },
+  ownerId?: string,
 ) {
+  await assertCaseOwner(caseId, ownerId);
   return prisma.admissionNote.upsert({
     where: { caseId },
     create: { ...input, caseId, initialVitals: stringifyStoredJson(input.initialVitals) },
@@ -151,7 +169,9 @@ export async function upsertDiagnosticData(
     procedureFindingsText: string;
     summaryText: string;
   },
+  ownerId?: string,
 ) {
+  await assertCaseOwner(caseId, ownerId);
   return prisma.diagnosticData.upsert({
     where: { caseId },
     create: {
@@ -172,6 +192,7 @@ export async function replaceImpressions(
   caseId: string,
   stage: ImpressionStage,
   rows: ImpressionDraft[],
+  ownerId?: string,
 ) {
   const cleanRows = rows
     .map((row, index) => ({
@@ -186,6 +207,7 @@ export async function replaceImpressions(
     .filter((row) => Object.values(row).some((value) => String(value).trim()));
 
   return prisma.$transaction(async (tx) => {
+    await assertCaseOwner(caseId, ownerId);
     await tx.impressionRow.deleteMany({ where: { caseId, stage } });
     await tx.impressionRow.createMany({
       data: cleanRows.map((row, index) => ({
@@ -198,7 +220,7 @@ export async function replaceImpressions(
   });
 }
 
-export async function replaceProblems(caseId: string, rows: ProblemDraft[]) {
+export async function replaceProblems(caseId: string, rows: ProblemDraft[], ownerId?: string) {
   const cleanRows = rows
     .map((row, index) => ({
       priority: Number.isFinite(row.priority) ? row.priority : index + 1,
@@ -211,6 +233,7 @@ export async function replaceProblems(caseId: string, rows: ProblemDraft[]) {
     .filter((row) => row.title || row.evidence || row.notes);
 
   return prisma.$transaction(async (tx) => {
+    await assertCaseOwner(caseId, ownerId);
     await tx.problem.deleteMany({ where: { caseId } });
     await tx.problem.createMany({
       data: cleanRows.map((row, position) => ({ ...row, caseId, position })),
@@ -218,7 +241,8 @@ export async function replaceProblems(caseId: string, rows: ProblemDraft[]) {
   });
 }
 
-export async function createProgressNote(caseId: string) {
+export async function createProgressNote(caseId: string, ownerId?: string) {
+  await assertCaseOwner(caseId, ownerId);
   const problems = await prisma.problem.findMany({
     where: { caseId },
     orderBy: [{ position: "asc" }, { priority: "asc" }],
@@ -243,8 +267,12 @@ export async function createProgressNote(caseId: string) {
 }
 
 export async function getProgressNote(noteId: string) {
-  return prisma.progressNote.findUnique({
-    where: { id: noteId },
+  return getProgressNoteForOwner(noteId);
+}
+
+export async function getProgressNoteForOwner(noteId: string, ownerId?: string) {
+  return prisma.progressNote.findFirst({
+    where: ownerId ? { id: noteId, case: { ownerId } } : { id: noteId },
     include: {
       case: { include: { tags: true, problems: { orderBy: { position: "asc" } } } },
       problems: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
@@ -264,7 +292,16 @@ export async function updateProgressNote(
     drainTube: string;
     problems: ProgressProblemDraft[];
   },
+  ownerId?: string,
 ) {
+  if (ownerId) {
+    const note = await prisma.progressNote.findFirst({
+      where: { id: noteId, case: { ownerId } },
+      select: { id: true },
+    });
+    if (!note) throw new Error("Progress note not found.");
+  }
+
   const cleanProblems = input.problems
     .map((row) => ({
       problemId: row.problemId || null,
@@ -328,11 +365,38 @@ export async function updateProgressNote(
 }
 
 export async function listAiReviews(caseId: string, reviewType: string, targetId?: string) {
+  return listAiReviewsForOwner(caseId, reviewType, targetId);
+}
+
+export async function listAiReviewsForOwner(
+  caseId: string,
+  reviewType: string,
+  targetId?: string,
+  ownerId?: string,
+) {
   return prisma.aiReview.findMany({
-    where: { caseId, reviewType, ...(targetId ? { targetId } : {}) },
+    where: {
+      caseId,
+      reviewType,
+      ...(targetId ? { targetId } : {}),
+      ...(ownerId ? { case: { ownerId } } : {}),
+    },
     orderBy: { createdAt: "desc" },
     take: 5,
   });
+}
+
+async function assertCaseOwner(caseId: string, ownerId?: string) {
+  if (!ownerId) return;
+
+  const caseRecord = await prisma.case.findFirst({
+    where: { id: caseId, ownerId },
+    select: { id: true },
+  });
+
+  if (!caseRecord) {
+    throw new Error("Case not found.");
+  }
 }
 
 function normalizeTags(tags: string[]) {

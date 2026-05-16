@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { renderSubmissionHtml } from "@/export/templates/submission-html";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { ExportPreview } from "@/features/export/export-preview";
@@ -10,7 +11,8 @@ export default async function ExportPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   return (
@@ -21,6 +23,8 @@ export default async function ExportPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="export"
     >
       <div className="mb-5">

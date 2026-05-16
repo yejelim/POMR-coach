@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { saveImpressionsAction } from "@/app/cases/actions";
-import { listAiReviews, getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
@@ -13,9 +14,11 @@ export default async function InitialImpressionPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const ownerId = ownerIdForQuery(user);
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerId);
   if (!caseRecord) notFound();
-  const reviews = await listAiReviews(caseRecord.id, "INITIAL_IMPRESSION");
+  const reviews = await listAiReviewsForOwner(caseRecord.id, "INITIAL_IMPRESSION", undefined, ownerId);
   const nav = workflowNav(caseRecord.id, "initial");
 
   return (
@@ -26,6 +29,8 @@ export default async function InitialImpressionPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="initial"
     >
       <div className="mb-5">

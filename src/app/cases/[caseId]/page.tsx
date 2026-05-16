@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateCaseAction } from "@/app/cases/actions";
 import { genericTemplate } from "@/config/templates/generic";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,8 @@ export default async function CaseOverviewPage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
   const nav = workflowNav(caseRecord.id, "overview");
 
@@ -41,6 +43,8 @@ export default async function CaseOverviewPage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="overview"
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

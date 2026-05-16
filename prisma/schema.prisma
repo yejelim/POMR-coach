@@ -14,6 +14,7 @@ datasource db {
 
 model Case {
   id          String   @id @default(cuid())
+  ownerId     String?
   title       String
   department  String   @default("General")
   status      String   @default("active")
@@ -30,6 +31,20 @@ model Case {
   problems        Problem[]
   progressNotes   ProgressNote[]
   aiReviews       AiReview[]
+  owner           User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, updatedAt])
+}
+
+model User {
+  id                        String    @id
+  email                     String    @unique
+  marketingEmailOptIn       Boolean   @default(false)
+  privacyEducationConsentAt DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  cases Case[]
 }
 
 model CaseTag {

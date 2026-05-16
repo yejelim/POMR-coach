@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { saveTimelineAction } from "@/app/cases/actions";
-import { getCaseBundle } from "@/server/services/case-service";
+import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
 import { TimelineEditor } from "@/features/timeline/timeline-editor";
@@ -12,7 +13,8 @@ export default async function TimelinePage({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const caseRecord = await getCaseBundle(caseId);
+  const user = await requireCurrentUser();
+  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
   const nav = workflowNav(caseRecord.id, "timeline");
 
@@ -24,6 +26,8 @@ export default async function TimelinePage({
       status={caseRecord.status}
       tags={caseRecord.tags.map((tag) => tag.name)}
       updatedAt={caseRecord.updatedAt}
+      userEmail={user.email}
+      isLocalFallback={user.isLocalFallback}
       active="timeline"
     >
       <div className="mb-5">

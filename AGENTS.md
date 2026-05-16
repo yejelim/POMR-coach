@@ -87,6 +87,36 @@ AI assistant features should be treated as a later module, not a blocker for MVP
 
 ---
 
+## Web Deployment Direction
+
+The project is now also exploring a cloud-hosted web alpha.
+
+The expected user workflow is:
+
+1. Use the web version on shared hospital computers while reviewing EHR.
+2. Continue later from a personal device through web or, eventually, desktop app sync.
+3. Keep each user's case library separated by account ownership.
+
+For web deployment planning, follow `docs/WEB_DEPLOYMENT_PLAN.md`.
+
+Current preferred direction:
+
+- Keep one repository for now.
+- Add web auth and account-owned case libraries in the existing app.
+- Use a real cloud database for web deployment; do not use container-local SQLite in production.
+- Keep desktop local-first until web auth and account workflow are stable.
+- Keep AI optional/off for the first web alpha.
+
+When adding auth or web storage:
+
+- Email/password login is acceptable for MVP.
+- Require a signup agreement that users will not enter patient identifiers and will use the app for education.
+- Keep newsletter/marketing email consent optional and separate.
+- Enforce case ownership in server-side service functions, not only in UI.
+- Preserve the existing POMR workflow unless a change is needed for account isolation or deployment safety.
+
+---
+
 ## Important Privacy and Safety Assumptions
 
 The app is intended for educational use by medical clerkship students.
