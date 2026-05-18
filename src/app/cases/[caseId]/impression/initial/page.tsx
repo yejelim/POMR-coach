@@ -31,6 +31,7 @@ export default async function InitialImpressionPage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="initial"
     >
       <div className="mb-5">

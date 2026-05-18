@@ -1,0 +1,17 @@
+# Desktop-only packaging artifacts
+electron
+release
+build
+
+# Local databases and generated runtime files
+prisma/dev.db
+prisma/dev.db-*
+
+# Local-only secrets/config
+.env
+.env.*
+
+# Generated/temporary output
+coverage
+out
+.next

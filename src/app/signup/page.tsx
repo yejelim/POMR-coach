@@ -21,7 +21,7 @@ export default async function SignupPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const [{ error }, user] = await Promise.all([searchParams, getCurrentUser()]);
-  if (user && !user.isLocalFallback) redirect("/cases");
+  if (user && !user.isLocalFallback && !user.isAnonymous) redirect("/cases");
 
   const authConfigured = isSupabaseConfigured();
   const message = error ? (errorMessages[error] ?? decodeURIComponent(error)) : "";
@@ -88,6 +88,11 @@ export default async function SignupPage({
             <Button type="submit" className="w-full" disabled={!authConfigured}>
               Create account
             </Button>
+            {authConfigured ? (
+              <Button asChild variant="secondary" className="w-full">
+                <Link href="/auth/guest">Guest로 계속하기</Link>
+              </Button>
+            ) : null}
           </div>
           <div className="mt-4 flex items-center justify-between gap-3 text-sm text-app-text-muted">
             <SafetyNote />

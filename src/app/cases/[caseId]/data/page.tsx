@@ -35,6 +35,7 @@ export default async function DiagnosticDataPage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="data"
     >
       <div className="mb-5">

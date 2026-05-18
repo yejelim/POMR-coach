@@ -28,6 +28,7 @@ export default async function TimelinePage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="timeline"
     >
       <div className="mb-5">

@@ -16,6 +16,7 @@ export function CaseHeader({
   updatedAt,
   userEmail,
   isLocalFallback,
+  isAnonymous,
 }: {
   caseId: string;
   title: string;
@@ -23,8 +24,9 @@ export function CaseHeader({
   status: string;
   tags: string[];
   updatedAt?: Date | string;
-  userEmail?: string;
+  userEmail?: string | null;
   isLocalFallback?: boolean;
+  isAnonymous?: boolean;
 }) {
   return (
     <header className="no-print border-b border-app-border bg-app-surface/95 px-4 py-4 backdrop-blur">
@@ -48,9 +50,13 @@ export function CaseHeader({
               ))}
             </div>
             <SaveStatusBanner />
-            {userEmail ? (
+            {userEmail || isLocalFallback || isAnonymous ? (
               <div className="mt-3">
-                <AuthStatus email={userEmail} isLocalFallback={Boolean(isLocalFallback)} />
+                <AuthStatus
+                  email={userEmail ?? null}
+                  isLocalFallback={Boolean(isLocalFallback)}
+                  isAnonymous={Boolean(isAnonymous)}
+                />
               </div>
             ) : null}
           </div>

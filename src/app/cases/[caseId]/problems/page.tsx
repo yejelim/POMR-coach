@@ -33,6 +33,7 @@ export default async function ProblemsPage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="problems"
     >
       <div className="mb-5">

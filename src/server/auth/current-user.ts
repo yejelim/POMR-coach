@@ -4,14 +4,16 @@ import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/
 
 export type CurrentUser = {
   id: string;
-  email: string;
+  email: string | null;
   isLocalFallback: boolean;
+  isAnonymous: boolean;
 };
 
 const localUser: CurrentUser = {
   id: "local-dev-user",
   email: "local@pomr-coach.dev",
   isLocalFallback: true,
+  isAnonymous: false,
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -22,32 +24,42 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return null;
+  if (!user) return null;
+
+  const isAnonymous = Boolean((user as { is_anonymous?: boolean }).is_anonymous);
+  const email = normalizeAuthEmail(user.email, isAnonymous);
 
   await prisma.user.upsert({
     where: { id: user.id },
     create: {
       id: user.id,
-      email: user.email,
+      email,
     },
     update: {
-      email: user.email,
+      email,
     },
   });
 
   return {
     id: user.id,
-    email: user.email,
+    email,
     isLocalFallback: false,
+    isAnonymous,
   };
 }
 
 export async function requireCurrentUser() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/auth/guest");
   return user;
 }
 
 export function ownerIdForQuery(user: CurrentUser) {
   return user.isLocalFallback ? undefined : user.id;
+}
+
+export function normalizeAuthEmail(email: string | undefined, isAnonymous: boolean) {
+  if (isAnonymous) return null;
+  const trimmed = email?.trim() ?? "";
+  return trimmed ? trimmed : null;
 }

@@ -1,6 +1,6 @@
 # POMR Coach Web Deployment Plan
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Implementation Status
 
@@ -12,14 +12,17 @@ Started:
 - `User` model and `Case.ownerId` added to Prisma schema.
 - Case service layer now supports owner-scoped reads and writes.
 - Supabase session refresh proxy added for web auth cookie stability.
+- Web/Postgres Prisma schema and guarded web database scripts added.
+- Vercel build configuration and deployment checklist added.
 - Local fallback mode remains available when Supabase env vars are not configured.
 
 Not done yet:
 
-- Production Postgres schema/provider switch.
+- Running the first Supabase Postgres schema push after confirming the production connection string.
 - Supabase project env values in deployment secrets.
 - Supabase auth settings QA, including email confirmation behavior.
-- Cloud Run Docker/deployment pipeline.
+- First Vercel preview deployment.
+- Optional later Cloud Run Docker/deployment pipeline for heavy PDF export.
 - Invite-code or open-signup policy finalization.
 - Production auth QA on shared hospital computers.
 
@@ -50,6 +53,58 @@ Things Codex can handle in the repository:
 - Owner-scoped case service logic.
 - Postgres migration/deployment scripts when the web database switch begins.
 
+## Database Modes
+
+POMR Coach currently keeps two Prisma schemas so the local desktop path remains stable while web deployment moves toward Supabase Postgres.
+
+Local/default mode:
+
+```bash
+npm run dev
+npm run db:apply
+```
+
+This uses:
+
+```text
+prisma/schema.prisma
+DATABASE_URL="file:./prisma/dev.db"
+```
+
+Web/Postgres mode:
+
+```bash
+npm run db:push:web
+npm run dev:web
+npm run build:web
+```
+
+This uses:
+
+```text
+prisma/schema.postgres.prisma
+DATABASE_URL="postgresql://..."
+```
+
+The web scripts load `.env.web.local` when it exists. This keeps the web database URL separate from the local SQLite `.env` file and prevents accidentally switching the desktop/local workflow to Postgres.
+
+Create `.env.web.local` locally or set deployment secrets with:
+
+```bash
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_SUPABASE_URL="https://..."
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="..."
+APP_URL="http://localhost:3000"
+```
+
+The web scripts intentionally refuse to run unless `DATABASE_URL` starts with `postgres://` or `postgresql://`. This prevents accidentally applying web database commands to the local SQLite file.
+
+For Supabase Postgres, prefer a connection string that includes SSL, for example:
+
+```text
+postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require
+```
+
 ## Context
 
 POMR Coach started as a local-first desktop-friendly app. The next product need is a web version that students can open on shared hospital computers while reviewing EHR, then continue later from their own device.
@@ -71,10 +126,37 @@ Recommended direction:
 
 - Keep the current app workflow.
 - Add a cloud-backed web mode with account-based case ownership.
+- Support a low-friction guest trial flow before requiring account creation.
 - Keep the desktop app path, but treat sync/login as a later stage.
 - Do not split app and web into separate repositories yet.
 
 The immediate goal is not a high-complexity medical platform. The immediate goal is a practical authenticated web workspace for de-identified educational POMR notes.
+
+## Guest Trial Direction
+
+The web version should eventually let first-time users try POMR Coach before creating an email/password account.
+
+Product rationale:
+
+- A busy clerkship student is more likely to try the app if the first screen does not demand signup.
+- The user can experience the workflow value first, then create an account to keep the archive.
+- This matches the current product promise: write a case, export a useful note, then decide whether to keep using the tool.
+
+Recommended technical direction:
+
+- Do not use container-local SQLite as the guest storage for a public web deployment. Cloud Run containers are stateless and shared server storage would be unsafe and unreliable.
+- Use Supabase Anonymous Sign-Ins for web guest mode.
+- Treat anonymous users as temporary account owners with the same case ownership checks used by permanent users.
+- Default protected workflow routes to guest mode. Users should only see the login/signup forms when they explicitly choose Login or Sign up, or when guest mode is unavailable.
+- Add a visible prompt such as “계정을 만들면 이 케이스를 계속 보관할 수 있습니다.”
+- Later, support linking the anonymous user to an email/password account so the guest library becomes a permanent library.
+
+Risk controls:
+
+- Require the same de-identification reminder before guest use.
+- Limit anonymous account abuse with Supabase rate limits/CAPTCHA settings if public traffic grows.
+- Add cleanup for old anonymous users/cases after a defined retention period.
+- Before public launch, enable Anonymous Sign-Ins in the Supabase dashboard and consider CAPTCHA/Turnstile once traffic grows.
 
 ## Repository Strategy
 

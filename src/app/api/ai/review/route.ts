@@ -4,6 +4,8 @@ import { runAiReview } from "@/ai/review";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const requestSchema = z.object({
   caseId: z.string().min(1),

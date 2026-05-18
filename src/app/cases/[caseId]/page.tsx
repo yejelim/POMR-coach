@@ -45,6 +45,7 @@ export default async function CaseOverviewPage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="overview"
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

@@ -34,7 +34,7 @@ export default async function CasesPage({
             </div>
           </div>
           <div className="flex flex-col gap-3 md:w-56">
-            <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} />
+            <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} isAnonymous={user.isAnonymous} />
             <ThemeSwitcher />
             <Button asChild>
               <Link href="/cases/new">

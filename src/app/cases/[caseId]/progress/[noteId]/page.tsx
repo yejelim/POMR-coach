@@ -36,6 +36,7 @@ export default async function ProgressNotePage({
       updatedAt={note.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="progress"
     >
       <div className="mb-5">

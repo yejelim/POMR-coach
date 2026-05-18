@@ -41,6 +41,17 @@ Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 
 `OPENAI_API_KEY` is optional for local development. Without it, AI review returns a deterministic local mock response so the write-first feedback workflow can still be tested.
 
+## Web Alpha Deployment
+
+The recommended web alpha stack is Vercel + Supabase Auth + Supabase Postgres.
+
+```bash
+npm run db:push:web
+npm run build:web
+```
+
+See [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md) for Vercel environment variables, Supabase setup, and deployment checklist.
+
 ## Desktop App Builds
 
 For non-developer users, POMR Coach can be distributed as an Electron desktop app. The desktop app opens its own local window and stores data in the user's local app data folder.
@@ -104,6 +115,8 @@ npm run desktop:pack
 npm run desktop:dist
 npm run prisma:generate
 npm run db:apply
+npm run db:push:web
+npm run build:web
 ```
 
 ## Privacy Defaults

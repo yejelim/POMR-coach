@@ -34,6 +34,7 @@ export default async function AdmissionPage({
       updatedAt={caseRecord.updatedAt}
       userEmail={user.email}
       isLocalFallback={user.isLocalFallback}
+      isAnonymous={user.isAnonymous}
       active="admission"
     >
       <div className="mb-5">

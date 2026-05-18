@@ -11,10 +11,11 @@ import { isSupabaseConfigured } from "@/server/auth/supabase";
 const errorMessages: Record<string, string> = {
   missing: "이메일과 비밀번호를 입력해주세요.",
   auth_not_configured: "Supabase 환경 변수가 아직 설정되지 않았습니다.",
+  guest_unavailable: "Guest mode를 시작할 수 없습니다. Supabase Anonymous Sign-Ins 설정을 확인해주세요.",
 };
 
 const statusMessages: Record<string, string> = {
-  check_email: "회원가입이 접수되었습니다. 이메일 확인이 필요한 경우 받은 메일함을 확인한 뒤 로그인해주세요.",
+  check_email: "작성하신 이메일 주소로 인증 링크가 전송되었습니다. 해당 링크로 접속하시면 회원가입이 완료됩니다.",
 };
 
 export default async function LoginPage({
@@ -23,7 +24,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
   const [{ error, message: status }, user] = await Promise.all([searchParams, getCurrentUser()]);
-  if (user && !user.isLocalFallback) redirect("/cases");
+  if (user && !user.isLocalFallback && !user.isAnonymous) redirect("/cases");
 
   const authConfigured = isSupabaseConfigured();
   const message = error ? (errorMessages[error] ?? decodeURIComponent(error)) : "";
@@ -65,6 +66,11 @@ export default async function LoginPage({
             <Button type="submit" className="w-full" disabled={!authConfigured}>
               Login
             </Button>
+            {authConfigured ? (
+              <Button asChild variant="secondary" className="w-full">
+                <Link href="/auth/guest">Guest로 계속하기</Link>
+              </Button>
+            ) : null}
           </div>
           <div className="mt-4 flex items-center justify-between gap-3 text-sm text-app-text-muted">
             <SafetyNote />
