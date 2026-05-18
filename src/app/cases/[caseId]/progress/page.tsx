@@ -46,6 +46,7 @@ export default async function ProgressNotesPage({
           <Link
             key={note.id}
             href={`/cases/${caseRecord.id}/progress/${note.id}`}
+            prefetch={false}
             className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">

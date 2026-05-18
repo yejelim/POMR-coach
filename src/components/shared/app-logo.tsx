@@ -16,6 +16,7 @@ export function AppLogo({
   return (
     <Link
       href={href}
+      prefetch={false}
       className="flex min-w-0 items-center gap-3 rounded-md outline-none transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-app-primary/25"
       aria-label="Go to POMR Coach home"
     >

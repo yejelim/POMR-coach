@@ -46,6 +46,7 @@ export function WorkflowNav({
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         <Link
           href="/cases"
+          prefetch={false}
           className="sidebar-nav-link mb-3 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-app-text-secondary transition hover:bg-app-surface-soft hover:text-app-text"
           title="Case Library"
         >
@@ -61,6 +62,7 @@ export function WorkflowNav({
             <Link
               key={key}
               href={`/cases/${caseId}${path ? `/${path}` : ""}`}
+              prefetch={false}
               title={label}
               className={cn(
                 "sidebar-nav-link flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm font-medium transition",
@@ -100,6 +102,7 @@ export function MobileWorkflowNav({
         <Link
           key={key}
           href={`/cases/${caseId}${path ? `/${path}` : ""}`}
+          prefetch={false}
           className={cn(
             "flex h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition",
             active === key

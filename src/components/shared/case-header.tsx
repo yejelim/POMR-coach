@@ -61,7 +61,7 @@ export function CaseHeader({
             ) : null}
           </div>
           <Button asChild variant="outline" className="shrink-0">
-            <Link href={`/cases/${caseId}/export`}>
+            <Link href={`/cases/${caseId}/export`} prefetch={false}>
               <FileDown className="h-4 w-4" />
               Export
             </Link>

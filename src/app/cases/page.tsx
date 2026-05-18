@@ -37,7 +37,7 @@ export default async function CasesPage({
             <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} isAnonymous={user.isAnonymous} />
             <ThemeSwitcher />
             <Button asChild>
-              <Link href="/cases/new">
+              <Link href="/cases/new" prefetch={false}>
                 <FilePlus2 className="h-4 w-4" />
                 New case
               </Link>
@@ -58,6 +58,7 @@ export default async function CasesPage({
             <Link
               key={caseRecord.id}
               href={`/cases/${caseRecord.id}`}
+              prefetch={false}
               className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 transition hover:border-teal-200 hover:shadow-md"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">

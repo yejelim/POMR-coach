@@ -54,6 +54,7 @@ export default async function CaseOverviewPage({
             <Link
               key={path}
               href={`/cases/${caseRecord.id}/${path}`}
+              prefetch={false}
               className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
             >
               <h2 className="font-semibold text-slate-950">{title}</h2>
