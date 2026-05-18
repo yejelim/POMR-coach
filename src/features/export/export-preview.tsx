@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +11,7 @@ type HtmlVariants = {
   plain: string;
 };
 
-export function ExportPreview({ caseId, html }: { caseId: string; html: HtmlVariants }) {
+export function ExportPreview({ html }: { html: HtmlVariants }) {
   const [includeBranding, setIncludeBranding] = useState(true);
   const [includeFooter, setIncludeFooter] = useState(true);
 
@@ -21,8 +21,6 @@ export function ExportPreview({ caseId, html }: { caseId: string; html: HtmlVari
     if (includeFooter) return html.footer;
     return html.plain;
   }, [html, includeBranding, includeFooter]);
-
-  const pdfHref = `/api/export/cases/${caseId}/pdf?branding=${includeBranding ? "1" : "0"}&footer=${includeFooter ? "1" : "0"}`;
 
   function printPreview() {
     const printWindow = window.open("", "_blank");
@@ -62,16 +60,10 @@ export function ExportPreview({ caseId, html }: { caseId: string; html: HtmlVari
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-        <Button asChild>
-          <a href={pdfHref}>
-            <Download className="h-4 w-4" />
-            Download PDF
-          </a>
-        </Button>
-        <Button type="button" variant="secondary" onClick={printPreview}>
-          <Printer className="h-4 w-4" />
-          Browser print fallback
-        </Button>
+            <Button type="button" onClick={printPreview}>
+              <Printer className="h-4 w-4" />
+              Print / Save as PDF
+            </Button>
           </div>
         </div>
       </div>

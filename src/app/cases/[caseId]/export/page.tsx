@@ -32,7 +32,6 @@ export default async function ExportPage({
         <h2 className="text-xl font-semibold text-app-text">Submission PDF Export</h2>
       </div>
       <ExportPreview
-        caseId={caseRecord.id}
         html={{
           brandedFooter: renderSubmissionHtml(caseRecord, {
             includeBranding: true,
