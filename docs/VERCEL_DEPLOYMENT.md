@@ -83,15 +83,16 @@ In the Supabase dashboard:
 - Add the Vercel domain to Site URL / allowed redirect URLs after Vercel creates the first deployment URL.
 - Keep the signup consent language in the app; users should not enter patient identifiers.
 
-## PDF Export Note
+## Export Note
 
-The current PDF route tries Playwright HTML-to-PDF first and falls back to an HTML document if browser PDF generation is unavailable.
+The Vercel web alpha returns a clean print-oriented HTML export instead of generating PDFs on the server.
 
 For Vercel alpha:
 
 - Treat browser print / HTML fallback as acceptable.
 - Keep image uploads small. Vercel Functions have request/response payload limits, so large image-heavy cases may fail until image storage is moved to Supabase Storage.
-- If PDF generation becomes unreliable or too heavy, move PDF rendering to Cloud Run later.
+- Use the browser's Print / Save as PDF flow for submission files.
+- If one-click PDF generation becomes important later, move PDF rendering to Cloud Run or a separate worker.
 
 ## Deployment Checklist
 
@@ -103,5 +104,5 @@ For Vercel alpha:
 6. Open `/cases` in a fresh browser session and confirm `Guest mode`.
 7. Create a case, save it, refresh, and confirm it remains.
 8. Sign up with an email account and confirm account-owned library behavior.
-9. Try export. If PDF download fails, verify HTML fallback opens and can be printed.
+9. Try export and verify the HTML print view opens and can be saved as PDF from the browser.
 10. After the first Vercel URL exists, update Supabase auth redirect/site URL settings.

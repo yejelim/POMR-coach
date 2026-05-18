@@ -11,7 +11,7 @@ POMR Coach can be used as an AI-free local note-writing and PDF export tool. AI 
 - Tailwind CSS + shadcn-style UI primitives
 - Prisma 7 + SQLite + `@prisma/adapter-better-sqlite3`
 - Optional OpenAI-compatible server-side AI review route
-- Playwright HTML-to-PDF export
+- Print-oriented HTML export, with desktop PDF export planned separately
 
 ## Brand Assets
 
@@ -33,7 +33,6 @@ npm install
 cp .env.example .env
 npm run prisma:generate
 npm run db:apply
-npx playwright install chromium
 npm run dev -- --hostname 127.0.0.1 --port 3000
 ```
 

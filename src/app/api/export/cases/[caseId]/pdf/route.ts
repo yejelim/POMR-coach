@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { chromium } from "playwright";
 import { renderSubmissionHtml } from "@/export/templates/submission-html";
 import { getCaseBundleForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 export async function GET(
   request: Request,
@@ -25,32 +24,11 @@ export async function GET(
     includeFooter: searchParams.get("footer") !== "0",
   });
 
-  try {
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle" });
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: { top: "18mm", right: "18mm", bottom: "18mm", left: "18mm" },
-    });
-    await browser.close();
-
-    const body = new Uint8Array(pdf).buffer;
-    return new NextResponse(body, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${caseRecord.title.replace(/[^a-z0-9_-]+/gi, "_") || "pomr_case"}.pdf"`,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return new NextResponse(html, {
-      status: 503,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "X-POMR-Coach-Fallback": "playwright-pdf-unavailable",
-      },
-    });
-  }
+  return new NextResponse(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Disposition": `inline; filename="${caseRecord.title.replace(/[^a-z0-9_-]+/gi, "_") || "pomr_case"}.html"`,
+      "X-POMR-Coach-Export": "html-print",
+    },
+  });
 }
