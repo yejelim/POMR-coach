@@ -99,11 +99,13 @@ APP_URL="http://localhost:3000"
 
 The web scripts intentionally refuse to run unless `DATABASE_URL` starts with `postgres://` or `postgresql://`. This prevents accidentally applying web database commands to the local SQLite file.
 
-For Supabase Postgres, prefer a connection string that includes SSL, for example:
+For local Supabase Postgres schema setup, prefer the Session pooler if Direct connection fails with `P1001`, for example:
 
 ```text
-postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require
+postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres?sslmode=require
 ```
+
+For Vercel runtime, use the Transaction pooler connection string in Vercel environment variables. If prepared statement errors appear, append `pgbouncer=true`.
 
 ## Context
 

@@ -47,17 +47,21 @@ For the first web alpha, keep `AI_MOCK_MODE="true"` unless AI feedback is intent
 
 Use different database connection strings for different jobs:
 
-- Local schema setup: Supabase Direct connection is acceptable for `npm run db:push:web`.
-- Vercel runtime: prefer Supabase Transaction Pooler connection for serverless traffic.
+- Local schema setup: use Supabase Session pooler if Direct connection fails with `P1001`.
+- Vercel runtime: use Supabase Transaction pooler for serverless traffic.
 
-Supabase recommends transaction mode for serverless or short-lived function traffic. If using transaction pooling, use the connection string from Supabase Dashboard → Connect → Transaction pooler.
+Supabase Direct connection can require IPv6. If local `npm run db:push:web` cannot reach `db.[project-ref].supabase.co:5432`, use the Session pooler string from Supabase Dashboard → Connect → Session pooler.
+
+Supabase recommends transaction mode for serverless or short-lived function traffic. Use the connection string from Supabase Dashboard → Connect → Transaction pooler for Vercel. If Prisma reports prepared statement errors with a transaction pooler, append `pgbouncer=true` to the connection string.
+
+All Supabase Postgres URLs used by this project should include `sslmode=require`. If the pooler host and port are reachable but Prisma still reports `P1001`, check for a missing `sslmode=require` first.
 
 ## First Database Setup
 
 Before the first Vercel deployment, create `.env.web.local` locally with a Supabase Postgres connection string:
 
 ```bash
-DATABASE_URL="postgresql://..."
+DATABASE_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres?sslmode=require"
 NEXT_PUBLIC_SUPABASE_URL="https://..."
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="..."
 APP_URL="http://localhost:3000"
@@ -73,6 +77,12 @@ npm run db:push:web
 This creates the web tables in Supabase Postgres using `prisma/schema.postgres.prisma`.
 
 Do not commit `.env.web.local`.
+
+For Vercel, set `DATABASE_URL` separately in the Vercel dashboard using the Transaction pooler string, commonly port `6543`:
+
+```bash
+DATABASE_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@[REGION].pooler.supabase.com:6543/postgres?sslmode=require"
+```
 
 ## Supabase Auth Settings
 

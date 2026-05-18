@@ -13,3 +13,25 @@ if (!databaseUrl.startsWith("postgres://") && !databaseUrl.startsWith("postgresq
   );
   process.exit(1);
 }
+
+try {
+  const url = new URL(databaseUrl);
+  const password = decodeURIComponent(url.password);
+  if (!password || /your[-_ ]?password|password|\[.*\]/i.test(password)) {
+    console.error(
+      "DATABASE_URL still contains a placeholder password. Replace [PASSWORD] with the real Supabase database password.",
+    );
+    process.exit(1);
+  }
+
+  const isSupabaseHost = url.hostname.endsWith(".supabase.com");
+  if (isSupabaseHost && url.searchParams.get("sslmode") !== "require") {
+    console.error(
+      "Supabase DATABASE_URL must include ?sslmode=require. Example: postgresql://.../postgres?sslmode=require",
+    );
+    process.exit(1);
+  }
+} catch {
+  console.error("DATABASE_URL must be a valid PostgreSQL URL.");
+  process.exit(1);
+}
