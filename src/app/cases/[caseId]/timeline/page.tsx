@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveTimelineAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { getTimelineCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
@@ -14,7 +14,7 @@ export default async function TimelinePage({
 }) {
   const { caseId } = await params;
   const user = await requireCurrentUser();
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
+  const caseRecord = await getTimelineCaseForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
   const nav = workflowNav(caseRecord.id, "timeline");
 

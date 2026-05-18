@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveImpressionsAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { getImpressionCaseForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
@@ -15,7 +15,7 @@ export default async function FinalImpressionPage({
   const { caseId } = await params;
   const user = await requireCurrentUser();
   const ownerId = ownerIdForQuery(user);
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerId);
+  const caseRecord = await getImpressionCaseForOwner(caseId, "FINAL", ownerId);
   if (!caseRecord) notFound();
   const reviews = await listAiReviewsForOwner(caseRecord.id, "FINAL_IMPRESSION", undefined, ownerId);
   const nav = workflowNav(caseRecord.id, "final");

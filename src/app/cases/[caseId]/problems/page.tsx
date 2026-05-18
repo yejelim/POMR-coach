@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveProblemsAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { getProblemsCaseForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
@@ -17,10 +17,10 @@ export default async function ProblemsPage({
   const { caseId } = await params;
   const user = await requireCurrentUser();
   const ownerId = ownerIdForQuery(user);
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerId);
+  const caseRecord = await getProblemsCaseForOwner(caseId, ownerId);
   if (!caseRecord) notFound();
   const reviews = await listAiReviewsForOwner(caseRecord.id, "PROBLEM_LIST", undefined, ownerId);
-  const finalImpressions = caseRecord.impressionRows.filter((row) => row.stage === "FINAL");
+  const finalImpressions = caseRecord.impressionRows;
   const nav = workflowNav(caseRecord.id, "problems");
 
   return (

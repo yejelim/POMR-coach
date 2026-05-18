@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveImpressionsAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { getImpressionCaseForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
@@ -16,7 +16,7 @@ export default async function InitialImpressionPage({
   const { caseId } = await params;
   const user = await requireCurrentUser();
   const ownerId = ownerIdForQuery(user);
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerId);
+  const caseRecord = await getImpressionCaseForOwner(caseId, "INITIAL", ownerId);
   if (!caseRecord) notFound();
   const reviews = await listAiReviewsForOwner(caseRecord.id, "INITIAL_IMPRESSION", undefined, ownerId);
   const nav = workflowNav(caseRecord.id, "initial");

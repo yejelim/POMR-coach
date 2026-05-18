@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveAdmissionAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { getAdmissionCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { genericTemplate } from "@/config/templates/generic";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
@@ -18,7 +18,7 @@ export default async function AdmissionPage({
 }) {
   const { caseId } = await params;
   const user = await requireCurrentUser();
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
+  const caseRecord = await getAdmissionCaseForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   const admission = caseRecord.admissionNote;

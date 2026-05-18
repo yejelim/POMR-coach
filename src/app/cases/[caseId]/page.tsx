@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateCaseAction } from "@/app/cases/actions";
 import { genericTemplate } from "@/config/templates/generic";
-import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { getCaseShellForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
@@ -31,7 +31,7 @@ export default async function CaseOverviewPage({
 }) {
   const { caseId } = await params;
   const user = await requireCurrentUser();
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
+  const caseRecord = await getCaseShellForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
   const nav = workflowNav(caseRecord.id, "overview");
 

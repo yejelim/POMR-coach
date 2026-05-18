@@ -14,7 +14,10 @@ const adapter = isPostgresUrl
   : new PrismaBetterSqlite3({ url: databaseUrl });
 
 function getPostgresPoolConfig(connectionString: string): PoolConfig {
-  const config: PoolConfig = { connectionString };
+  const config: PoolConfig = {
+    connectionString,
+    max: Number(process.env.DATABASE_POOL_MAX ?? (process.env.VERCEL ? 1 : 5)),
+  };
 
   try {
     const url = new URL(connectionString);
@@ -23,6 +26,9 @@ function getPostgresPoolConfig(connectionString: string): PoolConfig {
       url.searchParams.delete("sslcert");
       url.searchParams.delete("sslkey");
       url.searchParams.delete("sslrootcert");
+      url.searchParams.delete("pgbouncer");
+      url.searchParams.delete("connection_limit");
+      url.searchParams.delete("pool_timeout");
       config.connectionString = url.toString();
       config.ssl = { rejectUnauthorized: false };
     }

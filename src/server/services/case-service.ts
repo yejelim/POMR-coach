@@ -85,6 +85,100 @@ export async function getCaseBundleForOwner(caseId: string, ownerId?: string) {
   });
 }
 
+function caseOwnerWhere(caseId: string, ownerId?: string) {
+  return ownerId ? { id: caseId, ownerId } : { id: caseId };
+}
+
+const caseShellInclude = {
+  tags: { orderBy: { name: "asc" } },
+} as const;
+
+export async function getCaseShellForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: caseShellInclude,
+  });
+}
+
+export async function getTimelineCaseForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      timelineEntries: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
+    },
+  });
+}
+
+export async function getAdmissionCaseForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      admissionNote: true,
+    },
+  });
+}
+
+export async function getDiagnosticCaseForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      diagnosticData: true,
+    },
+  });
+}
+
+export async function getImpressionCaseForOwner(
+  caseId: string,
+  stage: ImpressionStage,
+  ownerId?: string,
+) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      impressionRows: {
+        where: { stage },
+        orderBy: [{ rank: "asc" }],
+      },
+    },
+  });
+}
+
+export async function getProblemsCaseForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      impressionRows: {
+        where: { stage: "FINAL" },
+        orderBy: [{ rank: "asc" }],
+      },
+      problems: {
+        include: { linkedImpressionRow: true },
+        orderBy: [{ position: "asc" }, { priority: "asc" }],
+      },
+    },
+  });
+}
+
+export async function getProgressNotesCaseForOwner(caseId: string, ownerId?: string) {
+  return prisma.case.findFirst({
+    where: caseOwnerWhere(caseId, ownerId),
+    include: {
+      ...caseShellInclude,
+      progressNotes: {
+        include: {
+          _count: { select: { problems: true } },
+        },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      },
+    },
+  });
+}
+
 export async function updateCaseMeta(
   caseId: string,
   input: {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createProgressNoteAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { getProgressNotesCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ export default async function ProgressNotesPage({
 }) {
   const { caseId } = await params;
   const user = await requireCurrentUser();
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
+  const caseRecord = await getProgressNotesCaseForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   return (
@@ -53,7 +53,7 @@ export default async function ProgressNotesPage({
               <h3 className="font-semibold text-slate-950">{note.date || "날짜 미입력"}</h3>
               <span className="text-sm text-slate-500">{note.hospitalDay || "HD 미입력"}</span>
             </div>
-            <p className="mt-2 text-sm text-slate-600">SOAP problem {note.problems.length}개</p>
+            <p className="mt-2 text-sm text-slate-600">SOAP problem {note._count.problems}개</p>
           </Link>
         ))}
         {!caseRecord.progressNotes.length ? (

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { saveDiagnosticDataAction } from "@/app/cases/actions";
-import { getCaseBundleForOwner } from "@/server/services/case-service";
+import { getDiagnosticCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
@@ -19,7 +19,7 @@ export default async function DiagnosticDataPage({
 }) {
   const { caseId } = await params;
   const user = await requireCurrentUser();
-  const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
+  const caseRecord = await getDiagnosticCaseForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
 
   const data = caseRecord.diagnosticData;
