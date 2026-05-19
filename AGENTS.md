@@ -104,6 +104,8 @@ Current preferred direction:
 - Keep one repository for now.
 - Add web auth and account-owned case libraries in the existing app.
 - Use a real cloud database for web deployment; do not use container-local SQLite in production.
+- Prefer Cloud Run as the main web app origin for the alpha.
+- Do not proxy the main app through Vercel until the Cloud Run app is stable; Vercel can host a separate landing page later.
 - Keep desktop local-first until web auth and account workflow are stable.
 - Keep AI optional/off for the first web alpha.
 

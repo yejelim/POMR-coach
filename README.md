@@ -42,14 +42,16 @@ Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 
 ## Web Alpha Deployment
 
-The recommended web alpha stack is Vercel + Supabase Auth + Supabase Postgres.
+The recommended web alpha stack is now Cloud Run + Supabase Auth + Supabase Postgres.
 
 ```bash
 npm run db:push:web
-npm run build:web
+npm run build:cloudrun
 ```
 
-See [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md) for Vercel environment variables, Supabase setup, and deployment checklist.
+See [docs/CLOUD_RUN_DEPLOYMENT.md](docs/CLOUD_RUN_DEPLOYMENT.md) for Cloud Run settings, environment variables, Supabase setup, and deployment checklist.
+
+The earlier Vercel deployment path remains documented in [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md), but the app origin should be Cloud Run for the current alpha.
 
 ## Desktop App Builds
 
@@ -109,6 +111,7 @@ npm run dev
 npm run lint
 npm test
 npm run build
+npm run build:cloudrun
 npm run icons:generate
 npm run desktop:pack
 npm run desktop:dist
