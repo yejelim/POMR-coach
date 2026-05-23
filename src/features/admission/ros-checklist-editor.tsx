@@ -39,7 +39,7 @@ export function RosChecklistEditor({
   }
 
   return (
-    <section className="space-y-3 md:col-span-2">
+    <section className="space-y-2 md:col-span-2">
       <textarea name="ros" value={serialized} readOnly className="hidden" aria-hidden="true" />
       <div>
         <h3 className="text-sm font-semibold text-slate-800">ROS checklist</h3>
@@ -47,34 +47,39 @@ export function RosChecklistEditor({
           Positive finding은 (+)로 바꾸고 필요한 경우 onset, NRS, duration 등을 짧게 메모하세요.
         </p>
       </div>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {groups.map((group) => (
-          <div key={group.category} className="rounded-lg border border-app-border bg-app-surface p-3">
-            <div className="mb-2 text-sm font-semibold text-app-text">{group.category}</div>
-            <div className="space-y-2">
+          <div key={group.category} className="rounded-md border border-app-border bg-app-surface p-2">
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-app-text-muted">
+              {group.category}
+            </div>
+            <div className="space-y-1">
               {group.items.map((item) => {
                 const key = rosKey(group.category, item);
                 const state = items[key] ?? { positive: false, comment: "" };
                 return (
-                  <div key={key} className="grid gap-2 rounded-md bg-app-surface-muted p-2 sm:grid-cols-[1fr_auto]">
-                    <div className="flex min-w-0 items-center gap-2">
+                  <div
+                    key={key}
+                    className="grid gap-1 rounded-sm bg-app-surface-muted px-1.5 py-1 sm:grid-cols-[minmax(0,1fr)_auto]"
+                  >
+                    <div className="flex min-w-0 items-center gap-1.5">
                       <Button
                         type="button"
                         size="sm"
                         variant={state.positive ? "default" : "outline"}
-                        className="h-7 w-9 px-0"
+                        className="h-6 w-7 px-0 text-xs"
                         onClick={() => updateItem(key, { positive: !state.positive })}
                         aria-pressed={state.positive}
                       >
                         {state.positive ? "+" : "-"}
                       </Button>
-                      <span className="truncate text-sm text-app-text-secondary">{item}</span>
+                      <span className="truncate text-xs text-app-text-secondary">{item}</span>
                     </div>
                     {state.positive ? (
                       <Input
                         value={state.comment}
                         placeholder="comment"
-                        className="h-8 min-w-44 text-xs"
+                        className="h-7 min-w-32 text-xs"
                         onChange={(event) => updateItem(key, { comment: event.target.value })}
                       />
                     ) : null}

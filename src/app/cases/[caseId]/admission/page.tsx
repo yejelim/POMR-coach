@@ -72,7 +72,7 @@ export default async function AdmissionPage({
             </p>
             <Textarea
               name="physicalExam"
-              defaultValue={admission ? admission.physicalExam : defaultPhysicalExamText}
+              defaultValue={admission?.physicalExam?.trim() ? admission.physicalExam : defaultPhysicalExamText}
               rows={14}
             />
           </label>
