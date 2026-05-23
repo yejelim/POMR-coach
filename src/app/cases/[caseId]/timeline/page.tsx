@@ -32,12 +32,11 @@ export default async function TimelinePage({
       active="timeline"
     >
       <div className="mb-5">
-        <h2 className="text-xl font-semibold">Timeline Scratchpad</h2>
+        <h2 className="text-xl font-semibold">Timeline Memo</h2>
       </div>
       {!caseRecord.timelineEntries.length ? (
         <CoachingNote>
-          환자의 이야기를 시간순으로 재구성해보세요. EHR, 환자 문진, 입원 경과에서
-          중요한 사건을 추가할 수 있습니다.
+          환자 문진 전에 EHR을 보며 주요 이벤트, 약물복용력, 수술력, 입원 경과를 자유롭게 메모하세요.
         </CoachingNote>
       ) : null}
       <TimelineEditor

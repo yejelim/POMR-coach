@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   createCase,
   createProgressNote,
+  deleteCaseForOwner,
   replaceImpressions,
   replaceProblems,
   replaceTimeline,
@@ -41,6 +42,12 @@ export async function updateCaseAction(caseId: string, formData: FormData) {
   }, ownerIdForQuery(user));
   revalidateCase(caseId);
   redirectIfRequested(formData);
+}
+
+export async function deleteCaseAction(caseId: string) {
+  const user = await requireCurrentUser();
+  await deleteCaseForOwner(caseId, ownerIdForQuery(user));
+  revalidatePath("/cases");
 }
 
 export async function saveTimelineAction(caseId: string, formData: FormData) {

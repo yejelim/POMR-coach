@@ -12,7 +12,6 @@ export function CaseHeader({
   title,
   department,
   status,
-  tags,
   updatedAt,
   userEmail,
   isLocalFallback,
@@ -45,9 +44,6 @@ export function CaseHeader({
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-app-text-muted">
               {updatedAt ? <span>Last saved {new Date(updatedAt).toLocaleString()}</span> : null}
-              {tags.map((tag) => (
-                <Badge key={tag}>{tag}</Badge>
-              ))}
             </div>
             <SaveStatusBanner />
             {userEmail || isLocalFallback || isAnonymous ? (

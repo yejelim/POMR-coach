@@ -6,7 +6,6 @@ import { getCaseShellForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -90,18 +89,9 @@ export default async function CaseOverviewPage({
                 </Select>
               </label>
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-slate-700">Tags</span>
-                <Input name="tags" defaultValue={caseRecord.tags.map((tag) => tag.name).join(", ")} />
-              </label>
-              <label className="block space-y-2">
                 <span className="text-sm font-medium text-slate-700">Short summary</span>
                 <Textarea name="summary" defaultValue={caseRecord.summary} rows={5} />
               </label>
-              <div className="flex flex-wrap gap-2">
-                <Badge>학습용</Badge>
-                <Badge>No PHI</Badge>
-                <Badge>Local SQLite</Badge>
-              </div>
               <SaveBar label="Save settings" {...nav} />
             </form>
           </CardContent>

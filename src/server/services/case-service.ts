@@ -56,6 +56,11 @@ export async function createCase(input: {
   });
 }
 
+export async function deleteCaseForOwner(caseId: string, ownerId?: string) {
+  await assertCaseOwner(caseId, ownerId);
+  return prisma.case.delete({ where: { id: caseId } });
+}
+
 export async function getCaseBundle(caseId: string) {
   return getCaseBundleForOwner(caseId);
 }

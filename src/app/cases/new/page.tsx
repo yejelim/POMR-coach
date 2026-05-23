@@ -48,10 +48,6 @@ export default async function NewCasePage() {
             </Select>
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Tags</span>
-            <Input name="tags" placeholder="GI, jaundice, ERCP" />
-          </label>
-          <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Short summary</span>
             <Textarea name="summary" rows={4} placeholder="익명 case 요약" />
           </label>

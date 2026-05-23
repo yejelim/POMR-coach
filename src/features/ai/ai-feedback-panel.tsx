@@ -1,9 +1,9 @@
 "use client";
 
-import { Bot, Loader2, Sparkles } from "lucide-react";
-import { useState, useTransition } from "react";
+import { Bot, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { AiFeedback, AiReviewType } from "@/lib/types";
+import type { AiReviewType } from "@/lib/types";
 
 type ReviewHistory = {
   id: string;
@@ -19,9 +19,7 @@ const reviewButtonLabels: Record<AiReviewType, string> = {
 };
 
 export function AiFeedbackPanel({
-  caseId,
   reviewType,
-  targetId,
   history,
 }: {
   caseId: string;
@@ -29,25 +27,10 @@ export function AiFeedbackPanel({
   targetId?: string;
   history: ReviewHistory[];
 }) {
-  const [feedback, setFeedback] = useState<AiFeedback | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   function requestReview() {
-    setMessage(null);
-    startTransition(async () => {
-      const response = await fetch("/api/ai/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caseId, reviewType, targetId }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setMessage(data.message ?? "Review failed.");
-        return;
-      }
-      setFeedback(data.feedback);
-    });
+    setMessage("AI assist 기능은 곧 제공될 예정입니다. 첫 배포 버전에서는 작성/저장/export 기능을 먼저 제공합니다.");
   }
 
   return (
@@ -61,18 +44,20 @@ export function AiFeedbackPanel({
             <h2 className="text-base font-semibold text-app-ai-text">Coach Feedback</h2>
           </div>
         </div>
-        <Button type="button" onClick={requestReview} disabled={isPending} size="sm" variant="secondary">
-          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+        <Button type="button" onClick={requestReview} size="sm" variant="secondary">
+          <Sparkles className="h-4 w-4" />
           {reviewButtonLabels[reviewType]}
         </Button>
+      </div>
+      <div className="mb-4 rounded-md border border-app-ai-border bg-app-surface/70 p-3 text-sm leading-6 text-app-text-secondary">
+        첫 배포 버전에서는 AI assist가 OFF 상태입니다. 사용자가 직접 작성한 내용을 저장하고 export하는 기능을 우선 제공합니다.
       </div>
       {message ? (
         <div className="mb-4 rounded-md border border-app-warning/30 bg-app-surface p-3 text-sm text-app-warning">
           {message}
         </div>
       ) : null}
-      {feedback ? <FeedbackView feedback={feedback} /> : null}
-      {!feedback && history.length ? (
+      {history.length ? (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-app-ai-text">Recent feedback</h3>
           {history.map((item) => (
@@ -95,30 +80,4 @@ function formatReviewTimestamp(value: Date | string) {
     timeStyle: "short",
     timeZone: "Asia/Seoul",
   }).format(new Date(value));
-}
-
-function FeedbackView({ feedback }: { feedback: AiFeedback }) {
-  return (
-    <div className="space-y-4 text-sm leading-6">
-      <p className="rounded-md border border-app-ai-border bg-app-surface/70 p-3 text-app-ai-text">{feedback.summary}</p>
-      <FeedbackList title="Strengths" items={feedback.strengths} />
-      <FeedbackList title="Missing data" items={feedback.missingData} />
-      <FeedbackList title="Reasoning concerns" items={feedback.concerns} />
-      <FeedbackList title="Suggested revision" items={feedback.revisionChecklist} />
-      <FeedbackList title="Teaching points" items={feedback.safetyPrivacyFlags} />
-    </div>
-  );
-}
-
-function FeedbackList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <section>
-      <h3 className="mb-1 font-semibold text-app-ai-text">{title}</h3>
-      <ul className="list-disc space-y-1 pl-5 text-app-text-secondary">
-        {items.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
-    </section>
-  );
 }

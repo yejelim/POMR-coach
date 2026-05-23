@@ -154,7 +154,7 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                   </div>
                 </th>
               ))}
-              <th className="w-10 border-b p-2" />
+              <th className="w-24 border-b p-2 text-center">행 삭제</th>
             </tr>
           </thead>
           <tbody>
@@ -169,15 +169,17 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                     />
                   </td>
                 ))}
-                <td className="border-t p-1 align-middle">
+                <td className="border-t p-1 text-center align-middle">
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="sm"
+                    className="text-app-danger hover:bg-red-50 hover:text-app-danger"
                     onClick={() => setRows((current) => current.filter((_, index) => index !== rowIndex))}
                     aria-label="Remove lab row"
                   >
                     <Trash2 className="h-4 w-4" />
+                    삭제
                   </Button>
                 </td>
               </tr>
