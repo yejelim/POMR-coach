@@ -36,7 +36,7 @@ export function AppLogo({
           <div className="truncate text-sm font-semibold tracking-normal text-app-text">
             POMR Coach
           </div>
-          <div className="truncate text-xs text-app-text-muted">by HealCode</div>
+          <div className="truncate text-xs text-app-text-muted">by HealCoder</div>
         </div>
       ) : null}
     </Link>
