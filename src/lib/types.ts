@@ -18,6 +18,9 @@ export type Vitals = {
   pr?: string;
   rr?: string;
   spo2?: string;
+  heightCm?: string;
+  weightKg?: string;
+  bmi?: string;
 };
 
 export type LabTable = {

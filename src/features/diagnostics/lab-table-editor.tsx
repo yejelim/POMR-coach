@@ -117,6 +117,9 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         <table className="clinical-table min-w-full border-collapse">
           <thead>
             <tr>
+              <th className="sticky left-0 top-0 z-10 w-12 border-b border-r p-2 text-center">
+                <Trash2 className="mx-auto h-3.5 w-3.5 text-app-text-faint" aria-hidden="true" />
+              </th>
               {columns.map((column, columnIndex) => (
                 <th key={column} className="sticky top-0 min-w-36 border-b border-r p-2 text-left">
                   <div className="flex items-center justify-between gap-2">
@@ -154,12 +157,24 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                   </div>
                 </th>
               ))}
-              <th className="w-24 border-b p-2 text-center">행 삭제</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
               <tr key={rowIndex}>
+                <td className="sticky left-0 z-10 border-r border-t bg-app-surface p-1 text-center align-middle">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-app-danger hover:bg-red-50 hover:text-app-danger"
+                    onClick={() => setRows((current) => current.filter((_, index) => index !== rowIndex))}
+                    aria-label={`Remove lab row ${rowIndex + 1}`}
+                    title="행 삭제"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </td>
                 {columns.map((column) => (
                   <td key={column} className="border-r border-t p-1 align-top">
                     <Input
@@ -169,19 +184,6 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                     />
                   </td>
                 ))}
-                <td className="border-t p-1 text-center align-middle">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-app-danger hover:bg-red-50 hover:text-app-danger"
-                    onClick={() => setRows((current) => current.filter((_, index) => index !== rowIndex))}
-                    aria-label="Remove lab row"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    삭제
-                  </Button>
-                </td>
               </tr>
             ))}
             {!rows.length ? (

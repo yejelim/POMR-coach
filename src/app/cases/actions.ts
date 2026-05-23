@@ -143,6 +143,9 @@ function parseVitals(formData: FormData): Vitals {
     pr: toText(formData.get("pr")),
     rr: toText(formData.get("rr")),
     spo2: toText(formData.get("spo2")),
+    heightCm: toText(formData.get("heightCm")),
+    weightKg: toText(formData.get("weightKg")),
+    bmi: toText(formData.get("bmi")),
   };
 }
 

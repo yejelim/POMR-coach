@@ -43,7 +43,10 @@ export default async function AdmissionPage({
       <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5 rounded-lg border border-slate-200 bg-white p-4">
         <section>
           <h3 className="mb-3 text-base font-semibold">Initial vital signs</h3>
-          <VitalsEditor values={parseStoredJson<Vitals>(admission?.initialVitals, {})} />
+          <VitalsEditor
+            values={parseStoredJson<Vitals>(admission?.initialVitals, {})}
+            showAnthropometrics
+          />
         </section>
         <div className="grid gap-4 md:grid-cols-2">
           {genericTemplate.admissionSections.map(([name, label]) => (

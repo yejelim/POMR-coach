@@ -278,6 +278,9 @@ function vitalsToText(value: unknown) {
     vitals.pr ? `PR ${vitals.pr}` : "",
     vitals.rr ? `RR ${vitals.rr}` : "",
     vitals.spo2 ? `SpO2 ${vitals.spo2}` : "",
+    vitals.heightCm ? `Height ${vitals.heightCm} cm` : "",
+    vitals.weightKg ? `Weight ${vitals.weightKg} kg` : "",
+    vitals.bmi ? `BMI ${vitals.bmi}` : "",
   ]
     .filter(Boolean)
     .join(", ");
