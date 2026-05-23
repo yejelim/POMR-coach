@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import { saveImpressionsAction } from "@/app/cases/actions";
-import { getImpressionCaseForOwner, listAiReviewsForOwner } from "@/server/services/case-service";
+import { getImpressionCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { CoachingNote } from "@/components/shared/coaching-note";
-import { AiFeedbackPanel } from "@/features/ai/ai-feedback-panel";
 import { ImpressionTable } from "@/features/impressions/impression-table";
 import { workflowNav } from "@/lib/workflow";
 
@@ -18,7 +17,6 @@ export default async function InitialImpressionPage({
   const ownerId = ownerIdForQuery(user);
   const caseRecord = await getImpressionCaseForOwner(caseId, "INITIAL", ownerId);
   if (!caseRecord) notFound();
-  const reviews = await listAiReviewsForOwner(caseRecord.id, "INITIAL_IMPRESSION", undefined, ownerId);
   const nav = workflowNav(caseRecord.id, "initial");
 
   return (
@@ -43,30 +41,23 @@ export default async function InitialImpressionPage({
           먼저 작성해보세요.
         </CoachingNote>
       ) : null}
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <ImpressionTable
-          stage="INITIAL"
-          rows={caseRecord.impressionRows
-            .filter((row) => row.stage === "INITIAL")
-            .map((row) => ({
-              id: row.id,
-              rank: row.rank,
-              title: row.title,
-              evidence: row.evidence,
-              evidenceAgainst: row.evidenceAgainst,
-              missingData: row.missingData,
-              dxPlan: row.dxPlan,
-              txPlan: row.txPlan,
-            }))}
-          action={saveImpressionsAction.bind(null, caseRecord.id, "INITIAL")}
-          {...nav}
-        />
-        <AiFeedbackPanel
-          caseId={caseRecord.id}
-          reviewType="INITIAL_IMPRESSION"
-          history={reviews}
-        />
-      </div>
+      <ImpressionTable
+        stage="INITIAL"
+        rows={caseRecord.impressionRows
+          .filter((row) => row.stage === "INITIAL")
+          .map((row) => ({
+            id: row.id,
+            rank: row.rank,
+            title: row.title,
+            evidence: row.evidence,
+            evidenceAgainst: row.evidenceAgainst,
+            missingData: row.missingData,
+            dxPlan: row.dxPlan,
+            txPlan: row.txPlan,
+          }))}
+        action={saveImpressionsAction.bind(null, caseRecord.id, "INITIAL")}
+        {...nav}
+      />
     </CasePageFrame>
   );
 }

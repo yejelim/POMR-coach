@@ -23,22 +23,35 @@ export default async function CasesPage({
   const cases = await listCasesForOwner(q, ownerIdForQuery(user));
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <AppLogo size="lg" />
-            <h1 className="mt-5 text-3xl font-semibold tracking-normal text-slate-950">
+    <main className="min-h-screen bg-app-bg">
+      <header className="border-b border-app-border bg-app-surface">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <AppLogo size="md" />
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <AuthStatus
+                email={user.email}
+                isLocalFallback={user.isLocalFallback}
+                isAnonymous={user.isAnonymous}
+                variant="compact"
+              />
+              <AiAssistToggle />
+              <ThemeSwitcher variant="compact" />
+            </div>
+          </div>
+        </div>
+      </header>
+      <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-semibold tracking-normal text-app-text">
               Case Library
             </h1>
             <div className="mt-2">
               <SafetyNote />
             </div>
           </div>
-          <div className="flex flex-col gap-3 md:w-72">
-            <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} isAnonymous={user.isAnonymous} />
-            <AiAssistToggle />
-            <ThemeSwitcher />
+          <div className="flex flex-wrap items-center gap-2">
             <Button asChild>
               <Link href="/cases/new" prefetch={false}>
                 <FilePlus2 className="h-4 w-4" />
@@ -47,8 +60,6 @@ export default async function CasesPage({
             </Button>
           </div>
         </div>
-      </header>
-      <section className="mx-auto max-w-6xl px-4 py-6">
         <form className="mb-5 flex max-w-xl gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />

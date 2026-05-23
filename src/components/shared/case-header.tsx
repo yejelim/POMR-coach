@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FileDown } from "lucide-react";
 import { AppLogo } from "@/components/shared/app-logo";
 import { AuthStatus } from "@/components/shared/auth-status";
+import { DeleteCaseButton } from "@/components/shared/delete-case-button";
 import { SaveStatusBanner } from "@/components/shared/save-status-banner";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -30,8 +31,8 @@ export function CaseHeader({
   return (
     <header className="no-print border-b border-app-border bg-app-surface/95 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0 flex-1">
             <div className="mb-3 lg:hidden">
               <AppLogo size="sm" />
             </div>
@@ -46,22 +47,24 @@ export function CaseHeader({
               {updatedAt ? <span>Last saved {new Date(updatedAt).toLocaleString()}</span> : null}
             </div>
             <SaveStatusBanner />
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2 xl:justify-end">
             {userEmail || isLocalFallback || isAnonymous ? (
-              <div className="mt-3">
                 <AuthStatus
                   email={userEmail ?? null}
                   isLocalFallback={Boolean(isLocalFallback)}
                   isAnonymous={Boolean(isAnonymous)}
+                  variant="compact"
                 />
-              </div>
             ) : null}
+            <Button asChild variant="outline" className="h-9 shrink-0 px-3">
+              <Link href={`/cases/${caseId}/export`} prefetch={false}>
+                <FileDown className="h-4 w-4" />
+                Export
+              </Link>
+            </Button>
+            <DeleteCaseButton caseId={caseId} title={title} redirectHref="/cases" compact />
           </div>
-          <Button asChild variant="outline" className="shrink-0">
-            <Link href={`/cases/${caseId}/export`} prefetch={false}>
-              <FileDown className="h-4 w-4" />
-              Export
-            </Link>
-          </Button>
         </div>
       </div>
     </header>

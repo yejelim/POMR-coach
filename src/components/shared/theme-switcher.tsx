@@ -16,7 +16,7 @@ function isTheme(value: string | null): value is ThemeValue {
   return themes.some((theme) => theme.value === value);
 }
 
-export function ThemeSwitcher() {
+export function ThemeSwitcher({ variant = "stacked" }: { variant?: "stacked" | "compact" }) {
   const selectRef = useRef<HTMLSelectElement | null>(null);
 
   useEffect(() => {
@@ -33,8 +33,14 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <label className="block space-y-2">
-      <span className="flex items-center gap-2 text-xs font-medium text-app-text-muted">
+    <label
+      className={
+        variant === "compact"
+          ? "flex items-center gap-2 rounded-md border border-app-border bg-app-surface px-3 py-2"
+          : "block space-y-2"
+      }
+    >
+      <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-app-text-muted">
         <MonitorCog className="h-3.5 w-3.5" />
         Theme
       </span>
@@ -42,7 +48,7 @@ export function ThemeSwitcher() {
         ref={selectRef}
         defaultValue="mint-clinical"
         onChange={(event) => updateTheme(event.target.value)}
-        className="h-8 text-xs"
+        className={variant === "compact" ? "h-7 w-36 text-xs" : "h-8 text-xs"}
       >
         {themes.map((item) => (
           <option key={item.value} value={item.value}>

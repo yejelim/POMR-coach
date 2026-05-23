@@ -25,7 +25,6 @@
     "db:push:web": "node scripts/with-web-env.mjs node scripts/ensure-postgres-url.mjs && node scripts/with-web-env.mjs prisma db push --schema prisma/schema.postgres.prisma && node scripts/with-web-env.mjs npm run prisma:generate:web",
     "dev:web": "node scripts/with-web-env.mjs node scripts/ensure-postgres-url.mjs && node scripts/with-web-env.mjs npm run prisma:generate:web && node scripts/with-web-env.mjs next dev",
     "build:web": "node scripts/with-web-env.mjs node scripts/ensure-postgres-url.mjs && node scripts/with-web-env.mjs npm run prisma:generate:web && node scripts/with-web-env.mjs next build",
-    "vercel-build": "npm run build:web",
     "db:studio": "prisma studio"
   },
   "build": {

@@ -16,7 +16,7 @@ const adapter = isPostgresUrl
 function getPostgresPoolConfig(connectionString: string): PoolConfig {
   const config: PoolConfig = {
     connectionString,
-    max: Number(process.env.DATABASE_POOL_MAX ?? (process.env.VERCEL ? 1 : 5)),
+    max: Number(process.env.DATABASE_POOL_MAX ?? 5),
   };
 
   try {

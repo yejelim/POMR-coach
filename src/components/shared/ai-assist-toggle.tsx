@@ -9,22 +9,25 @@ export function AiAssistToggle() {
   }
 
   return (
-    <div className="rounded-lg border border-app-border bg-app-surface p-3">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-app-text">
+    <div className="flex items-center gap-2 rounded-md border border-app-border bg-app-surface px-3 py-2">
+      <div className="flex items-center gap-2 text-xs font-semibold text-app-text">
         <Bot className="h-4 w-4 text-app-primary" />
         AI assist
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Button type="button" size="sm" aria-pressed="true">
+      <div className="flex rounded-md border border-app-border bg-app-surface-soft p-0.5">
+        <Button type="button" size="sm" aria-pressed="true" className="h-7 rounded-sm px-2">
           OFF
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={showComingSoon}>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-7 rounded-sm px-2"
+          onClick={showComingSoon}
+        >
           ON
         </Button>
       </div>
-      <p className="mt-2 text-xs leading-5 text-app-text-muted">
-        첫 배포 버전에서는 AI assist 없이 작성/저장/export 기능을 제공합니다.
-      </p>
     </div>
   );
 }

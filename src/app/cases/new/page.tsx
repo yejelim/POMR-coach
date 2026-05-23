@@ -26,7 +26,14 @@ export default async function NewCasePage() {
           <div className="mb-5">
             <AppLogo />
           </div>
-          <AuthStatus email={user.email} isLocalFallback={user.isLocalFallback} isAnonymous={user.isAnonymous} />
+          <div className="mb-5">
+            <AuthStatus
+              email={user.email}
+              isLocalFallback={user.isLocalFallback}
+              isAnonymous={user.isAnonymous}
+              variant="compact"
+            />
+          </div>
           <h1 className="text-2xl font-semibold text-slate-950">New anonymous case</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">환자 식별정보 없이 익명 case label로 작성하세요.</p>
         </div>
