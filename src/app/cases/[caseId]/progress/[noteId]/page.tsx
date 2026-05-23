@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { saveProgressNoteAction } from "@/app/cases/actions";
-import { getProgressNoteForOwner } from "@/server/services/case-service";
+import {
+  getLatestSoapProblemsByProblemIdForOwner,
+  getProgressNoteForOwner,
+} from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
@@ -18,6 +21,7 @@ export default async function ProgressNotePage({
   const ownerId = ownerIdForQuery(user);
   const note = await getProgressNoteForOwner(noteId, ownerId);
   if (!note || note.caseId !== caseId) notFound();
+  const latestProblems = await getLatestSoapProblemsByProblemIdForOwner(caseId, note.id, ownerId);
   const nav = {
     currentHref: `/cases/${caseId}/progress/${note.id}`,
     previousHref: workflowNav(caseId, "progress").currentHref,
@@ -72,6 +76,25 @@ export default async function ProgressNotePage({
           id: problem.id,
           priority: problem.priority,
           title: problem.title,
+        }))}
+        latestProblemNotes={latestProblems.map((problem) => ({
+          id: problem.id,
+          problemId: problem.problemId ?? "",
+          titleSnapshot: problem.titleSnapshot,
+          subjective: problem.subjective,
+          objectiveItems: parseStoredJson<SoapSubfield[]>(problem.objectiveItems, []),
+          objectiveImages: parseStoredJson<UploadedImage[]>(problem.objectiveImages, []),
+          objectivePe: problem.objectivePe,
+          objectiveLab: problem.objectiveLab,
+          objectiveImageProcedure: problem.objectiveImageProcedure,
+          objectiveDrain: problem.objectiveDrain,
+          assessment: problem.assessment,
+          planItems: parseStoredJson<SoapSubfield[]>(problem.planItems, []),
+          planDx: problem.planDx,
+          planTx: problem.planTx,
+          planMonitoring: problem.planMonitoring,
+          planEducation: problem.planEducation,
+          sourceLabel: [problem.sourceDate, problem.sourceHospitalDay].filter(Boolean).join(" "),
         }))}
         action={saveProgressNoteAction.bind(null, caseId, note.id)}
         currentHref={nav.currentHref}

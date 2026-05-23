@@ -1,8 +1,8 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { History, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SaveBar } from "@/components/shared/save-bar";
 import { ImageAttachmentEditor } from "@/components/shared/image-attachment-editor";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
@@ -38,9 +38,14 @@ function blankProblem(): ProgressProblemDraft {
   };
 }
 
+type LatestProblemNote = ProgressProblemDraft & {
+  sourceLabel: string;
+};
+
 export function ProgressNoteEditor({
   note,
   problems: selectableProblems,
+  latestProblemNotes = [],
   action,
   currentHref,
   previousHref,
@@ -57,6 +62,7 @@ export function ProgressNoteEditor({
     problems: ProgressProblemDraft[];
   };
   problems: Array<{ id: string; priority: number; title: string }>;
+  latestProblemNotes?: LatestProblemNote[];
   action: (formData: FormData) => void | Promise<void>;
   currentHref?: string;
   previousHref?: string;
@@ -66,6 +72,16 @@ export function ProgressNoteEditor({
     note.problems.length ? note.problems.map(mergeLegacySoapFields) : [blankProblem()],
   );
   const rowsForSave = rows.map(mergeLegacySoapFields);
+  const latestByProblemId = useMemo(
+    () =>
+      new Map(
+        latestProblemNotes.map((problem): [string, LatestProblemNote] => [
+          problem.problemId ?? "",
+          { ...mergeLegacySoapFields(problem), sourceLabel: problem.sourceLabel },
+        ]),
+      ),
+    [latestProblemNotes],
+  );
 
   function update(index: number, patch: Partial<ProgressProblemDraft>) {
     setRows((current) =>
@@ -79,6 +95,33 @@ export function ProgressNoteEditor({
     items: SoapSubfield[],
   ) {
     update(rowIndex, { [key]: items });
+  }
+
+  function loadLatestSoap(index: number) {
+    const current = rows[index];
+    const latest = current.problemId ? latestByProblemId.get(current.problemId) : undefined;
+    if (!latest) return;
+    if (hasSoapDraftContent(current)) {
+      const confirmed = window.confirm("현재 작성 중인 SOAP 내용을 최신 기록으로 덮어쓸까요?");
+      if (!confirmed) return;
+    }
+
+    update(index, {
+      titleSnapshot: current.titleSnapshot || latest.titleSnapshot,
+      subjective: latest.subjective,
+      objectiveItems: latest.objectiveItems,
+      objectiveImages: latest.objectiveImages ?? [],
+      objectivePe: latest.objectivePe,
+      objectiveLab: latest.objectiveLab,
+      objectiveImageProcedure: latest.objectiveImageProcedure,
+      objectiveDrain: latest.objectiveDrain,
+      assessment: latest.assessment,
+      planItems: latest.planItems,
+      planDx: latest.planDx,
+      planTx: latest.planTx,
+      planMonitoring: latest.planMonitoring,
+      planEducation: latest.planEducation,
+    });
   }
 
   return (
@@ -121,7 +164,7 @@ export function ProgressNoteEditor({
       {rows.map((row, index) => (
         <section key={index} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
           <div className="flex items-center justify-between border-b border-slate-200 bg-teal-50 px-4 py-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-teal-950">Problem #{index + 1}</span>
               <Select
                 className="h-8 w-52 bg-white"
@@ -141,6 +184,10 @@ export function ProgressNoteEditor({
                   </option>
                 ))}
               </Select>
+              <LoadLatestSoapButton
+                latest={row.problemId ? latestByProblemId.get(row.problemId) : undefined}
+                onClick={() => loadLatestSoap(index)}
+              />
             </div>
             <Button
               type="button"
@@ -216,6 +263,29 @@ export function ProgressNoteEditor({
   );
 }
 
+function LoadLatestSoapButton({
+  latest,
+  onClick,
+}: {
+  latest?: LatestProblemNote;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="h-8 bg-white"
+      onClick={onClick}
+      disabled={!latest}
+      title={latest ? `${latest.sourceLabel || "이전 노트"}에서 불러오기` : "같은 problem의 이전 SOAP note가 없습니다."}
+    >
+      <History className="h-4 w-4" />
+      최신 SOAP note 불러오기
+    </Button>
+  );
+}
+
 function SoapRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <tr className="border-b border-slate-200 last:border-b-0">
@@ -224,6 +294,24 @@ function SoapRow({ label, children }: { label: string; children: ReactNode }) {
       </th>
       <td className="p-3 align-top">{children}</td>
     </tr>
+  );
+}
+
+function hasSoapDraftContent(row: ProgressProblemDraft) {
+  return Boolean(
+    row.subjective.trim() ||
+      row.assessment.trim() ||
+      row.objectiveItems?.some((item) => item.label.trim() || item.value.trim()) ||
+      row.objectiveImages?.some((image) => image.dataUrl || image.caption?.trim() || image.note?.trim()) ||
+      row.planItems?.some((item) => item.label.trim() || item.value.trim()) ||
+      row.objectivePe.trim() ||
+      row.objectiveLab.trim() ||
+      row.objectiveImageProcedure.trim() ||
+      row.objectiveDrain.trim() ||
+      row.planDx.trim() ||
+      row.planTx.trim() ||
+      row.planMonitoring.trim() ||
+      row.planEducation.trim(),
   );
 }
 

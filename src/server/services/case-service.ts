@@ -379,6 +379,44 @@ export async function getProgressNoteForOwner(noteId: string, ownerId?: string) 
   });
 }
 
+export async function getLatestSoapProblemsByProblemIdForOwner(
+  caseId: string,
+  excludeNoteId: string,
+  ownerId?: string,
+) {
+  await assertCaseOwner(caseId, ownerId);
+
+  const notes = await prisma.progressNote.findMany({
+    where: {
+      caseId,
+      NOT: { id: excludeNoteId },
+    },
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    include: {
+      problems: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
+    },
+  });
+
+  const latestByProblemId = new Map<string, (typeof notes)[number]["problems"][number] & {
+    sourceDate: string;
+    sourceHospitalDay: string;
+  }>();
+
+  for (const note of notes) {
+    for (const problem of note.problems) {
+      if (!problem.problemId || latestByProblemId.has(problem.problemId)) continue;
+      if (!hasSoapContent(problem)) continue;
+      latestByProblemId.set(problem.problemId, {
+        ...problem,
+        sourceDate: note.date,
+        sourceHospitalDay: note.hospitalDay,
+      });
+    }
+  }
+
+  return Array.from(latestByProblemId.values());
+}
+
 export async function updateProgressNote(
   noteId: string,
   input: {
@@ -460,6 +498,41 @@ export async function updateProgressNote(
         },
       },
     });
+  });
+}
+
+function hasSoapContent(problem: {
+  subjective: string;
+  objectiveItems: string;
+  objectiveImages: string;
+  objectivePe: string;
+  objectiveLab: string;
+  objectiveImageProcedure: string;
+  objectiveDrain: string;
+  assessment: string;
+  planItems: string;
+  planDx: string;
+  planTx: string;
+  planMonitoring: string;
+  planEducation: string;
+}) {
+  return [
+    problem.subjective,
+    problem.objectiveItems,
+    problem.objectiveImages,
+    problem.objectivePe,
+    problem.objectiveLab,
+    problem.objectiveImageProcedure,
+    problem.objectiveDrain,
+    problem.assessment,
+    problem.planItems,
+    problem.planDx,
+    problem.planTx,
+    problem.planMonitoring,
+    problem.planEducation,
+  ].some((value) => {
+    const trimmed = value.trim();
+    return trimmed && trimmed !== "[]" && trimmed !== "{}";
   });
 }
 
