@@ -21,7 +21,7 @@ export function AppLogo({
       aria-label="Go to POMR Coach home"
     >
       <Image
-        src="/POMR_coach_logo.png"
+        src="/app-icon.png"
         alt="POMR Coach logo"
         width={imageSize}
         height={imageSize}
