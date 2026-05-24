@@ -12,6 +12,10 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { SafetyNote } from "@/components/shared/safety-note";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
+import { serializeError } from "@/server/logging";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function CasesPage({
   searchParams,
@@ -19,8 +23,15 @@ export default async function CasesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const user = await requireCurrentUser();
-  const cases = await listCasesForOwner(q, ownerIdForQuery(user));
+  let user;
+  let cases;
+  try {
+    user = await requireCurrentUser();
+    cases = await listCasesForOwner(q, ownerIdForQuery(user));
+  } catch (error) {
+    console.error("Cases page failed", serializeError(error));
+    throw error;
+  }
 
   return (
     <main className="min-h-screen bg-app-bg">

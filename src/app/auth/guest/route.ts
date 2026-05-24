@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/server/db";
 import { normalizeAuthEmail } from "@/server/auth/current-user";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/supabase";
+import { serializeError } from "@/server/logging";
 
 function getSafeNextUrl(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next");
@@ -61,15 +62,4 @@ export async function GET(request: NextRequest) {
     loginUrl.searchParams.set("error", "guest_unavailable");
     return NextResponse.redirect(loginUrl);
   }
-}
-
-function serializeError(error: unknown) {
-  if (!(error instanceof Error)) return { error };
-  return {
-    name: error.name,
-    message: error.message,
-    stack: error.stack,
-    code: "code" in error ? error.code : undefined,
-    clientVersion: "clientVersion" in error ? error.clientVersion : undefined,
-  };
 }

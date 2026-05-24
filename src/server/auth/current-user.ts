@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/supabase";
+import { serializeError } from "@/server/logging";
 
 export type CurrentUser = {
   id: string;
@@ -19,26 +20,45 @@ const localUser: CurrentUser = {
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!isSupabaseConfigured()) return localUser;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user: authUser },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("Supabase getUser failed", serializeError(error));
+      return null;
+    }
+
+    user = authUser;
+  } catch (error) {
+    console.error("Supabase user lookup threw", serializeError(error));
+    return null;
+  }
 
   if (!user) return null;
 
   const isAnonymous = Boolean((user as { is_anonymous?: boolean }).is_anonymous);
   const email = normalizeAuthEmail(user.email, isAnonymous);
 
-  await prisma.user.upsert({
-    where: { id: user.id },
-    create: {
-      id: user.id,
-      email,
-    },
-    update: {
-      email,
-    },
-  });
+  try {
+    await prisma.user.upsert({
+      where: { id: user.id },
+      create: {
+        id: user.id,
+        email,
+      },
+      update: {
+        email,
+      },
+    });
+  } catch (error) {
+    console.error("Current user upsert failed", serializeError(error));
+    throw error;
+  }
 
   return {
     id: user.id,

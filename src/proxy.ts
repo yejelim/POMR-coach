@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { serializeError } from "@/server/logging";
 
 function isSupabaseConfigured() {
   return Boolean(getSupabaseUrl() && getSupabasePublishableKey());
@@ -35,7 +36,14 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  try {
+    const { error } = await supabase.auth.getUser();
+    if (error) {
+      console.error("Supabase proxy getUser failed", serializeError(error));
+    }
+  } catch (error) {
+    console.error("Supabase proxy threw", serializeError(error));
+  }
 
   return response;
 }
