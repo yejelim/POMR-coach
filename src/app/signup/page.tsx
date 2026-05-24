@@ -13,6 +13,8 @@ const errorMessages: Record<string, string> = {
   password: "비밀번호는 8자 이상으로 입력해주세요.",
   confirm: "비밀번호 확인이 일치하지 않습니다.",
   consent: "학습용 사용 및 환자 식별정보 미입력 동의가 필요합니다.",
+  account_exists: "이미 가입된 이메일입니다. Login 화면에서 같은 계정으로 로그인해주세요.",
+  signup_failed: "계정 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
 };
 
 export default async function SignupPage({

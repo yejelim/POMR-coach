@@ -3,14 +3,15 @@ import { prisma } from "@/server/db";
 import { normalizeAuthEmail } from "@/server/auth/current-user";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
+import { getPublicUrl } from "@/server/request-url";
 
 function getSafeNextUrl(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next");
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return new URL("/cases", request.url);
+    return getPublicUrl(request, "/cases");
   }
 
-  return new URL(next, request.url);
+  return getPublicUrl(request, next);
 }
 
 export async function GET(request: NextRequest) {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
         status: error?.status,
         code: error?.code,
       });
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = getPublicUrl(request, "/login");
       loginUrl.searchParams.set("error", "guest_unavailable");
       return NextResponse.redirect(loginUrl);
     }
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(getSafeNextUrl(request));
   } catch (error) {
     console.error("Guest route failed", serializeError(error));
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = getPublicUrl(request, "/login");
     loginUrl.searchParams.set("error", "guest_unavailable");
     return NextResponse.redirect(loginUrl);
   }
