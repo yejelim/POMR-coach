@@ -13,40 +13,63 @@ function getSafeNextUrl(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.redirect(getSafeNextUrl(request));
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user: existingUser },
+    } = await supabase.auth.getUser();
+
+    if (existingUser) {
+      return NextResponse.redirect(getSafeNextUrl(request));
+    }
+
+    const { data, error } = await supabase.auth.signInAnonymously();
+
+    if (error || !data.user) {
+      console.error("Guest sign-in failed", {
+        message: error?.message,
+        status: error?.status,
+        code: error?.code,
+      });
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "guest_unavailable");
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const isAnonymous = Boolean((data.user as { is_anonymous?: boolean }).is_anonymous);
+    const email = normalizeAuthEmail(data.user.email, isAnonymous);
+
+    await prisma.user.upsert({
+      where: { id: data.user.id },
+      create: {
+        id: data.user.id,
+        email,
+      },
+      update: {
+        email,
+      },
+    });
+
     return NextResponse.redirect(getSafeNextUrl(request));
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user: existingUser },
-  } = await supabase.auth.getUser();
-
-  if (existingUser) {
-    return NextResponse.redirect(getSafeNextUrl(request));
-  }
-
-  const { data, error } = await supabase.auth.signInAnonymously();
-
-  if (error || !data.user) {
+  } catch (error) {
+    console.error("Guest route failed", serializeError(error));
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "guest_unavailable");
     return NextResponse.redirect(loginUrl);
   }
+}
 
-  const isAnonymous = Boolean((data.user as { is_anonymous?: boolean }).is_anonymous);
-  const email = normalizeAuthEmail(data.user.email, isAnonymous);
-
-  await prisma.user.upsert({
-    where: { id: data.user.id },
-    create: {
-      id: data.user.id,
-      email,
-    },
-    update: {
-      email,
-    },
-  });
-
-  return NextResponse.redirect(getSafeNextUrl(request));
+function serializeError(error: unknown) {
+  if (!(error instanceof Error)) return { error };
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    code: "code" in error ? error.code : undefined,
+    clientVersion: "clientVersion" in error ? error.clientVersion : undefined,
+  };
 }
