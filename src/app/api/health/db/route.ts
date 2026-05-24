@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/server/db";
+import { getDatabaseUrlDiagnostics, prisma } from "@/server/db";
 import { isSupabaseConfigured } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 
@@ -22,6 +22,7 @@ export async function GET() {
       ok: true,
       database: "reachable",
       authConfigured: isSupabaseConfigured(),
+      databaseUrl: getDatabaseUrlDiagnostics(),
       checks: {
         users: userCount,
         cases: caseCount,
@@ -36,6 +37,7 @@ export async function GET() {
         ok: false,
         database: "unreachable",
         authConfigured: isSupabaseConfigured(),
+        databaseUrl: getDatabaseUrlDiagnostics(),
         error: serializePublicError(error),
         timestamp: new Date().toISOString(),
       },
