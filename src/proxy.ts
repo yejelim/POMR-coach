@@ -26,6 +26,7 @@ export async function proxy(request: NextRequest) {
     {
       cookieOptions: getSupabaseCookieOptions(),
       cookies: {
+        encode: "tokens-only",
         getAll() {
           return request.cookies.getAll();
         },

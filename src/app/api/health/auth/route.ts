@@ -6,6 +6,7 @@ import {
   getSupabaseProjectRef,
   hasSupabaseAuthCookie,
   isSupabaseConfigured,
+  SUPABASE_AUTH_COOKIE_NAME,
 } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
       authConfigured: false,
       supabaseHost: getSupabaseHost(),
       projectRef,
-      expectedCookieName: projectRef ? `sb-${projectRef}-auth-token` : null,
+      expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
       receivedAuthCookies: authCookieNames,
       userPresent: false,
       isAnonymous: null,
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
         authConfigured: true,
         supabaseHost: getSupabaseHost(),
         projectRef,
-        expectedCookieName: projectRef ? `sb-${projectRef}-auth-token` : null,
+        expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
         receivedAuthCookies: authCookieNames,
         userPresent: Boolean(user),
         isAnonymous: user ? Boolean((user as { is_anonymous?: boolean }).is_anonymous) : null,
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
           authConfigured: true,
           supabaseHost: getSupabaseHost(),
           projectRef,
-          expectedCookieName: projectRef ? `sb-${projectRef}-auth-token` : null,
+          expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
           receivedAuthCookies: authCookieNames,
           userPresent: false,
           isAnonymous: null,

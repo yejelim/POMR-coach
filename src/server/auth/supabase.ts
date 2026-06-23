@@ -14,6 +14,8 @@ const AUTH_RESPONSE_HEADERS = {
   Pragma: "no-cache",
 };
 
+export const SUPABASE_AUTH_COOKIE_NAME = "__session";
+
 export function isSupabaseConfigured() {
   return Boolean(getSupabaseUrl() && getSupabasePublishableKey());
 }
@@ -27,6 +29,7 @@ export async function createSupabaseServerClient() {
     {
       cookieOptions: getSupabaseCookieOptions(),
       cookies: {
+        encode: "tokens-only",
         getAll() {
           return cookieStore.getAll();
         },
@@ -54,6 +57,7 @@ export function createSupabaseRequestClient(request: NextRequest) {
     {
       cookieOptions: getSupabaseCookieOptions(),
       cookies: {
+        encode: "tokens-only",
         getAll() {
           return request.cookies.getAll();
         },
@@ -112,6 +116,7 @@ export function getSupabaseHost() {
 
 export function getSupabaseCookieOptions() {
   return {
+    name: SUPABASE_AUTH_COOKIE_NAME,
     path: "/",
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
@@ -119,7 +124,11 @@ export function getSupabaseCookieOptions() {
 }
 
 export function hasSupabaseAuthCookie(cookieList: { name: string }[]) {
-  return cookieList.some(({ name }) => name.startsWith("sb-") && name.includes("auth-token"));
+  return cookieList.some(({ name }) => name === SUPABASE_AUTH_COOKIE_NAME || isLegacySupabaseAuthCookie(name));
+}
+
+function isLegacySupabaseAuthCookie(name: string) {
+  return name.startsWith("sb-") && name.includes("auth-token");
 }
 
 function getSupabaseUrl() {
