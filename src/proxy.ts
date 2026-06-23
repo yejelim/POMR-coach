@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { applyAuthNoStoreHeaders, getSupabaseCookieOptions, hasSupabaseAuthCookie } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 
 function isSupabaseConfigured() {
@@ -12,22 +13,35 @@ export async function proxy(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
+  const requestCookies = request.cookies.getAll();
+  const hasAuthCookie = hasSupabaseAuthCookie(requestCookies);
+
+  if (!hasAuthCookie) {
+    return response;
+  }
 
   const supabase = createServerClient(
     getSupabaseUrl()!,
     getSupabasePublishableKey()!,
     {
+      cookieOptions: getSupabaseCookieOptions(),
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers = {}) {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
 
           response = NextResponse.next({ request });
 
+          Object.entries(headers).forEach(([name, value]) => {
+            response.headers.set(name, value);
+          });
+          if (cookiesToSet.length > 0) {
+            applyAuthNoStoreHeaders(response);
+          }
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });

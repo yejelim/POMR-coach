@@ -13,7 +13,7 @@ const errorMessages: Record<string, string> = {
   invalid_login: "이메일 또는 비밀번호가 올바르지 않습니다.",
   login_failed: "로그인 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
   auth_not_configured: "Supabase 환경 변수가 아직 설정되지 않았습니다.",
-  guest_unavailable: "Guest mode를 시작할 수 없습니다. Supabase Anonymous Sign-Ins 설정을 확인해주세요.",
+  guest_unavailable: "Guest mode를 시작할 수 없습니다. Supabase 설정과 세션 쿠키 상태를 확인해주세요.",
 };
 
 const statusMessages: Record<string, string> = {

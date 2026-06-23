@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/server/db";
-import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/supabase";
+import { createSupabaseServerClient, hasSupabaseAuthCookie, isSupabaseConfigured } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 
 export type CurrentUser = {
@@ -19,6 +20,9 @@ const localUser: CurrentUser = {
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!isSupabaseConfigured()) return localUser;
+
+  const cookieStore = await cookies();
+  if (!hasSupabaseAuthCookie(cookieStore.getAll())) return null;
 
   let user;
   try {

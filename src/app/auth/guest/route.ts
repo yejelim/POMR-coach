@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/server/db";
 import { normalizeAuthEmail } from "@/server/auth/current-user";
-import { createSupabaseServerClient, isSupabaseConfigured } from "@/server/auth/supabase";
+import { applyAuthNoStoreHeaders, createSupabaseRequestClient, isSupabaseConfigured } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 import { getPublicUrl } from "@/server/request-url";
 
@@ -17,16 +17,16 @@ function getSafeNextUrl(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.redirect(getSafeNextUrl(request));
+      return applyAuthNoStoreHeaders(NextResponse.redirect(getSafeNextUrl(request)));
     }
 
-    const supabase = await createSupabaseServerClient();
+    const { supabase, applyToResponse } = createSupabaseRequestClient(request);
     const {
       data: { user: existingUser },
     } = await supabase.auth.getUser();
 
     if (existingUser) {
-      return NextResponse.redirect(getSafeNextUrl(request));
+      return applyToResponse(applyAuthNoStoreHeaders(NextResponse.redirect(getSafeNextUrl(request))));
     }
 
     const { data, error } = await supabase.auth.signInAnonymously();
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       });
       const loginUrl = getPublicUrl(request, "/login");
       loginUrl.searchParams.set("error", "guest_unavailable");
-      return NextResponse.redirect(loginUrl);
+      return applyToResponse(applyAuthNoStoreHeaders(NextResponse.redirect(loginUrl)));
     }
 
     const isAnonymous = Boolean((data.user as { is_anonymous?: boolean }).is_anonymous);
@@ -56,11 +56,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(getSafeNextUrl(request));
+    return applyToResponse(applyAuthNoStoreHeaders(NextResponse.redirect(getSafeNextUrl(request))));
   } catch (error) {
     console.error("Guest route failed", serializeError(error));
     const loginUrl = getPublicUrl(request, "/login");
     loginUrl.searchParams.set("error", "guest_unavailable");
-    return NextResponse.redirect(loginUrl);
+    return applyAuthNoStoreHeaders(NextResponse.redirect(loginUrl));
   }
 }
