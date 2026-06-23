@@ -30,6 +30,10 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
   <title>${escapeHtml(caseRecord.title)} - POMR Coach Submission</title>
   <style>
     @page { size: A4; margin: 18mm; }
+    html, body, * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
     body {
       font-family: "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
       color: #0f172a;
@@ -49,7 +53,19 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     .image-card img { display: block; max-height: 220px; max-width: 100%; object-fit: contain; width: 100%; }
     .image-caption { color: #334155; font-size: 11px; font-weight: 700; margin-top: 4px; }
     .image-note { color: #64748b; font-size: 10px; margin-top: 2px; white-space: pre-wrap; }
-    .text-highlight { background: #fef3c7; border-radius: 2px; padding: 0 2px; }
+    .text-highlight {
+      background-color: #fde68a;
+      border-radius: 2px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      box-shadow: inset 0 -0.85em 0 #fde68a;
+      padding: 0 2px;
+      text-decoration: underline;
+      text-decoration-color: #fde68a;
+      text-decoration-skip-ink: none;
+      text-decoration-thickness: 0.85em;
+      text-underline-offset: -0.45em;
+    }
     .pdf-header { align-items: center; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; }
     .pdf-logo { height: 30px; object-fit: contain; width: 30px; }
     .brand { color: #0f766e; font-size: 13px; font-weight: 700; margin: 0; }

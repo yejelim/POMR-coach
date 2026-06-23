@@ -143,6 +143,9 @@ export function ImageAttachmentEditor({
         <div className="text-xs leading-5 text-app-text-muted">
           파일 선택, 드래그앤드롭, 클릭 후 Ctrl/⌘+V 붙여넣기
         </div>
+        <div className="max-w-md text-xs leading-5 text-app-text-muted">
+          이 영역을 한 번 선택하면 다른 입력칸에서 이미지를 붙여넣어도 이곳에 임베드됩니다.
+        </div>
       </div>
       {error ? (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -192,7 +195,7 @@ export function ImageAttachmentEditor({
         </div>
       ) : (
         <p className="text-sm text-slate-500">
-          PNG, JPG, JPEG, WebP 이미지를 첨부할 수 있습니다.
+          PNG, JPG, JPEG, WebP 이미지를 첨부할 수 있습니다. 클립보드에 이미지가 있을 때만 붙여넣기가 업로드로 처리됩니다.
         </p>
       )}
     </div>
