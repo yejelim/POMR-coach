@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { ImagePlus, Trash2, UploadCloud } from "lucide-react";
-import type { ClipboardEvent, DragEvent, KeyboardEvent } from "react";
-import { useRef, useState } from "react";
+import type { ClipboardEvent as ReactClipboardEvent, DragEvent, KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 const acceptedImageTypes = ["image/png", "image/jpeg", "image/webp"];
 const maxImageSizeBytes = 5 * 1024 * 1024;
 const maxTotalImageSizeBytes = 10 * 1024 * 1024;
+let activePasteTarget: symbol | null = null;
 
 export function ImageAttachmentEditor({
   images,
@@ -24,8 +25,32 @@ export function ImageAttachmentEditor({
   label?: string;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const targetIdRef = useRef(Symbol(label));
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    function handleDocumentPaste(event: ClipboardEvent) {
+      const files = filesFromDataTransfer(event.clipboardData);
+      if (!files.length) return;
+
+      const activeElement = document.activeElement;
+      const ownsFocus = activeElement ? rootRef.current?.contains(activeElement) : false;
+      if (activePasteTarget !== targetIdRef.current && !ownsFocus) return;
+
+      event.preventDefault();
+      activePasteTarget = targetIdRef.current;
+      void handleFiles(files);
+    }
+
+    document.addEventListener("paste", handleDocumentPaste);
+    return () => document.removeEventListener("paste", handleDocumentPaste);
+  });
+
+  function markActivePasteTarget() {
+    activePasteTarget = targetIdRef.current;
+  }
 
   async function handleFiles(files: FileList | File[] | null) {
     const imageFiles = Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
@@ -57,10 +82,12 @@ export function ImageAttachmentEditor({
     void handleFiles(files);
   }
 
-  function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
+  function handlePaste(event: ReactClipboardEvent<HTMLDivElement>) {
     const files = filesFromDataTransfer(event.clipboardData);
     if (!files.length) return;
     event.preventDefault();
+    event.stopPropagation();
+    markActivePasteTarget();
     void handleFiles(files);
   }
 
@@ -71,7 +98,14 @@ export function ImageAttachmentEditor({
   }
 
   return (
-    <div className="space-y-3" onPaste={handlePaste}>
+    <div
+      ref={rootRef}
+      className="space-y-3"
+      onClick={markActivePasteTarget}
+      onFocusCapture={markActivePasteTarget}
+      onMouseEnter={markActivePasteTarget}
+      onPaste={handlePaste}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -87,10 +121,12 @@ export function ImageAttachmentEditor({
         onKeyDown={handleKeyDown}
         onDragEnter={(event) => {
           event.preventDefault();
+          markActivePasteTarget();
           setIsDragging(true);
         }}
         onDragOver={(event) => {
           event.preventDefault();
+          markActivePasteTarget();
           setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
@@ -105,7 +141,7 @@ export function ImageAttachmentEditor({
         </div>
         <div className="text-sm font-semibold text-app-text">{label}</div>
         <div className="text-xs leading-5 text-app-text-muted">
-          파일 선택, 드래그앤드롭, 또는 캡쳐 이미지 붙여넣기
+          파일 선택, 드래그앤드롭, 클릭 후 Ctrl/⌘+V 붙여넣기
         </div>
       </div>
       {error ? (
@@ -195,7 +231,8 @@ function estimateDataUrlBytes(dataUrl: string) {
   return Math.ceil((base64.length * 3) / 4);
 }
 
-function filesFromDataTransfer(dataTransfer: DataTransfer) {
+function filesFromDataTransfer(dataTransfer: DataTransfer | null) {
+  if (!dataTransfer) return [];
   const directFiles = Array.from(dataTransfer.files ?? []);
   if (directFiles.length) return directFiles;
   return Array.from(dataTransfer.items ?? [])

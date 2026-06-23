@@ -73,13 +73,17 @@ export default async function CaseOverviewPage({
               </label>
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-slate-700">Department</span>
-                <Select name="department" defaultValue={caseRecord.department}>
+                <Input
+                  name="department"
+                  defaultValue={caseRecord.department}
+                  list="department-suggestions"
+                  placeholder="예: GI, Endocrinology, Surgery, 소화기내과"
+                />
+                <datalist id="department-suggestions">
                   {genericTemplate.departments.map((department) => (
-                    <option key={department} value={department}>
-                      {department}
-                    </option>
+                    <option key={department} value={department} />
                   ))}
-                </Select>
+                </datalist>
               </label>
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-slate-700">Status</span>

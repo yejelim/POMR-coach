@@ -5,6 +5,7 @@ import { createProgressNoteAction } from "@/app/cases/actions";
 import { getProgressNotesCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { DeleteProgressNoteButton } from "@/components/shared/delete-progress-note-button";
 import { Button } from "@/components/ui/button";
 
 export default async function ProgressNotesPage({
@@ -43,18 +44,30 @@ export default async function ProgressNotesPage({
       </div>
       <div className="grid gap-3">
         {caseRecord.progressNotes.map((note) => (
-          <Link
+          <article
             key={note.id}
-            href={`/cases/${caseRecord.id}/progress/${note.id}`}
-            prefetch={false}
             className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="font-semibold text-slate-950">{note.date || "날짜 미입력"}</h3>
-              <span className="text-sm text-slate-500">{note.hospitalDay || "HD 미입력"}</span>
+              <Link
+                href={`/cases/${caseRecord.id}/progress/${note.id}`}
+                prefetch={false}
+                className="min-w-0 flex-1 rounded-md outline-none hover:text-app-primary focus-visible:ring-2 focus-visible:ring-app-primary/25"
+              >
+                <h3 className="font-semibold text-slate-950">{note.date || "날짜 미입력"}</h3>
+                <p className="mt-2 text-sm text-slate-600">SOAP problem {note._count.problems}개</p>
+              </Link>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="text-sm text-slate-500">{note.hospitalDay || "HD 미입력"}</span>
+                <DeleteProgressNoteButton
+                  caseId={caseRecord.id}
+                  noteId={note.id}
+                  label={[note.date, note.hospitalDay].filter(Boolean).join(" ") || "날짜 미입력"}
+                  compact
+                />
+              </div>
             </div>
-            <p className="mt-2 text-sm text-slate-600">SOAP problem {note._count.problems}개</p>
-          </Link>
+          </article>
         ))}
         {!caseRecord.progressNotes.length ? (
           <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">

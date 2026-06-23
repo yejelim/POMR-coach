@@ -9,7 +9,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
-import { Textarea } from "@/components/ui/textarea";
+import { PhysicalExamEditor } from "@/features/admission/physical-exam-editor";
 import { RosChecklistEditor } from "@/features/admission/ros-checklist-editor";
 import type { Vitals } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
@@ -65,17 +65,15 @@ export default async function AdmissionPage({
               />
             ))}
           <RosChecklistEditor groups={rosTemplateGroups} defaultValue={admission?.ros ?? ""} />
-          <label className="block space-y-2 md:col-span-2">
+          <div className="block space-y-2 md:col-span-2">
             <span className="text-sm font-medium text-slate-700">Physical examination</span>
             <p className="text-xs leading-5 text-app-text-muted">
               필요한 finding만 남겨 수정하세요. 수행하지 않은 검진이나 불필요한 normal finding은 삭제해도 됩니다.
             </p>
-            <Textarea
-              name="physicalExam"
+            <PhysicalExamEditor
               defaultValue={admission?.physicalExam?.trim() ? admission.physicalExam : defaultPhysicalExamText}
-              rows={14}
             />
-          </label>
+          </div>
         </div>
         <SaveBar label="Save admission" {...nav} />
       </form>

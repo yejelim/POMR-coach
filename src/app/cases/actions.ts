@@ -6,6 +6,7 @@ import {
   createCase,
   createProgressNote,
   deleteCaseForOwner,
+  deleteProgressNoteForOwner,
   replaceImpressions,
   replaceProblems,
   replaceTimeline,
@@ -114,6 +115,13 @@ export async function createProgressNoteAction(caseId: string) {
   const user = await requireCurrentUser();
   const note = await createProgressNote(caseId, ownerIdForQuery(user));
   redirect(`/cases/${caseId}/progress/${note.id}`);
+}
+
+export async function deleteProgressNoteAction(caseId: string, noteId: string) {
+  const user = await requireCurrentUser();
+  await deleteProgressNoteForOwner(noteId, ownerIdForQuery(user));
+  revalidateCase(caseId);
+  revalidatePath(`/cases/${caseId}/progress`);
 }
 
 export async function saveProgressNoteAction(

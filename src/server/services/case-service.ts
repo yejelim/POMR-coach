@@ -365,6 +365,18 @@ export async function createProgressNote(caseId: string, ownerId?: string) {
   });
 }
 
+export async function deleteProgressNoteForOwner(noteId: string, ownerId?: string) {
+  if (ownerId) {
+    const note = await prisma.progressNote.findFirst({
+      where: { id: noteId, case: { ownerId } },
+      select: { id: true },
+    });
+    if (!note) throw new Error("Progress note not found.");
+  }
+
+  return prisma.progressNote.delete({ where: { id: noteId } });
+}
+
 export async function getProgressNote(noteId: string) {
   return getProgressNoteForOwner(noteId);
 }

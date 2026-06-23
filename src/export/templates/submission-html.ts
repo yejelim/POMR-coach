@@ -49,6 +49,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     .image-card img { display: block; max-height: 220px; max-width: 100%; object-fit: contain; width: 100%; }
     .image-caption { color: #334155; font-size: 11px; font-weight: 700; margin-top: 4px; }
     .image-note { color: #64748b; font-size: 10px; margin-top: 2px; white-space: pre-wrap; }
+    .text-highlight { background: #fef3c7; border-radius: 2px; padding: 0 2px; }
     .pdf-header { align-items: center; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; }
     .pdf-logo { height: 30px; object-fit: contain; width: 30px; }
     .brand { color: #0f766e; font-size: 13px; font-weight: 700; margin: 0; }
@@ -82,8 +83,8 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     field("Social history", admission?.socialHistory),
     field("Alcohol history", admission?.alcoholHistory),
     field("Smoking history", admission?.smokingHistory),
-    field("ROS", admission?.ros),
-    field("Physical examination", admission?.physicalExam),
+    field("ROS", positiveRosToText(admission?.ros)),
+    richTextField("Physical examination", admission?.physicalExam),
     field("Initial vital signs", vitalsToText(admission?.initialVitals)),
     field("Image/procedure text findings", admission?.imageProcedureText),
   ])}
@@ -123,6 +124,101 @@ function field(label: string, value: unknown) {
   const text = String(value ?? "").trim();
   if (!text) return "";
   return `<h3>${escapeHtml(label)}</h3><p>${escapeHtml(text)}</p>`;
+}
+
+function richTextField(label: string, value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  return `<h3>${escapeHtml(label)}</h3><p>${formatClinicalMarkup(text)}</p>`;
+}
+
+function positiveRosToText(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  const sections: string[] = [];
+  let currentCategory = "";
+  let currentPositiveLines: string[] = [];
+  let inAdditionalNotes = false;
+  let sawStructuredLine = false;
+  const additionalLines: string[] = [];
+
+  function flushCurrentCategory() {
+    if (currentCategory && currentPositiveLines.length) {
+      sections.push(`[${currentCategory}]\n${currentPositiveLines.join("\n")}`);
+    }
+    currentPositiveLines = [];
+  }
+
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    const categoryMatch = trimmed.match(/^\[(.+)]$/);
+    if (categoryMatch) {
+      flushCurrentCategory();
+      currentCategory = categoryMatch[1];
+      inAdditionalNotes = currentCategory.toLowerCase() === "additional notes";
+      sawStructuredLine = true;
+      continue;
+    }
+
+    if (inAdditionalNotes) {
+      additionalLines.push(trimmed);
+      continue;
+    }
+
+    const itemMatch = trimmed.match(/^- (.+?) \(([+-])\)(?:: (.*))?$/);
+    if (itemMatch) {
+      sawStructuredLine = true;
+      const [, item, sign, comment = ""] = itemMatch;
+      if (sign === "+") {
+        currentPositiveLines.push(`- ${item} (+)${comment.trim() ? `: ${comment.trim()}` : ""}`);
+      }
+      continue;
+    }
+
+    additionalLines.push(trimmed);
+  }
+
+  flushCurrentCategory();
+
+  if (!sawStructuredLine) return text;
+  if (additionalLines.length) {
+    sections.push(`[Additional notes]\n${additionalLines.join("\n")}`);
+  }
+
+  return sections.join("\n").trim();
+}
+
+function formatClinicalMarkup(value: string) {
+  let output = "";
+  let index = 0;
+
+  while (index < value.length) {
+    if (value.startsWith("**", index)) {
+      const end = value.indexOf("**", index + 2);
+      if (end > index + 2) {
+        output += `<strong>${escapeHtml(value.slice(index + 2, end))}</strong>`;
+        index = end + 2;
+        continue;
+      }
+    }
+
+    if (value.startsWith("==", index)) {
+      const end = value.indexOf("==", index + 2);
+      if (end > index + 2) {
+        output += `<span class="text-highlight">${escapeHtml(value.slice(index + 2, end))}</span>`;
+        index = end + 2;
+        continue;
+      }
+    }
+
+    output += escapeHtml(value[index]);
+    index += 1;
+  }
+
+  return output;
 }
 
 function impressionTable(title: string, rows: CaseBundle["impressionRows"], includeMissing: boolean) {

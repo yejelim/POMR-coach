@@ -6,6 +6,7 @@ import {
 } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { DeleteProgressNoteButton } from "@/components/shared/delete-progress-note-button";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
 import { workflowNav } from "@/lib/workflow";
 import type { SoapSubfield, UploadedImage, Vitals } from "@/lib/types";
@@ -41,8 +42,14 @@ export default async function ProgressNotePage({
       isAnonymous={user.isAnonymous}
       active="progress"
     >
-      <div className="mb-5">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h2 className="text-xl font-semibold">Progress Note SOAP</h2>
+        <DeleteProgressNoteButton
+          caseId={caseId}
+          noteId={note.id}
+          label={[note.date, note.hospitalDay].filter(Boolean).join(" ") || "현재"}
+          redirectHref={`/cases/${caseId}/progress`}
+        />
       </div>
       <ProgressNoteEditor
         note={{

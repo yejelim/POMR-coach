@@ -6,7 +6,6 @@ import { AppLogo } from "@/components/shared/app-logo";
 import { AuthStatus } from "@/components/shared/auth-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { requireCurrentUser } from "@/server/auth/current-user";
 
@@ -46,13 +45,17 @@ export default async function NewCasePage() {
           </label>
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Department</span>
-            <Select name="department" defaultValue="General">
+            <Input
+              name="department"
+              defaultValue="General"
+              list="department-suggestions"
+              placeholder="예: GI, Endocrinology, Surgery, 소화기내과"
+            />
+            <datalist id="department-suggestions">
               {genericTemplate.departments.map((department) => (
-                <option key={department} value={department}>
-                  {department}
-                </option>
+                <option key={department} value={department} />
               ))}
-            </Select>
+            </datalist>
           </label>
           <label className="block space-y-2">
             <span className="text-sm font-medium text-slate-700">Short summary</span>
