@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { SafetyNote } from "@/components/shared/safety-note";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
+import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,7 @@ export default async function CasesPage({
                 isAnonymous={user.isAnonymous}
                 variant="compact"
               />
+              <UsageGuideLink />
               <AiAssistToggle />
               <ThemeSwitcher variant="compact" />
             </div>

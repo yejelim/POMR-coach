@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { signUpAction } from "@/app/auth/actions";
 import { AppLogo } from "@/components/shared/app-logo";
 import { SafetyNote } from "@/components/shared/safety-note";
+import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/server/auth/current-user";
@@ -31,8 +32,9 @@ export default async function SignupPage({
   return (
     <main className="min-h-screen bg-app-bg px-4 py-10">
       <div className="mx-auto max-w-md">
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between gap-3">
           <AppLogo size="lg" />
+          <UsageGuideLink />
         </div>
         <form action={signUpAction} className="rounded-xl border border-app-border bg-app-surface p-5">
           <h1 className="text-2xl font-semibold text-app-text">Sign up</h1>

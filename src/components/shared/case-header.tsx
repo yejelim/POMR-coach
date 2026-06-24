@@ -5,6 +5,7 @@ import { AuthStatus } from "@/components/shared/auth-status";
 import { DeleteCaseButton } from "@/components/shared/delete-case-button";
 import { SaveStatusBanner } from "@/components/shared/save-status-banner";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -49,6 +50,7 @@ export function CaseHeader({
             <SaveStatusBanner />
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2 xl:justify-end">
+            <UsageGuideLink />
             {userEmail || isLocalFallback || isAnonymous ? (
                 <AuthStatus
                   email={userEmail ?? null}
