@@ -86,6 +86,7 @@ export type ProblemDraft = {
 export type ProgressProblemDraft = {
   id?: string;
   problemId?: string;
+  progressStatus?: ProblemStatus;
   titleSnapshot: string;
   subjective: string;
   objectiveItems?: SoapSubfield[];

@@ -9,7 +9,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { DeleteProgressNoteButton } from "@/components/shared/delete-progress-note-button";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
 import { workflowNav } from "@/lib/workflow";
-import type { SoapSubfield, UploadedImage, Vitals } from "@/lib/types";
+import type { ProblemStatus, SoapSubfield, UploadedImage, Vitals } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
 
 export default async function ProgressNotePage({
@@ -63,6 +63,7 @@ export default async function ProgressNotePage({
           problems: note.problems.map((problem) => ({
             id: problem.id,
             problemId: problem.problemId ?? "",
+            progressStatus: problem.progressStatus as ProblemStatus,
             titleSnapshot: problem.titleSnapshot,
             subjective: problem.subjective,
             objectiveItems: parseStoredJson<SoapSubfield[]>(problem.objectiveItems, []),
@@ -83,10 +84,12 @@ export default async function ProgressNotePage({
           id: problem.id,
           priority: problem.priority,
           title: problem.title,
+          status: problem.status as ProblemStatus,
         }))}
         latestProblemNotes={latestProblems.map((problem) => ({
           id: problem.id,
           problemId: problem.problemId ?? "",
+          progressStatus: problem.progressStatus as ProblemStatus,
           titleSnapshot: problem.titleSnapshot,
           subjective: problem.subjective,
           objectiveItems: parseStoredJson<SoapSubfield[]>(problem.objectiveItems, []),

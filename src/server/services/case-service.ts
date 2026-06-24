@@ -5,6 +5,7 @@ import {
   type ImpressionStage,
   type LabTable,
   type ProblemDraft,
+  type ProblemStatus,
   type ProgressProblemDraft,
   type TimelineDraft,
   type UploadedImage,
@@ -356,10 +357,11 @@ export async function createProgressNote(caseId: string, ownerId?: string) {
         create: problems.length
           ? problems.map((problem, position) => ({
               problemId: problem.id,
+              progressStatus: normalizeProblemStatus(problem.status),
               titleSnapshot: problem.title,
               position,
             }))
-          : [{ titleSnapshot: "New problem", position: 0 }],
+          : [{ titleSnapshot: "", progressStatus: "active", position: 0 }],
       },
     },
   });
@@ -454,6 +456,7 @@ export async function updateProgressNote(
   const cleanProblems = input.problems
     .map((row) => ({
       problemId: row.problemId || null,
+      progressStatus: normalizeProblemStatus(row.progressStatus),
       titleSnapshot: (row.titleSnapshot ?? "").trim(),
       subjective: (row.subjective ?? "").trim(),
       objectiveItems: row.objectiveItems ?? [],
@@ -546,6 +549,20 @@ function hasSoapContent(problem: {
     const trimmed = value.trim();
     return trimmed && trimmed !== "[]" && trimmed !== "{}";
   });
+}
+
+function normalizeProblemStatus(status?: string | null): ProblemStatus {
+  if (
+    status === "active" ||
+    status === "improving" ||
+    status === "worsening" ||
+    status === "resolved" ||
+    status === "background"
+  ) {
+    return status;
+  }
+
+  return "active";
 }
 
 export async function listAiReviews(caseId: string, reviewType: string, targetId?: string) {

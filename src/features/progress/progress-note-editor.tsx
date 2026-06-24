@@ -16,11 +16,20 @@ import {
   objectiveItemsFromProblem,
   planItemsFromProblem,
 } from "@/lib/soap-fields";
-import type { ProgressProblemDraft, SoapSubfield, Vitals } from "@/lib/types";
+import type { ProblemStatus, ProgressProblemDraft, SoapSubfield, Vitals } from "@/lib/types";
+
+const problemStatuses: Array<{ value: ProblemStatus; label: string }> = [
+  { value: "active", label: "active" },
+  { value: "improving", label: "improving" },
+  { value: "worsening", label: "worsening" },
+  { value: "resolved", label: "resolved" },
+  { value: "background", label: "background" },
+];
 
 function blankProblem(): ProgressProblemDraft {
   return {
     problemId: "",
+    progressStatus: "active",
     titleSnapshot: "",
     subjective: "",
     objectiveItems: objectiveItemsFromProblem({}),
@@ -61,7 +70,7 @@ export function ProgressNoteEditor({
     drainTube: string;
     problems: ProgressProblemDraft[];
   };
-  problems: Array<{ id: string; priority: number; title: string }>;
+  problems: Array<{ id: string; priority: number; title: string; status: ProblemStatus }>;
   latestProblemNotes?: LatestProblemNote[];
   action: (formData: FormData) => void | Promise<void>;
   currentHref?: string;
@@ -71,7 +80,19 @@ export function ProgressNoteEditor({
   const [rows, setRows] = useState(
     note.problems.length ? note.problems.map(mergeLegacySoapFields) : [blankProblem()],
   );
-  const rowsForSave = rows.map(mergeLegacySoapFields);
+  const problemById = useMemo(
+    () => new Map(selectableProblems.map((problem): [string, (typeof selectableProblems)[number]] => [problem.id, problem])),
+    [selectableProblems],
+  );
+  const rowsForSave = rows.map((row) => {
+    const merged = mergeLegacySoapFields(row);
+    const selectedProblem = merged.problemId ? problemById.get(merged.problemId) : undefined;
+    return {
+      ...merged,
+      progressStatus: merged.progressStatus ?? selectedProblem?.status ?? "active",
+      titleSnapshot: selectedProblem?.title ?? merged.titleSnapshot,
+    };
+  });
   const latestByProblemId = useMemo(
     () =>
       new Map(
@@ -87,6 +108,10 @@ export function ProgressNoteEditor({
     setRows((current) =>
       current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)),
     );
+  }
+
+  function problemTitle(row: ProgressProblemDraft) {
+    return row.problemId ? problemById.get(row.problemId)?.title ?? row.titleSnapshot : row.titleSnapshot;
   }
 
   function updateItems(
@@ -107,7 +132,8 @@ export function ProgressNoteEditor({
     }
 
     update(index, {
-      titleSnapshot: current.titleSnapshot || latest.titleSnapshot,
+      titleSnapshot: problemTitle(current) || latest.titleSnapshot,
+      progressStatus: latest.progressStatus ?? current.progressStatus ?? "active",
       subjective: latest.subjective,
       objectiveItems: latest.objectiveItems,
       objectiveImages: latest.objectiveImages ?? [],
@@ -170,17 +196,30 @@ export function ProgressNoteEditor({
                 className="h-8 w-52 bg-white"
                 value={row.problemId ?? ""}
                 onChange={(event) => {
-                  const selected = selectableProblems.find((problem) => problem.id === event.target.value);
+                  const selected = problemById.get(event.target.value);
                   update(index, {
                     problemId: event.target.value,
-                    titleSnapshot: selected?.title ?? row.titleSnapshot,
+                    progressStatus: selected?.status ?? row.progressStatus ?? "active",
+                    titleSnapshot: selected?.title ?? "",
                   });
                 }}
               >
-                <option value="">Unlinked</option>
+                <option value="">Problem 선택</option>
                 {selectableProblems.map((problem) => (
                   <option key={problem.id} value={problem.id}>
                     #{problem.priority} {problem.title}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                className="h-8 w-36 bg-white"
+                value={row.progressStatus ?? "active"}
+                onChange={(event) => update(index, { progressStatus: event.target.value as ProblemStatus })}
+                aria-label="Progress problem status"
+              >
+                {problemStatuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
                   </option>
                 ))}
               </Select>
@@ -203,10 +242,9 @@ export function ProgressNoteEditor({
             <table className="min-w-full border-collapse text-sm">
               <tbody>
                 <SoapRow label="Problem name">
-                  <Input
-                    value={row.titleSnapshot}
-                    onChange={(event) => update(index, { titleSnapshot: event.target.value })}
-                  />
+                  <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                    {problemTitle(row) || "Problems 탭에서 등록한 problem을 선택하세요."}
+                  </div>
                 </SoapRow>
                 <SoapRow label="S">
                   <Textarea

@@ -281,11 +281,11 @@ function problemList(problems: CaseBundle["problems"]) {
   );
   if (!meaningfulProblems.length) return "";
 
-  return `<section><h2>Problem List</h2><table><thead><tr><th>Priority</th><th>Problem</th><th>Status</th><th>Evidence</th><th>Notes</th></tr></thead><tbody>${
+  return `<section><h2>Problem List</h2><table><thead><tr><th>Priority</th><th>Problem</th><th>Evidence</th><th>Notes</th></tr></thead><tbody>${
     meaningfulProblems
           .map(
             (problem) =>
-              `<tr><td>${problem.priority}</td><td>${escapeHtml(problem.title)}</td><td>${escapeHtml(problem.status)}</td><td>${escapeHtml(problem.evidence)}</td><td>${escapeHtml(problem.notes)}</td></tr>`,
+              `<tr><td>${problem.priority}</td><td>${escapeHtml(problem.title)}</td><td>${escapeHtml(problem.evidence)}</td><td>${escapeHtml(problem.notes)}</td></tr>`,
           )
           .join("")
   }</tbody></table></section>`;
@@ -330,6 +330,7 @@ function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problem
   const planItems = planItemsFromProblem(problem).filter((item) => hasText(item.label) || hasText(item.value));
   const rows = [
     problem.titleSnapshot ? ["Problem", escapeHtml(problem.titleSnapshot)] : null,
+    hasText(problem.progressStatus) ? ["Status", escapeHtml(problem.progressStatus)] : null,
     hasText(problem.subjective) ? ["S", escapeHtml(problem.subjective)] : null,
     objectiveItems.length || objectiveImages.length
       ? [

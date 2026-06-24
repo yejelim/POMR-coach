@@ -49,6 +49,14 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
     });
   }
 
+  function clearTable() {
+    const confirmed = window.confirm("Lab table 전체 내용을 삭제하고 기본 column으로 되돌릴까요?");
+    if (!confirmed) return;
+    setColumns(defaultLabTable.columns);
+    setRows([]);
+    setImportMessage("Lab table을 초기화했습니다. 저장 버튼을 눌러 반영하세요.");
+  }
+
   async function importWorkbook(file: File | undefined) {
     if (!file) return;
     setImportMessage(null);
@@ -106,6 +114,16 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         <Button type="button" variant="outline" size="sm" onClick={addColumn}>
           <Plus className="h-4 w-4" />
           Column
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-app-danger/30 text-app-danger hover:bg-red-50 hover:text-app-danger"
+          onClick={clearTable}
+        >
+          <Trash2 className="h-4 w-4" />
+          전체삭제
         </Button>
       </div>
       {importMessage ? (

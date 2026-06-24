@@ -9,8 +9,6 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProblemDraft } from "@/lib/types";
 
-const statuses = ["active", "improving", "worsening", "resolved", "background"];
-
 function blankProblem(priority: number): ProblemDraft {
   return {
     priority,
@@ -51,7 +49,7 @@ export function ProblemListEditor({
       {rows.map((row, index) => (
         <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="grid flex-1 gap-3 sm:grid-cols-[90px_1fr_160px]">
+            <div className="grid flex-1 gap-3 sm:grid-cols-[90px_1fr]">
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Priority</span>
                 <Input
@@ -64,19 +62,6 @@ export function ProblemListEditor({
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Problem title</span>
                 <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Status</span>
-                <Select
-                  value={row.status}
-                  onChange={(event) => update(index, { status: event.target.value as ProblemDraft["status"] })}
-                >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </Select>
               </label>
             </div>
             <Button

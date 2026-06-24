@@ -176,6 +176,7 @@ model ProgressNoteProblem {
   id                      String   @id @default(cuid())
   progressNoteId          String
   problemId               String?
+  progressStatus          String   @default("active")
   titleSnapshot           String   @default("")
   subjective              String   @default("")
   objectivePe             String   @default("")
