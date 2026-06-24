@@ -9,22 +9,17 @@ POMR Coach can be used as an AI-free local note-writing and PDF export tool. AI 
 
 - Next.js App Router + TypeScript
 - Tailwind CSS + shadcn-style UI primitives
-- Prisma 7 + SQLite + `@prisma/adapter-better-sqlite3`
-- Optional OpenAI-compatible server-side AI review route
-- Print-oriented HTML export, with desktop PDF export planned separately
+- Prisma 7 + SQLite (local) / Postgres (web) via Prisma driver adapters
+- OpenAI-compatible server-side AI review pipeline (disabled by default; see `AI_ENABLED`)
+- Print-oriented HTML export (browser print-to-PDF)
 
 ## Brand Assets
 
 Place the primary logo at `public/POMR_coach_logo.png`. Keep the file name stable so
 the sidebar, case library, and PDF export can use the same full logo asset.
 
-Desktop/app icons are generated from the large P symbol in the primary logo:
-
-```bash
-npm run icons:generate
-```
-
-This creates `public/app-icon.png`, `src/app/icon.png`, and Electron packaging icons under `build/`.
+The web app icon/favicon is `public/app-icon.png` (also surfaced via `src/app/icon.png`).
+Both are committed assets; update them in place if the brand mark changes.
 
 ## Local Setup
 
@@ -38,7 +33,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3000
 
 Open [http://127.0.0.1:3000/cases](http://127.0.0.1:3000/cases).
 
-`OPENAI_API_KEY` is optional for local development. Without it, AI review returns a deterministic local mock response so the write-first feedback workflow can still be tested.
+The AI review feature is **disabled by default**. The `/api/ai/review` route returns 503 unless `AI_ENABLED="true"` is set in the server environment; re-enabling still requires PHI/prompt-injection hardening before real use (see `src/ai/flags.ts`). When enabled without `OPENAI_API_KEY`, it returns a deterministic local mock response.
 
 ## Web Alpha Deployment
 
@@ -52,34 +47,6 @@ npm run build:cloudrun
 See [docs/CLOUD_RUN_DEPLOYMENT.md](docs/CLOUD_RUN_DEPLOYMENT.md) for Cloud Run settings, environment variables, Supabase setup, and deployment checklist.
 
 The earlier Vercel deployment path remains documented in [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md), but the app origin should be Cloud Run for the current alpha.
-
-## Desktop App Builds
-
-For non-developer users, POMR Coach can be distributed as an Electron desktop app. The desktop app opens its own local window and stores data in the user's local app data folder.
-
-### Download
-
-Desktop installers are intended to be attached to GitHub Releases.
-
-| Platform | File |
-| --- | --- |
-| macOS Apple Silicon | `POMR Coach-0.1.0-arm64.dmg` |
-| Windows | `.exe` installer from the Windows release build |
-| Linux | `.AppImage` or `.deb` from the Linux release build |
-
-The current macOS build is unsigned, so macOS may show a security warning on first launch.
-
-```bash
-npm run desktop:pack
-```
-
-Installer builds can be created with:
-
-```bash
-npm run desktop:dist
-```
-
-See [docs/DESKTOP_RELEASE.md](docs/DESKTOP_RELEASE.md) for GitHub Release packaging notes, unsigned build limitations, and future signing requirements.
 
 ## MVP Workflow
 
@@ -109,12 +76,10 @@ Image attachments are stored locally as data URLs in SQLite for MVP simplicity. 
 ```bash
 npm run dev
 npm run lint
+npm run typecheck
 npm test
 npm run build
 npm run build:cloudrun
-npm run icons:generate
-npm run desktop:pack
-npm run desktop:dist
 npm run prisma:generate
 npm run db:apply
 npm run db:push:web

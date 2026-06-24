@@ -14,6 +14,7 @@ import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { TopActionGroup } from "@/components/shared/top-action-group";
 import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
+import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -99,7 +100,7 @@ export default async function CasesPage({
                 </div>
               </div>
               <p className="mt-3 text-xs text-slate-500">
-                수정일 {caseRecord.updatedAt.toLocaleString()}
+                수정일 {formatDateTime(caseRecord.updatedAt)}
               </p>
             </article>
           ))}

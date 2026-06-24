@@ -40,6 +40,17 @@ export function SaveBar({
     };
   }, [savedKey]);
 
+  // Warn before losing unsaved edits on tab close / refresh / external navigation.
+  useEffect(() => {
+    if (!dirty || pending) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [dirty, pending]);
+
   return (
     <div ref={barRef} className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-app-border bg-app-surface/95 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">

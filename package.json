@@ -4,7 +4,6 @@
   "description": "Local-first POMR practice workspace for medical clerkship students.",
   "author": "HealCode",
   "private": true,
-  "main": "electron/main.cjs",
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "next build",
@@ -12,12 +11,9 @@
     "start": "next start",
     "start:standalone": "node .next/standalone/server.js",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "icons:generate": "node scripts/generate-app-icons.mjs",
-    "desktop:prepare": "npm run icons:generate && npm run build && node scripts/prepare-electron-build.mjs",
-    "desktop:dev": "npm run desktop:prepare && electron .",
-    "desktop:pack": "npm run desktop:prepare && electron-builder --dir",
-    "desktop:dist": "npm run desktop:prepare && electron-builder",
+    "check:schema": "node scripts/check-schema-parity.mjs",
     "prisma:generate": "prisma generate",
     "prisma:generate:local": "prisma generate --schema prisma/schema.prisma",
     "prisma:generate:web": "prisma generate --schema prisma/schema.postgres.prisma",
@@ -26,44 +22,6 @@
     "dev:web": "node scripts/with-web-env.mjs node scripts/ensure-postgres-url.mjs && node scripts/with-web-env.mjs npm run prisma:generate:web && node scripts/with-web-env.mjs next dev",
     "build:web": "node scripts/with-web-env.mjs node scripts/ensure-postgres-url.mjs && node scripts/with-web-env.mjs npm run prisma:generate:web && node scripts/with-web-env.mjs next build",
     "db:studio": "prisma studio"
-  },
-  "build": {
-    "appId": "com.healcode.pomrcoach",
-    "productName": "POMR Coach",
-    "asar": false,
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "electron/**/*",
-      ".next/standalone/**/*",
-      "prisma/migrations/**/*",
-      "public/**/*",
-      "package.json"
-    ],
-    "mac": {
-      "icon": "build/icon.icns",
-      "category": "public.app-category.education",
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    },
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "nsis",
-        "zip"
-      ]
-    },
-    "linux": {
-      "icon": "build/icon.png",
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Education"
-    }
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
@@ -93,12 +51,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
-    "electron": "^38.8.6",
-    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "prisma": "^7.8.0",
-    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",

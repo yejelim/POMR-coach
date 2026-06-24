@@ -9,6 +9,7 @@ import { TopActionGroup } from "@/components/shared/top-action-group";
 import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/utils";
 
 export function CaseHeader({
   caseId,
@@ -46,7 +47,7 @@ export function CaseHeader({
               <StatusBadge status={status} />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-app-text-muted">
-              {updatedAt ? <span>Last saved {new Date(updatedAt).toLocaleString()}</span> : null}
+              {updatedAt ? <span>Last saved {formatDateTime(updatedAt)}</span> : null}
             </div>
             <SaveStatusBanner />
           </div>

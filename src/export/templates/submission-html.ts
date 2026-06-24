@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
+import { isValidImageDataUrl } from "@/lib/image-limits";
 import { objectiveItemsFromProblem, planItemsFromProblem } from "@/lib/soap-fields";
 import type { UploadedImage } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
@@ -362,7 +363,10 @@ function soapSubfields(items: Array<{ label: string; value: string }>) {
 }
 
 function renderImages(title: string, images: UploadedImage[]) {
-  const meaningfulImages = images.filter((image) => image.dataUrl);
+  // Only render genuine base64 image data URLs. This blocks external URLs (e.g.
+  // tracking pixels) or non-image data URLs that a malformed/legacy row could
+  // otherwise cause the browser to fetch when the export is opened/printed.
+  const meaningfulImages = images.filter((image) => isValidImageDataUrl(image.dataUrl));
   if (!meaningfulImages.length) return "";
   return `${title ? `<h3>${escapeHtml(title)}</h3>` : ""}<div class="image-grid">${meaningfulImages
     .map(

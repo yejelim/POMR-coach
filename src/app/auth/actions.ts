@@ -20,12 +20,9 @@ export async function signUpAction(formData: FormData) {
   if (password !== confirmPassword) redirect("/signup?error=confirm");
   if (!consent) redirect("/signup?error=consent");
 
-  const existingAccount = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-  if (existingAccount) redirect("/signup?error=account_exists");
-
+  // Note: we intentionally do NOT pre-check the local User table for this email.
+  // An unauthenticated existence probe is an account-enumeration vector; let
+  // Supabase be the single source of truth for whether the account already exists.
   const supabase = await createSupabaseServerClient();
   const {
     data: { user: currentAuthUser },

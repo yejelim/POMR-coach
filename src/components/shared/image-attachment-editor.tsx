@@ -8,11 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { UploadedImage } from "@/lib/types";
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  estimateDataUrlBytes,
+  MAX_IMAGE_BYTES,
+  MAX_SECTION_BYTES,
+} from "@/lib/image-limits";
 import { cn } from "@/lib/utils";
 
-const acceptedImageTypes = ["image/png", "image/jpeg", "image/webp"];
-const maxImageSizeBytes = 5 * 1024 * 1024;
-const maxTotalImageSizeBytes = 10 * 1024 * 1024;
+const acceptedImageTypes: readonly string[] = ALLOWED_IMAGE_MIME_TYPES;
 let activePasteTarget: symbol | null = null;
 
 export function ImageAttachmentEditor({
@@ -30,6 +34,13 @@ export function ImageAttachmentEditor({
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
+  // Keep a ref to the latest handler so the document-level paste listener can be
+  // registered exactly once (stable deps) without capturing a stale closure.
+  const handleFilesRef = useRef<(files: FileList | File[] | null) => void>(() => {});
+  useEffect(() => {
+    handleFilesRef.current = handleFiles;
+  });
+
   useEffect(() => {
     function handleDocumentPaste(event: ClipboardEvent) {
       const files = filesFromDataTransfer(event.clipboardData);
@@ -41,12 +52,12 @@ export function ImageAttachmentEditor({
 
       event.preventDefault();
       activePasteTarget = targetIdRef.current;
-      void handleFiles(files);
+      void handleFilesRef.current(files);
     }
 
     document.addEventListener("paste", handleDocumentPaste);
     return () => document.removeEventListener("paste", handleDocumentPaste);
-  });
+  }, []);
 
   function markActivePasteTarget() {
     activePasteTarget = targetIdRef.current;
@@ -59,7 +70,7 @@ export function ImageAttachmentEditor({
     try {
       const existingBytes = images.reduce((total, image) => total + estimateDataUrlBytes(image.dataUrl), 0);
       const nextFileBytes = imageFiles.reduce((total, file) => total + file.size, 0);
-      if (existingBytes + nextFileBytes > maxTotalImageSizeBytes) {
+      if (existingBytes + nextFileBytes > MAX_SECTION_BYTES) {
         throw new Error("이미지는 한 섹션당 총 10MB 이하로 첨부해주세요.");
       }
       const nextImages = await Promise.all(imageFiles.map(fileToUploadedImage));
@@ -208,7 +219,7 @@ function fileToUploadedImage(file: File): Promise<UploadedImage> {
       reject(new Error("PNG, JPG, JPEG, WebP 파일만 첨부할 수 있습니다."));
       return;
     }
-    if (file.size > maxImageSizeBytes) {
+    if (file.size > MAX_IMAGE_BYTES) {
       reject(new Error("이미지는 파일당 5MB 이하로 첨부해주세요."));
       return;
     }
@@ -227,11 +238,6 @@ function fileToUploadedImage(file: File): Promise<UploadedImage> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
-}
-
-function estimateDataUrlBytes(dataUrl: string) {
-  const base64 = dataUrl.split(",")[1] ?? "";
-  return Math.ceil((base64.length * 3) / 4);
 }
 
 function filesFromDataTransfer(dataTransfer: DataTransfer | null) {

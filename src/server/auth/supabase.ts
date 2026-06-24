@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  getSupabasePublishableKey,
+  getSupabaseUrl,
+  isSupabaseConfigured,
+} from "@/server/auth/supabase-env";
+
+export { getSupabasePublishableKey, getSupabaseUrl, isSupabaseConfigured };
 
 type CookieToSet = {
   name: string;
@@ -15,10 +22,6 @@ const AUTH_RESPONSE_HEADERS = {
 };
 
 export const SUPABASE_AUTH_COOKIE_NAME = "__session";
-
-export function isSupabaseConfigured() {
-  return Boolean(getSupabaseUrl() && getSupabasePublishableKey());
-}
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
@@ -124,17 +127,20 @@ export function getSupabaseCookieOptions() {
 }
 
 export function hasSupabaseAuthCookie(cookieList: { name: string }[]) {
-  return cookieList.some(({ name }) => name === SUPABASE_AUTH_COOKIE_NAME || isLegacySupabaseAuthCookie(name));
+  return cookieList.some(({ name }) => isSupabaseAuthCookieName(name));
+}
+
+function isSupabaseAuthCookieName(name: string) {
+  // @supabase/ssr splits large sessions into chunked cookies (`__session.0`,
+  // `__session.1`, ...). Match the base name, its chunks, and the legacy format
+  // so a user with a large session is never treated as logged out.
+  return (
+    name === SUPABASE_AUTH_COOKIE_NAME ||
+    name.startsWith(`${SUPABASE_AUTH_COOKIE_NAME}.`) ||
+    isLegacySupabaseAuthCookie(name)
+  );
 }
 
 function isLegacySupabaseAuthCookie(name: string) {
   return name.startsWith("sb-") && name.includes("auth-token");
-}
-
-function getSupabaseUrl() {
-  return process.env["SUPABASE_URL"] ?? process.env["NEXT_PUBLIC_SUPABASE_URL"];
-}
-
-function getSupabasePublishableKey() {
-  return process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
 }
