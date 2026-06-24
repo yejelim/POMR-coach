@@ -120,6 +120,9 @@ After deploy:
 7. Export using `Print / Save as PDF`.
 8. Check Cloud Run logs for Prisma or Supabase errors.
 
+Before inviting external users, also run through
+[Launch Safety Checklist](LAUNCH_SAFETY_CHECKLIST.md).
+
 ## Custom Domain
 
 Recommended domain shape:

@@ -8,12 +8,14 @@ import {
   isSupabaseConfigured,
   SUPABASE_AUTH_COOKIE_NAME,
 } from "@/server/auth/supabase";
+import { publicHealthError, shouldExposeHealthDetails } from "@/server/health";
 import { serializeError } from "@/server/logging";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
+  const exposeDetails = shouldExposeHealthDetails();
   const projectRef = getSupabaseProjectRef();
   const authCookieNames = request.cookies
     .getAll()
@@ -24,13 +26,18 @@ export async function GET(request: NextRequest) {
     return authJson({
       ok: false,
       authConfigured: false,
-      supabaseHost: getSupabaseHost(),
-      projectRef,
-      expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-      receivedAuthCookies: authCookieNames,
+      sessionCookiePresent: authCookieNames.length > 0,
       userPresent: false,
       isAnonymous: null,
       error: "Supabase environment variables are not configured.",
+      ...(exposeDetails
+        ? {
+            supabaseHost: getSupabaseHost(),
+            projectRef,
+            expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
+            receivedAuthCookies: authCookieNames,
+          }
+        : {}),
     });
   }
 
@@ -44,20 +51,27 @@ export async function GET(request: NextRequest) {
       authJson({
         ok: !error,
         authConfigured: true,
-        supabaseHost: getSupabaseHost(),
-        projectRef,
-        expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-        receivedAuthCookies: authCookieNames,
+        sessionCookiePresent: authCookieNames.length > 0,
         userPresent: Boolean(user),
         isAnonymous: user ? Boolean((user as { is_anonymous?: boolean }).is_anonymous) : null,
         error: error
-          ? {
-              name: error.name,
-              message: error.message,
-              status: "status" in error ? error.status : null,
-              code: "code" in error ? error.code : null,
-            }
+          ? exposeDetails
+            ? {
+                name: error.name,
+                message: error.message,
+                status: "status" in error ? error.status : null,
+                code: "code" in error ? error.code : null,
+              }
+            : "Auth check failed."
           : null,
+        ...(exposeDetails
+          ? {
+              supabaseHost: getSupabaseHost(),
+              projectRef,
+              expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
+              receivedAuthCookies: authCookieNames,
+            }
+          : {}),
       }),
     );
   } catch (error) {
@@ -67,13 +81,18 @@ export async function GET(request: NextRequest) {
         {
           ok: false,
           authConfigured: true,
-          supabaseHost: getSupabaseHost(),
-          projectRef,
-          expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-          receivedAuthCookies: authCookieNames,
+          sessionCookiePresent: authCookieNames.length > 0,
           userPresent: false,
           isAnonymous: null,
-          error: serializePublicError(error),
+          error: publicHealthError(serializePublicError(error)),
+          ...(exposeDetails
+            ? {
+                supabaseHost: getSupabaseHost(),
+                projectRef,
+                expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
+                receivedAuthCookies: authCookieNames,
+              }
+            : {}),
         },
         500,
       ),

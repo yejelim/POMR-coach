@@ -5,8 +5,13 @@ export const metadata: Metadata = {
   title: "POMR Coach",
   description: "Local-first POMR workspace for clerkship students.",
   icons: {
-    icon: "/app-icon.png",
-    apple: "/app-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "1024x1024" },
+      { url: "/app-icon.png", type: "image/png", sizes: "1024x1024" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/app-icon.png", type: "image/png", sizes: "1024x1024" }],
   },
 };
 

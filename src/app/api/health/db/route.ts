@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDatabaseUrlDiagnostics, prisma } from "@/server/db";
 import { isSupabaseConfigured } from "@/server/auth/supabase";
+import { publicHealthError, shouldExposeHealthDetails } from "@/server/health";
 import { serializeError } from "@/server/logging";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
+  const exposeDetails = shouldExposeHealthDetails();
+
   try {
     const [userCount, caseCount] = await Promise.all([
       prisma.user.count(),
@@ -22,12 +25,16 @@ export async function GET() {
       ok: true,
       database: "reachable",
       authConfigured: isSupabaseConfigured(),
-      databaseUrl: getDatabaseUrlDiagnostics(),
-      checks: {
-        users: userCount,
-        cases: caseCount,
-        caseLibraryQuery: "ok",
-      },
+      ...(exposeDetails
+        ? {
+            databaseUrl: getDatabaseUrlDiagnostics(),
+            checks: {
+              users: userCount,
+              cases: caseCount,
+              caseLibraryQuery: "ok",
+            },
+          }
+        : {}),
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -37,8 +44,8 @@ export async function GET() {
         ok: false,
         database: "unreachable",
         authConfigured: isSupabaseConfigured(),
-        databaseUrl: getDatabaseUrlDiagnostics(),
-        error: serializePublicError(error),
+        ...(exposeDetails ? { databaseUrl: getDatabaseUrlDiagnostics() } : {}),
+        error: publicHealthError(serializePublicError(error)),
         timestamp: new Date().toISOString(),
       },
       { status: 500 },
