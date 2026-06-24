@@ -181,7 +181,7 @@ export function ImageAttachmentEditor({
                   <span className="truncate">{image.fileName}</span>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="danger-ghost"
                     size="sm"
                     onClick={() => onChange(images.filter((_, imageIndex) => imageIndex !== index))}
                   >

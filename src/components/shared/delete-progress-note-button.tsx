@@ -41,13 +41,9 @@ export function DeleteProgressNoteButton({
   return (
     <Button
       type="button"
-      variant={compact ? "outline" : "ghost"}
+      variant={compact ? "danger-outline" : "danger-ghost"}
       size="sm"
-      className={
-        compact
-          ? "h-8 border-app-danger/30 px-2.5 text-app-danger hover:bg-red-50 hover:text-app-danger"
-          : "text-app-danger hover:bg-red-50 hover:text-app-danger"
-      }
+      className={compact ? "h-8 px-2.5" : undefined}
       onClick={handleDelete}
       disabled={pending}
       aria-label="Delete progress note"
@@ -58,4 +54,3 @@ export function DeleteProgressNoteButton({
     </Button>
   );
 }
-

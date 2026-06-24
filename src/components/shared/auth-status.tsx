@@ -15,7 +15,7 @@ export function AuthStatus({
 }) {
   if (isLocalFallback) {
     return (
-      <span className="inline-flex h-8 items-center rounded-md border border-app-border bg-app-surface px-2.5 text-xs font-medium text-app-text-muted">
+      <span className="inline-flex h-7 items-center rounded-md bg-app-surface-soft px-2.5 text-xs font-medium text-app-text-muted">
         Local mode
       </span>
     );
@@ -24,17 +24,17 @@ export function AuthStatus({
   if (isAnonymous) {
     if (variant === "compact") {
       return (
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-app-warning/25 bg-amber-50 px-3 py-2">
-          <span className="rounded-full bg-app-warning px-2 py-0.5 text-xs font-semibold text-white">
+        <div className="inline-flex flex-wrap items-center gap-2 rounded-lg bg-app-warning/10 px-3 py-1.5">
+          <span className="rounded-md bg-app-warning px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">
             Guest
           </span>
-          <span className="text-xs font-medium text-amber-900">
+          <span className="text-xs font-medium text-app-warning">
             게스트 기록은 사라질 수 있습니다.
           </span>
-          <Button asChild size="sm" className="h-7 px-2">
+          <Button asChild size="sm" className="h-7 px-2.5">
             <Link href="/signup">Sign up</Link>
           </Button>
-          <Button asChild size="sm" variant="outline" className="h-7 px-2">
+          <Button asChild size="sm" variant="ghost" className="h-7 px-2.5 text-app-warning hover:bg-app-warning/10 hover:text-app-warning">
             <Link href="/login">Login</Link>
           </Button>
         </div>
@@ -68,12 +68,12 @@ export function AuthStatus({
 
   if (variant === "compact") {
     return (
-      <div className="flex min-w-0 items-center gap-2 rounded-md border border-app-border bg-app-surface px-2 py-1.5">
+      <div className="inline-flex min-w-0 items-center gap-2 rounded-lg bg-app-surface-soft px-3 py-1.5">
         <span className="max-w-48 truncate text-xs font-medium text-app-text-muted">
           {email ?? "Signed in"}
         </span>
         <form action={signOutAction}>
-          <Button type="submit" variant="outline" size="sm" className="h-7 px-2">
+          <Button type="submit" variant="ghost" size="sm" className="h-7 px-2.5">
             Logout
           </Button>
         </form>

@@ -62,7 +62,7 @@ export function ImpressionTable({
             </div>
             <Button
               type="button"
-              variant="ghost"
+              variant="danger-ghost"
               size="icon"
               onClick={() => setRows((current) => current.filter((_, i) => i !== index))}
               aria-label="Remove impression row"

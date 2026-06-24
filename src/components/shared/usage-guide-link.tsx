@@ -17,7 +17,7 @@ export function UsageGuideLink({
       asChild
       variant="outline"
       size="sm"
-      className={cn("h-8 shrink-0 border-app-border bg-app-surface px-2.5", className)}
+      className={cn("h-8 shrink-0 px-2.5", className)}
     >
       <a href={USAGE_GUIDE_URL} target="_blank" rel="noreferrer">
         <BookOpenText className="h-4 w-4" />

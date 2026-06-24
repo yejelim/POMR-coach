@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { SafetyNote } from "@/components/shared/safety-note";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
+import { TopActionGroup } from "@/components/shared/top-action-group";
 import { UsageGuideLink } from "@/components/shared/usage-guide-link";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 
@@ -30,18 +31,20 @@ export default async function CasesPage({
     <main className="min-h-screen bg-app-bg">
       <header className="border-b border-app-border bg-app-surface">
         <div className="mx-auto max-w-7xl px-4 py-4 md:px-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <AppLogo size="md" />
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              <AuthStatus
-                email={user.email}
-                isLocalFallback={user.isLocalFallback}
-                isAnonymous={user.isAnonymous}
-                variant="compact"
-              />
-              <UsageGuideLink />
-              <AiAssistToggle />
-              <ThemeSwitcher variant="compact" />
+              <TopActionGroup>
+                <AuthStatus
+                  email={user.email}
+                  isLocalFallback={user.isLocalFallback}
+                  isAnonymous={user.isAnonymous}
+                  variant="compact"
+                />
+                <UsageGuideLink className="border-transparent bg-transparent shadow-none" />
+                <AiAssistToggle />
+                <ThemeSwitcher variant="compact" />
+              </TopActionGroup>
             </div>
           </div>
         </div>

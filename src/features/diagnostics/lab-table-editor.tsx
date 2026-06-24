@@ -117,9 +117,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="danger-outline"
           size="sm"
-          className="border-app-danger/30 text-app-danger hover:bg-red-50 hover:text-app-danger"
           onClick={clearTable}
         >
           <Trash2 className="h-4 w-4" />
@@ -183,9 +182,9 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                 <td className="sticky left-0 z-10 border-r border-t bg-app-surface p-1 text-center align-middle">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="danger-ghost"
                     size="icon"
-                    className="h-8 w-8 text-app-danger hover:bg-red-50 hover:text-app-danger"
+                    className="h-8 w-8"
                     onClick={() => setRows((current) => current.filter((_, index) => index !== rowIndex))}
                     aria-label={`Remove lab row ${rowIndex + 1}`}
                     title="행 삭제"

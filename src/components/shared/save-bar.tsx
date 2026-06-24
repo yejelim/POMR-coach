@@ -51,10 +51,10 @@ export function SaveBar({
         ) : null}
         <Button
           type="submit"
+          variant={saved ? "success" : "default"}
           name="redirectTo"
           value={currentTarget}
           disabled={pending}
-          className={saved ? "bg-app-success hover:brightness-95" : undefined}
         >
           <Save className="h-4 w-4" />
           {pending ? "저장 중..." : saved ? "저장 완료" : label}

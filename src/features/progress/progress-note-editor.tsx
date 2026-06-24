@@ -230,7 +230,7 @@ export function ProgressNoteEditor({
             </div>
             <Button
               type="button"
-              variant="ghost"
+              variant="danger-ghost"
               size="icon"
               onClick={() => setRows((current) => current.filter((_, i) => i !== index))}
               aria-label="Remove SOAP problem"
@@ -383,7 +383,7 @@ function DynamicSoapItems({
           />
           <Button
             type="button"
-            variant="ghost"
+            variant="danger-ghost"
             size="icon"
             onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
             aria-label="Remove SOAP subfield"
