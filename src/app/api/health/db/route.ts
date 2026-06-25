@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const exposeDetails = canExposeHealthDetails(request);
+  const databaseUrlDiagnostics = getDatabaseUrlDiagnostics();
 
   try {
     const [userCount, caseCount] = await Promise.all([
@@ -25,9 +26,9 @@ export async function GET(request: Request) {
       ok: true,
       database: "reachable",
       authConfigured: isSupabaseConfigured(),
+      databaseUrl: exposeDetails ? databaseUrlDiagnostics : publicDatabaseUrlDiagnostics(databaseUrlDiagnostics),
       ...(exposeDetails
         ? {
-            databaseUrl: getDatabaseUrlDiagnostics(),
             checks: {
               users: userCount,
               cases: caseCount,
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
         ok: false,
         database: "unreachable",
         authConfigured: isSupabaseConfigured(),
-        ...(exposeDetails ? { databaseUrl: getDatabaseUrlDiagnostics() } : {}),
+        databaseUrl: exposeDetails ? databaseUrlDiagnostics : publicDatabaseUrlDiagnostics(databaseUrlDiagnostics),
         error: publicHealthError(serializePublicError(error), exposeDetails),
         timestamp: new Date().toISOString(),
       },
@@ -56,4 +57,12 @@ export async function GET(request: Request) {
 function serializePublicError(error: unknown) {
   if (!(error instanceof Error)) return "Unknown database error";
   return `${error.name}: ${error.message}`;
+}
+
+function publicDatabaseUrlDiagnostics(diagnostics: Record<string, unknown>) {
+  return {
+    present: diagnostics["present"],
+    kind: diagnostics["kind"],
+    hasPlaceholder: diagnostics["hasPlaceholder"],
+  };
 }
