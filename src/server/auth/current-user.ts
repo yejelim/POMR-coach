@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isPostgresDatabase, prisma } from "@/server/db";
 import { createSupabaseServerClient, hasSupabaseAuthCookie, isSupabaseConfigured } from "@/server/auth/supabase";
+import { allowSharedLocalIdentity } from "@/server/auth/supabase-env";
 import { serializeError } from "@/server/logging";
 
 export type CurrentUser = {
@@ -21,14 +22,15 @@ const localUser: CurrentUser = {
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!isSupabaseConfigured()) {
     // Postgres = web / multi-tenant deployment: never serve a shared local
-    // identity, which would disable all per-user isolation. Fail closed loudly.
-    if (isPostgresDatabase()) {
+    // identity, which would disable all per-user isolation. Fail closed loudly —
+    // unless explicitly opted out for a single-user private deployment.
+    if (isPostgresDatabase() && !allowSharedLocalIdentity()) {
       throw new Error(
         "Authentication is not configured for a Postgres deployment. " +
-          "Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.",
+          'Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY, or ALLOW_SHARED_LOCAL_IDENTITY="true" for a single-user private deployment.',
       );
     }
-    // sqlite = local single-user / dev: a shared local identity is intended.
+    // sqlite (or opted-in single-user Postgres): a shared local identity is intended.
     return localUser;
   }
 
@@ -93,8 +95,9 @@ export function ownerIdForQuery(user: CurrentUser) {
   if (user.isLocalFallback) {
     // Defense in depth: a local fallback identity must never run unscoped queries
     // against a shared Postgres database. getCurrentUser already prevents this,
-    // but guard here too so a future caller cannot reintroduce the hole.
-    if (isPostgresDatabase()) {
+    // but guard here too so a future caller cannot reintroduce the hole — unless
+    // single-user mode is explicitly opted in.
+    if (isPostgresDatabase() && !allowSharedLocalIdentity()) {
       throw new Error("Local fallback identity cannot be used with a Postgres database.");
     }
     return undefined;
