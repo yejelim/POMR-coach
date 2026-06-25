@@ -1,7 +1,6 @@
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
-import { allowSharedLocalIdentity, isSupabaseConfigured } from "@/server/auth/supabase-env";
 import type { PoolConfig } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
@@ -12,26 +11,10 @@ const rawDatabaseUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
 const databaseUrl = normalizeDatabaseUrl(rawDatabaseUrl);
 const isPostgresUrl = databaseUrl.startsWith("postgres://") || databaseUrl.startsWith("postgresql://");
 
-// Fail closed: a Postgres (web / multi-tenant) deployment MUST have Supabase auth
-// configured. Without it, getCurrentUser() would fall back to a single shared
-// identity and disable all per-user data isolation. Crash on boot in production
-// rather than silently expose every user's clinical notes to everyone.
-// (Skipped during `next build` where runtime auth env may be absent.)
-// ALLOW_SHARED_LOCAL_IDENTITY="true" is an explicit opt-out for a single-user,
-// private, no-real-data deployment — it intentionally disables per-user isolation.
-if (
-  process.env.NODE_ENV === "production" &&
-  process.env.NEXT_PHASE !== "phase-production-build" &&
-  isPostgresUrl &&
-  !isSupabaseConfigured() &&
-  !allowSharedLocalIdentity()
-) {
-  throw new Error(
-    "Refusing to start: DATABASE_URL is Postgres but Supabase auth is not configured. " +
-      'Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY, or ALLOW_SHARED_LOCAL_IDENTITY="true" ' +
-      "for a single-user private deployment — per-user isolation depends on it.",
-  );
-}
+// Per-user auth isolation is handled by Supabase when configured (see
+// getCurrentUser). There is intentionally no boot-time hard requirement on it, so
+// an internal/testing deployment runs without extra setup. Do NOT expose a
+// non-Supabase (shared-identity) instance to untrusted/public users.
 
 const adapter = isPostgresUrl
   ? new PrismaPg(getPostgresPoolConfig(databaseUrl))

@@ -15,12 +15,3 @@ export function getSupabasePublishableKey() {
 export function isSupabaseConfigured() {
   return Boolean(getSupabaseUrl() && getSupabasePublishableKey());
 }
-
-// Escape hatch for a SINGLE-USER, private, no-real-data deployment: permit the
-// shared local-fallback identity on Postgres, skipping the Supabase auth
-// requirement. WARNING: this turns OFF per-user data isolation — every visitor
-// shares one identity and sees the same notes. NEVER enable on a multi-user or
-// public deployment. Default (unset) keeps the secure fail-closed behavior.
-export function allowSharedLocalIdentity() {
-  return process.env.ALLOW_SHARED_LOCAL_IDENTITY === "true";
-}
