@@ -3,7 +3,6 @@
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 
 FROM base AS deps
 RUN apt-get update \

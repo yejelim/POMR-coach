@@ -1,5 +1,4 @@
-# Desktop-only packaging artifacts
-electron
+# Build artifacts
 release
 build
 

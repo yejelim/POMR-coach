@@ -11,6 +11,7 @@ import {
   type UploadedImage,
   type Vitals,
 } from "@/lib/types";
+import { sanitizeImagesForStorage } from "@/lib/image-limits";
 import { stringifyStoredJson } from "@/lib/utils";
 
 export async function listCases(query = "") {
@@ -272,18 +273,20 @@ export async function upsertDiagnosticData(
   ownerId?: string,
 ) {
   await assertCaseOwner(caseId, ownerId);
+  // Server-side backstop for the advertised per-image / per-section size limits.
+  const safeImages = sanitizeImagesForStorage(input.imageAttachments);
   return prisma.diagnosticData.upsert({
     where: { caseId },
     create: {
       ...input,
       caseId,
       labTable: stringifyStoredJson(input.labTable),
-      imageAttachments: stringifyStoredJson(input.imageAttachments),
+      imageAttachments: stringifyStoredJson(safeImages, []),
     },
     update: {
       ...input,
       labTable: stringifyStoredJson(input.labTable),
-      imageAttachments: stringifyStoredJson(input.imageAttachments),
+      imageAttachments: stringifyStoredJson(safeImages, []),
     },
   });
 }
@@ -296,6 +299,7 @@ export async function replaceImpressions(
 ) {
   const cleanRows = rows
     .map((row, index) => ({
+      id: typeof row.id === "string" && row.id ? row.id : undefined,
       rank: Number.isFinite(row.rank) ? row.rank : index + 1,
       title: row.title.trim(),
       evidence: row.evidence.trim(),
@@ -304,25 +308,53 @@ export async function replaceImpressions(
       dxPlan: row.dxPlan.trim(),
       txPlan: row.txPlan.trim(),
     }))
-    .filter((row) => Object.values(row).some((value) => String(value).trim()));
+    .filter((row) =>
+      [row.title, row.evidence, row.evidenceAgainst, row.missingData, row.dxPlan, row.txPlan].some(
+        (value) => value.length > 0,
+      ),
+    );
 
+  // Preserve row ids across saves so problem -> impression links survive (a plain
+  // delete-all-then-recreate would mint new ids and silently sever them).
   return prisma.$transaction(async (tx) => {
     await assertCaseOwner(caseId, ownerId);
-    await tx.impressionRow.deleteMany({ where: { caseId, stage } });
-    await tx.impressionRow.createMany({
-      data: cleanRows.map((row, index) => ({
-        ...row,
-        caseId,
-        stage,
-        rank: row.rank || index + 1,
-      })),
+
+    const keepIds = cleanRows.map((row) => row.id).filter((id): id is string => Boolean(id));
+    await tx.impressionRow.deleteMany({
+      where: { caseId, stage, ...(keepIds.length ? { id: { notIn: keepIds } } : {}) },
     });
+
+    let position = 0;
+    for (const row of cleanRows) {
+      position += 1;
+      const data = {
+        rank: row.rank || position,
+        title: row.title,
+        evidence: row.evidence,
+        evidenceAgainst: row.evidenceAgainst,
+        missingData: row.missingData,
+        dxPlan: row.dxPlan,
+        txPlan: row.txPlan,
+      };
+      if (row.id) {
+        const updated = await tx.impressionRow.updateMany({
+          where: { id: row.id, caseId, stage },
+          data,
+        });
+        if (updated.count === 0) {
+          await tx.impressionRow.create({ data: { ...data, caseId, stage } });
+        }
+      } else {
+        await tx.impressionRow.create({ data: { ...data, caseId, stage } });
+      }
+    }
   });
 }
 
 export async function replaceProblems(caseId: string, rows: ProblemDraft[], ownerId?: string) {
   const cleanRows = rows
     .map((row, index) => ({
+      id: typeof row.id === "string" && row.id ? row.id : undefined,
       priority: Number.isFinite(row.priority) ? row.priority : index + 1,
       title: row.title.trim(),
       status: row.status || "active",
@@ -332,12 +364,48 @@ export async function replaceProblems(caseId: string, rows: ProblemDraft[], owne
     }))
     .filter((row) => row.title || row.evidence || row.notes);
 
+  // Preserve problem ids across saves so progress-note SOAP entries stay linked to
+  // their problem (delete-all-then-recreate would null every ProgressNoteProblem).
   return prisma.$transaction(async (tx) => {
     await assertCaseOwner(caseId, ownerId);
-    await tx.problem.deleteMany({ where: { caseId } });
-    await tx.problem.createMany({
-      data: cleanRows.map((row, position) => ({ ...row, caseId, position })),
+
+    // Coerce a linked impression id to null unless it really belongs to this case,
+    // so a stale/foreign reference can't break the FK or leak across cases.
+    const validImpressionIds = new Set(
+      (await tx.impressionRow.findMany({ where: { caseId }, select: { id: true } })).map(
+        (row) => row.id,
+      ),
+    );
+
+    const keepIds = cleanRows.map((row) => row.id).filter((id): id is string => Boolean(id));
+    await tx.problem.deleteMany({
+      where: { caseId, ...(keepIds.length ? { id: { notIn: keepIds } } : {}) },
     });
+
+    let position = 0;
+    for (const row of cleanRows) {
+      const data = {
+        priority: row.priority,
+        title: row.title,
+        status: row.status,
+        evidence: row.evidence,
+        linkedImpressionRowId:
+          row.linkedImpressionRowId && validImpressionIds.has(row.linkedImpressionRowId)
+            ? row.linkedImpressionRowId
+            : null,
+        notes: row.notes,
+        position,
+      };
+      position += 1;
+      if (row.id) {
+        const updated = await tx.problem.updateMany({ where: { id: row.id, caseId }, data });
+        if (updated.count === 0) {
+          await tx.problem.create({ data: { ...data, caseId } });
+        }
+      } else {
+        await tx.problem.create({ data: { ...data, caseId } });
+      }
+    }
   });
 }
 
@@ -445,22 +513,29 @@ export async function updateProgressNote(
   },
   ownerId?: string,
 ) {
-  if (ownerId) {
-    const note = await prisma.progressNote.findFirst({
-      where: { id: noteId, case: { ownerId } },
-      select: { id: true },
-    });
-    if (!note) throw new Error("Progress note not found.");
-  }
+  const note = await prisma.progressNote.findFirst({
+    where: ownerId ? { id: noteId, case: { ownerId } } : { id: noteId },
+    select: { id: true, caseId: true },
+  });
+  if (!note) throw new Error("Progress note not found.");
+
+  // Only accept problemIds that still belong to this note's case. A deleted or
+  // cross-case id is coerced to null (nullable + SetNull make that the safe
+  // fallback) so the save degrades gracefully instead of throwing or mislinking.
+  const validProblemIds = new Set(
+    (await prisma.problem.findMany({ where: { caseId: note.caseId }, select: { id: true } })).map(
+      (problem) => problem.id,
+    ),
+  );
 
   const cleanProblems = input.problems
     .map((row) => ({
-      problemId: row.problemId || null,
+      problemId: row.problemId && validProblemIds.has(row.problemId) ? row.problemId : null,
       progressStatus: normalizeProblemStatus(row.progressStatus),
       titleSnapshot: (row.titleSnapshot ?? "").trim(),
       subjective: (row.subjective ?? "").trim(),
       objectiveItems: row.objectiveItems ?? [],
-      objectiveImages: row.objectiveImages ?? [],
+      objectiveImages: sanitizeImagesForStorage(row.objectiveImages ?? []),
       objectivePe: (row.objectivePe ?? "").trim(),
       objectiveLab: (row.objectiveLab ?? "").trim(),
       objectiveImageProcedure: (row.objectiveImageProcedure ?? "").trim(),
@@ -491,9 +566,9 @@ export async function updateProgressNote(
     )
     .map((row) => ({
       ...row,
-      objectiveItems: stringifyStoredJson(row.objectiveItems),
-      objectiveImages: stringifyStoredJson(row.objectiveImages),
-      planItems: stringifyStoredJson(row.planItems),
+      objectiveItems: stringifyStoredJson(row.objectiveItems, []),
+      objectiveImages: stringifyStoredJson(row.objectiveImages, []),
+      planItems: stringifyStoredJson(row.planItems, []),
     }));
 
   return prisma.$transaction(async (tx) => {

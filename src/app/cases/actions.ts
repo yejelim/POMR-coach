@@ -17,6 +17,13 @@ import {
 } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { defaultLabTable, type ImpressionStage, type Vitals } from "@/lib/types";
+import {
+  impressionDraftSchema,
+  parseDraftArray,
+  problemDraftSchema,
+  progressProblemDraftSchema,
+  timelineDraftSchema,
+} from "@/lib/draft-schemas";
 import { parseJsonField, toText } from "@/lib/utils";
 
 export async function createCaseAction(formData: FormData) {
@@ -53,7 +60,11 @@ export async function deleteCaseAction(caseId: string) {
 
 export async function saveTimelineAction(caseId: string, formData: FormData) {
   const user = await requireCurrentUser();
-  await replaceTimeline(caseId, parseJsonField(formData.get("entries"), []), ownerIdForQuery(user));
+  await replaceTimeline(
+    caseId,
+    parseDraftArray(formData.get("entries"), timelineDraftSchema),
+    ownerIdForQuery(user),
+  );
   revalidateCase(caseId);
   redirectIfRequested(formData);
 }
@@ -99,14 +110,23 @@ export async function saveImpressionsAction(
   formData: FormData,
 ) {
   const user = await requireCurrentUser();
-  await replaceImpressions(caseId, stage, parseJsonField(formData.get("rows"), []), ownerIdForQuery(user));
+  await replaceImpressions(
+    caseId,
+    stage,
+    parseDraftArray(formData.get("rows"), impressionDraftSchema),
+    ownerIdForQuery(user),
+  );
   revalidateCase(caseId);
   redirectIfRequested(formData);
 }
 
 export async function saveProblemsAction(caseId: string, formData: FormData) {
   const user = await requireCurrentUser();
-  await replaceProblems(caseId, parseJsonField(formData.get("rows"), []), ownerIdForQuery(user));
+  await replaceProblems(
+    caseId,
+    parseDraftArray(formData.get("rows"), problemDraftSchema),
+    ownerIdForQuery(user),
+  );
   revalidateCase(caseId);
   redirectIfRequested(formData);
 }
@@ -138,7 +158,7 @@ export async function saveProgressNoteAction(
     io: toText(formData.get("io")),
     overnightEvent: toText(formData.get("overnightEvent")),
     drainTube: toText(formData.get("drainTube")),
-    problems: parseJsonField(formData.get("problems"), []),
+    problems: parseDraftArray(formData.get("problems"), progressProblemDraftSchema),
   }, ownerIdForQuery(user));
   revalidateCase(caseId);
   redirectIfRequested(formData);

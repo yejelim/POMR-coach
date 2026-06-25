@@ -17,7 +17,6 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 
-electron
 docs
 prisma/dev.db
 prisma/dev.db-*

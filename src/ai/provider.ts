@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import { aiFeedbackJsonSchema, aiFeedbackSchema } from "@/ai/schema";
 import { aiReviewerSystemPrompt } from "@/ai/prompts/shared";
 import type { AiFeedback } from "@/lib/types";
@@ -15,6 +14,9 @@ export async function requestAiFeedback(prompt: string): Promise<{
     return { feedback: mockFeedback(prompt), model: "local-mock", usedMock: true };
   }
 
+  // Lazy-import keeps the OpenAI SDK out of any static import graph; it loads
+  // only when AI is enabled and a real request is made.
+  const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const response = await client.responses.create({
     model,
@@ -31,7 +33,17 @@ export async function requestAiFeedback(prompt: string): Promise<{
   });
 
   const outputText = response.output_text;
-  const parsedJson = JSON.parse(outputText);
+  if (!outputText) {
+    throw new Error("AI provider returned an empty response.");
+  }
+
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(outputText);
+  } catch {
+    throw new Error("AI provider returned malformed JSON.");
+  }
+
   const parsed = aiFeedbackSchema.parse(parsedJson);
   return { feedback: parsed, model, usedMock: false };
 }
@@ -61,6 +73,8 @@ function mockFeedback(prompt: string): AiFeedback {
     ],
     safetyPrivacyFlags: hasPhiPattern
       ? ["PHI로 보이는 표현이 있습니다. 이름, 등록번호, 주민등록번호, 전화번호는 제거하세요."]
-      : ["직접 식별자는 보이지 않습니다. 실제 환자 정보 입력은 계속 피하세요."],
+      : [
+          "자동 PHI 검사는 best-effort이며 식별자가 없음을 보장하지 않습니다. 이름, 등록번호, 주민등록번호, 전화번호 등은 직접 확인해 제거하세요.",
+        ],
   };
 }

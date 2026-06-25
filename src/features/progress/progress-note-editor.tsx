@@ -90,7 +90,10 @@ export function ProgressNoteEditor({
     return {
       ...merged,
       progressStatus: merged.progressStatus ?? selectedProblem?.status ?? "active",
-      titleSnapshot: selectedProblem?.title ?? merged.titleSnapshot,
+      // titleSnapshot is an immutable record of the problem title at the time this
+      // note was written. Only seed it when missing; do not overwrite it from the
+      // (possibly renamed) live problem, which would rewrite history on re-save.
+      titleSnapshot: merged.titleSnapshot || (selectedProblem?.title ?? ""),
     };
   });
   const latestByProblemId = useMemo(

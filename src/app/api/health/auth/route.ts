@@ -2,42 +2,30 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   applyAuthNoStoreHeaders,
   createSupabaseRequestClient,
-  getSupabaseHost,
-  getSupabaseProjectRef,
   hasSupabaseAuthCookie,
   isSupabaseConfigured,
-  SUPABASE_AUTH_COOKIE_NAME,
 } from "@/server/auth/supabase";
-import { publicHealthError, shouldExposeHealthDetails } from "@/server/health";
+import { canExposeHealthDetails, publicHealthError } from "@/server/health";
 import { serializeError } from "@/server/logging";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
-  const exposeDetails = shouldExposeHealthDetails();
-  const projectRef = getSupabaseProjectRef();
-  const authCookieNames = request.cookies
+  const exposeDetails = canExposeHealthDetails(request);
+  // Only a boolean — never reflect cookie names, values, or lengths to anonymous callers.
+  const sessionCookiePresent = request.cookies
     .getAll()
-    .filter((cookie) => hasSupabaseAuthCookie([cookie]))
-    .map(({ name, value }) => ({ name, valueLength: value.length }));
+    .some((cookie) => hasSupabaseAuthCookie([cookie]));
 
   if (!isSupabaseConfigured()) {
     return authJson({
       ok: false,
       authConfigured: false,
-      sessionCookiePresent: authCookieNames.length > 0,
+      sessionCookiePresent,
       userPresent: false,
       isAnonymous: null,
       error: "Supabase environment variables are not configured.",
-      ...(exposeDetails
-        ? {
-            supabaseHost: getSupabaseHost(),
-            projectRef,
-            expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-            receivedAuthCookies: authCookieNames,
-          }
-        : {}),
     });
   }
 
@@ -51,7 +39,7 @@ export async function GET(request: NextRequest) {
       authJson({
         ok: !error,
         authConfigured: true,
-        sessionCookiePresent: authCookieNames.length > 0,
+        sessionCookiePresent,
         userPresent: Boolean(user),
         isAnonymous: user ? Boolean((user as { is_anonymous?: boolean }).is_anonymous) : null,
         error: error
@@ -64,14 +52,6 @@ export async function GET(request: NextRequest) {
               }
             : "Auth check failed."
           : null,
-        ...(exposeDetails
-          ? {
-              supabaseHost: getSupabaseHost(),
-              projectRef,
-              expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-              receivedAuthCookies: authCookieNames,
-            }
-          : {}),
       }),
     );
   } catch (error) {
@@ -81,18 +61,10 @@ export async function GET(request: NextRequest) {
         {
           ok: false,
           authConfigured: true,
-          sessionCookiePresent: authCookieNames.length > 0,
+          sessionCookiePresent,
           userPresent: false,
           isAnonymous: null,
-          error: publicHealthError(serializePublicError(error)),
-          ...(exposeDetails
-            ? {
-                supabaseHost: getSupabaseHost(),
-                projectRef,
-                expectedCookieName: SUPABASE_AUTH_COOKIE_NAME,
-                receivedAuthCookies: authCookieNames,
-              }
-            : {}),
+          error: publicHealthError(serializePublicError(error), exposeDetails),
         },
         500,
       ),
