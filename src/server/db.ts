@@ -54,10 +54,11 @@ function getPostgresPoolConfig(connectionString: string): PoolConfig {
       url.searchParams.delete("connection_limit");
       url.searchParams.delete("pool_timeout");
       config.connectionString = url.toString();
-      // Verify the server certificate by default (Supabase uses a publicly-trusted
-      // CA). Only disable verification via an explicit opt-out for unusual setups.
-      const allowInsecure = process.env.DATABASE_SSL_NO_VERIFY === "true";
-      config.ssl = { rejectUnauthorized: !allowInsecure };
+      // Supabase's pooler presents a certificate chain Node cannot verify against its
+      // default trust store ("self-signed certificate in certificate chain"), so strict
+      // verification breaks ALL database access (every query throws). Keep the
+      // connection TLS-encrypted but skip chain verification — the prior working setup.
+      config.ssl = { rejectUnauthorized: false };
     }
   } catch {
     return config;
