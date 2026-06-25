@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { isPostgresDatabase, prisma } from "@/server/db";
+import { prisma } from "@/server/db";
 import { createSupabaseServerClient, hasSupabaseAuthCookie, isSupabaseConfigured } from "@/server/auth/supabase";
 import { serializeError } from "@/server/logging";
 
@@ -19,18 +19,10 @@ const localUser: CurrentUser = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  if (!isSupabaseConfigured()) {
-    // Postgres = web / multi-tenant deployment: never serve a shared local
-    // identity, which would disable all per-user isolation. Fail closed loudly.
-    if (isPostgresDatabase()) {
-      throw new Error(
-        "Authentication is not configured for a Postgres deployment. " +
-          "Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.",
-      );
-    }
-    // sqlite = local single-user / dev: a shared local identity is intended.
-    return localUser;
-  }
+  // No Supabase configured: fall back to a shared local identity (local dev /
+  // internal testing). When Supabase IS configured, real per-user auth + data
+  // isolation applies below.
+  if (!isSupabaseConfigured()) return localUser;
 
   const cookieStore = await cookies();
   if (!hasSupabaseAuthCookie(cookieStore.getAll())) return null;
@@ -90,16 +82,9 @@ export async function requireCurrentUser() {
 }
 
 export function ownerIdForQuery(user: CurrentUser) {
-  if (user.isLocalFallback) {
-    // Defense in depth: a local fallback identity must never run unscoped queries
-    // against a shared Postgres database. getCurrentUser already prevents this,
-    // but guard here too so a future caller cannot reintroduce the hole.
-    if (isPostgresDatabase()) {
-      throw new Error("Local fallback identity cannot be used with a Postgres database.");
-    }
-    return undefined;
-  }
-  return user.id;
+  // Logged-in (Supabase) users are scoped to their own id; the shared local
+  // fallback runs unscoped.
+  return user.isLocalFallback ? undefined : user.id;
 }
 
 export function normalizeAuthEmail(email: string | undefined, isAnonymous: boolean) {
