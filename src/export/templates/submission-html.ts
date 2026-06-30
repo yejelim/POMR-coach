@@ -30,7 +30,6 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
   const sectionBodies: Array<{ title: string; subtitle?: string; body: string }> = [
     {
       title: "Admission Note",
-      subtitle: "입원 기록",
       body: definitionGrid([
         defRow("CC", admission?.cc),
         defRow("HPI", admission?.hpi),
@@ -50,12 +49,10 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     },
     {
       title: "Pre-test Initial Impression",
-      subtitle: "검사 전 초기 인상",
       body: impressionTableBody(initialRows, true),
     },
     {
       title: "Lab / Image / Procedure Summary",
-      subtitle: "검사 / 영상 / 시술 요약",
       body: blocks([
         labTableHtml(labTable),
         renderImages("Uploaded images", diagnosticImages),
@@ -66,17 +63,14 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     },
     {
       title: "Post-test Final Impression",
-      subtitle: "검사 후 최종 인상",
       body: impressionTableBody(finalRows, false),
     },
     {
       title: "Problem List",
-      subtitle: "문제 목록",
       body: problemListBody(caseRecord.problems),
     },
     {
       title: "Progress Notes",
-      subtitle: "경과 기록",
       body: progressNotesBody(caseRecord.progressNotes),
     },
   ];
@@ -86,10 +80,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     .map((entry, index) => renderSection(index + 1, entry.title, entry.subtitle, entry.body))
     .join("\n");
 
-  const generatedAt = formatTimestamp(new Date());
   const updatedAt = formatTimestamp(caseRecord.updatedAt);
-  const tagNames = caseRecord.tags.map((tag) => tag.name).filter((name) => hasText(name));
-
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -99,18 +90,14 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
 </head>
 <body>
   <table class="page-frame">
-    <thead><tr><td>${runningHeader({ includeBranding, logoDataUri, department: caseRecord.department, caseRef: shortenId(caseRecord.id) })}</td></tr></thead>
-    ${includeFooter ? `<tfoot><tr><td>${runningFooter({ includeBranding, generatedAt })}</td></tr></tfoot>` : ""}
+    <thead><tr><td>${runningHeader({ includeBranding, logoDataUri, department: caseRecord.department })}</td></tr></thead>
+    ${includeFooter ? `<tfoot><tr><td>${runningFooter({ includeBranding, updatedAt })}</td></tr></tfoot>` : ""}
     <tbody><tr><td>
       <main class="doc">
         ${pageTitleBlock(caseRecord.title)}
         ${infoBlock({
           department: caseRecord.department,
-          status: caseRecord.status,
-          caseId: caseRecord.id,
-          generatedAt,
           updatedAt,
-          tags: tagNames,
           summary: caseRecord.summary,
         })}
         ${renderedSections}
@@ -145,16 +132,13 @@ function runningHeader(input: {
   includeBranding: boolean;
   logoDataUri: string;
   department: string;
-  caseRef: string;
 }) {
-  const { includeBranding, logoDataUri, department, caseRef } = input;
+  const { includeBranding, logoDataUri, department } = input;
   const logo =
     includeBranding && logoDataUri
       ? `<img class="rh-logo" src="${escapeAttribute(logoDataUri)}" alt="" />`
       : "";
-  const ident = [caseRef ? `CASE ${escapeHtml(caseRef)}` : "", escapeHtml(department)]
-    .filter(Boolean)
-    .join(" &middot; ");
+  const ident = escapeHtml(department);
   return `<div class="running-header">
     <div class="rh-left">${logo}<span class="rh-doctype">Problem-Oriented Medical Record</span></div>
     <div class="rh-ident">${ident}</div>
@@ -168,29 +152,13 @@ function pageTitleBlock(title: string) {
 
 function infoBlock(input: {
   department: string;
-  status: string;
-  caseId: string;
-  generatedAt: string;
   updatedAt: string;
-  tags: string[];
   summary: string;
 }) {
   const cells = [
     infoCell("Department", escapeHtml(input.department) || "&mdash;"),
-    infoCell("Status", statusBadge(input.status)),
-    infoCell("Case ID", `<span class="mono">${escapeHtml(shortenId(input.caseId))}</span>`),
-    infoCell("Date generated", escapeHtml(input.generatedAt) || "&mdash;"),
-    infoCell("Last updated", escapeHtml(input.updatedAt) || "&mdash;"),
+    infoCell("Last update", escapeHtml(input.updatedAt) || "&mdash;"),
   ].join("");
-
-  const tagsRow = input.tags.length
-    ? `<div class="info-aux info-tags">
-        <span class="info-aux-label">Keywords</span>
-        <span class="info-aux-value">${input.tags
-          .map((tag) => `<span class="kw">${escapeHtml(tag)}</span>`)
-          .join("")}</span>
-      </div>`
-    : "";
 
   const summaryRow = hasText(input.summary)
     ? `<div class="info-aux info-summary">
@@ -201,7 +169,6 @@ function infoBlock(input: {
 
   return `<section class="info-block">
     <div class="info-grid">${cells}</div>
-    ${tagsRow}
     ${summaryRow}
   </section>`;
 }
@@ -214,12 +181,12 @@ function infoCell(label: string, valueHtml: string) {
 }
 
 // A slim footer that REPEATS on every printed page (fixed, in the bottom margin).
-function runningFooter(input: { includeBranding: boolean; generatedAt: string }) {
-  const { includeBranding, generatedAt } = input;
+function runningFooter(input: { includeBranding: boolean; updatedAt: string }) {
+  const { includeBranding, updatedAt } = input;
   const brand = includeBranding ? " &middot; POMR Coach" : "";
   return `<div class="running-footer">
     <span class="rf-note">학습용 자료 &middot; 실제 진료기록 아님 &middot; Educational use only &middot; not a clinical record${brand}</span>
-    <span class="rf-stamp">Generated ${escapeHtml(generatedAt)}</span>
+    <span class="rf-stamp">Last update ${escapeHtml(updatedAt)}</span>
   </div>`;
 }
 
@@ -533,7 +500,7 @@ function progressNotesBody(notes: CaseBundle["progressNotes"]) {
 function renderProgressNote(note: CaseBundle["progressNotes"][number]) {
   const headerParts = [
     note.date ? escapeHtml(note.date) : "",
-    note.hospitalDay ? escapeHtml(note.hospitalDay) : "",
+    formatHospitalDay(note.hospitalDay),
   ].filter(Boolean);
 
   const sharedFields = definitionGrid([
@@ -582,11 +549,10 @@ function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problem
   if (!rows.length) return "";
 
   return `<div class="soap-block">
-    ${problem.titleSnapshot ? `<h4 class="soap-title">Problem: ${escapeHtml(problem.titleSnapshot)}</h4>` : ""}
     <div class="table-wrap">
     <table class="clin-table soap-table">
       <colgroup><col class="col-soap" /><col /></colgroup>
-      <thead><tr><th>SOAP</th><th>Content</th></tr></thead>
+      <thead><tr><th>SOAP</th><th>${escapeHtml(problem.titleSnapshot || "Problem")}</th></tr></thead>
       <tbody>${rows
         .map(([label, content]) => `<tr><th class="soap-key">${escapeHtml(label)}</th><td>${content}</td></tr>`)
         .join("")}</tbody>
@@ -649,6 +615,13 @@ function vitalsHtml(value: unknown) {
   return `<div class="vitals-grid">${cells.join("")}</div>`;
 }
 
+function formatHospitalDay(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/^(HD(?:\b|\d)|hospital\s*day\b)/i.test(text)) return escapeHtml(text);
+  return `HD ${escapeHtml(text)}`;
+}
+
 function vitalCell(label: string, value: string | undefined, unit = "") {
   const text = String(value ?? "").trim();
   if (!text) return "";
@@ -697,14 +670,6 @@ function prewrap(value: unknown) {
   const text = String(value ?? "");
   if (!text.trim()) return "";
   return `<span class="pre">${escapeHtml(text)}</span>`;
-}
-
-function shortenId(id: unknown) {
-  const text = String(id ?? "").trim();
-  if (!text) return "—";
-  // A short, readable reference derived from the internal record id (a cuid,
-  // not a patient identifier). Avoids dumping a long opaque slug into the header.
-  return text.slice(0, 8).toUpperCase();
 }
 
 function seoulParts(value: Date | string | null | undefined) {
@@ -906,7 +871,7 @@ function baseStyles() {
     }
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .info-cell {
       padding: 7px 10px;
@@ -917,7 +882,7 @@ function baseStyles() {
       gap: 3px;
       min-width: 0;
     }
-    .info-cell:nth-child(5n) { border-right: none; }
+    .info-cell:nth-child(2n) { border-right: none; }
     .info-label {
       font-size: 8.5px;
       text-transform: uppercase;
@@ -946,18 +911,6 @@ function baseStyles() {
     }
     .info-aux-value { flex: 1 1 auto; min-width: 0; color: var(--ink-2); font-size: 11px; }
     .info-summary .info-aux-value { color: var(--ink-2); }
-    .kw {
-      display: inline-block;
-      background: transparent;
-      border: 1px solid var(--rule);
-      border-radius: 2px;
-      padding: 1px 7px;
-      margin: 0 4px 3px 0;
-      font-size: 10px;
-      color: var(--navy);
-      font-weight: 600;
-    }
-
     /* ── Clinical sections ───────────────────────────────────────────────── */
     .clin-section { margin: 0 0 18px; }
     .section-head {
