@@ -114,7 +114,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
 
 function getLogoDataUri() {
   try {
-    const logoPath = path.join(process.cwd(), "public", "POMR_coach_logo.png");
+    const logoPath = path.join(process.cwd(), "public", "app-icon.png");
     const logo = fs.readFileSync(logoPath);
     return `data:image/png;base64,${logo.toString("base64")}`;
   } catch {
@@ -511,7 +511,11 @@ function renderProgressNote(note: CaseBundle["progressNotes"][number]) {
     defRow("Drain/tube", note.drainTube),
   ]);
 
-  const problemTables = note.problems.map(renderSoapProblem).filter((item) => item.trim());
+  const problemTables = note.problems.reduce<string[]>((tables, problem) => {
+    const table = renderSoapProblem(problem, tables.length + 1);
+    if (table.trim()) tables.push(table);
+    return tables;
+  }, []);
 
   if (!headerParts.length && !sharedFields.trim() && !problemTables.length) return "";
 
@@ -522,7 +526,7 @@ function renderProgressNote(note: CaseBundle["progressNotes"][number]) {
   </article>`;
 }
 
-function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problems"][number]) {
+function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problems"][number], problemNumber: number) {
   const objectiveItems = objectiveItemsFromProblem(problem).filter(
     (item) => hasText(item.label) || hasText(item.value),
   );
@@ -552,7 +556,7 @@ function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problem
     <div class="table-wrap">
     <table class="clin-table soap-table">
       <colgroup><col class="col-soap" /><col /></colgroup>
-      <thead><tr><th>SOAP</th><th>${escapeHtml(problem.titleSnapshot || "Problem")}</th></tr></thead>
+      <thead><tr><th>SOAP</th><th>${escapeHtml(formatSoapProblemTitle(problem.titleSnapshot, problemNumber))}</th></tr></thead>
       <tbody>${rows
         .map(([label, content]) => `<tr><th class="soap-key">${escapeHtml(label)}</th><td>${content}</td></tr>`)
         .join("")}</tbody>
@@ -569,6 +573,11 @@ function soapSubfields(items: Array<{ label: string; value: string }>) {
         `<div class="soap-field"><span class="soap-field-key">${escapeHtml(item.label || "Item")}</span>${prewrap(item.value)}</div>`,
     )
     .join("")}</div>`;
+}
+
+function formatSoapProblemTitle(title: unknown, problemNumber: number) {
+  const text = String(title ?? "").trim();
+  return `Problem #${problemNumber}.${text ? ` ${text}` : ""}`;
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1073,13 +1082,19 @@ function baseStyles() {
       margin: 0 0 15px;
     }
     .progress-head {
-      margin: 0 0 8px;
-      padding: 0 0 4px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin: 0 0 10px;
+      padding: 6px 10px;
       font-size: 12.5px;
       font-weight: 700;
       color: var(--navy);
       letter-spacing: 0.01em;
-      border-bottom: 1.5px solid var(--navy);
+      background: var(--zebra);
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--navy);
+      border-radius: 3px;
       break-after: avoid;
       page-break-after: avoid;
     }
@@ -1087,14 +1102,6 @@ function baseStyles() {
 
     .soap-block { margin: 10px 0 0; }
     .soap-block:first-of-type { margin-top: 4px; }
-    .soap-title {
-      margin: 0 0 5px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--ink);
-      break-after: avoid;
-      page-break-after: avoid;
-    }
     .soap-table .soap-key {
       background: var(--zebra);
       color: var(--navy);
