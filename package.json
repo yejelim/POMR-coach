@@ -1,6 +1,6 @@
 {
   "name": "pomr-coach",
-  "version": "0.1.0",
+  "version": "0.9.0-beta.1",
   "description": "Local-first POMR practice workspace for medical clerkship students.",
   "author": "HealCode",
   "private": true,
