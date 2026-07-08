@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { labCellKey } from "@/lib/lab-table";
 import { renderSubmissionHtml } from "./submission-html";
 
 function baseCase(overrides: Record<string, unknown> = {}) {
@@ -118,5 +119,30 @@ describe("renderSubmissionHtml", () => {
     expect(html).not.toContain("<th>Dx plan</th>");
     expect(html).not.toContain("<th>Tx plan</th>");
     expect(html).not.toContain("<th>Notes</th>");
+  });
+
+  it("renders lab cell high and low styles for export", () => {
+    const html = renderSubmissionHtml(
+      baseCase({
+        diagnosticData: {
+          labTable: {
+            schemaVersion: 1,
+            columns: ["Test", "Admission", "Post D1"],
+            rows: [{ Test: "Hb", Admission: "18", "Post D1": "8" }],
+            cellStyles: {
+              [labCellKey(0, "Admission")]: "high",
+              [labCellKey(0, "Post D1")]: "low",
+            },
+          },
+          imageAttachments: "[]",
+          imageFindingsText: "",
+          procedureFindingsText: "",
+          summaryText: "",
+        },
+      }),
+    );
+
+    expect(html).toContain('class="lab-cell mono lab-cell-high"');
+    expect(html).toContain('class="lab-cell mono lab-cell-low"');
   });
 });

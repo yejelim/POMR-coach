@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { isValidImageDataUrl } from "@/lib/image-limits";
+import { labCellKey } from "@/lib/lab-table";
 import { objectiveItemsFromProblem, planItemsFromProblem } from "@/lib/soap-fields";
 import type { UploadedImage } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
@@ -428,7 +429,9 @@ function impressionTableBody(rows: CaseBundle["impressionRows"], includeMissing:
  * ────────────────────────────────────────────────────────────────────────── */
 
 function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
-  const meaningfulRows = table.rows.filter((row) => table.columns.some((column) => hasText(row[column])));
+  const meaningfulRows = table.rows
+    .map((row, rowIndex) => ({ row, rowIndex }))
+    .filter(({ row }) => table.columns.some((column) => hasText(row[column])));
   if (!meaningfulRows.length) return "";
 
   // First column (typically "Test") gets a wider, left-anchored treatment; the
@@ -442,11 +445,16 @@ function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
     </thead>
     <tbody>${meaningfulRows
       .map(
-        (row) =>
+        ({ row, rowIndex }) =>
           `<tr>${table.columns
             .map((column, idx) => {
               const raw = row[column] ?? "";
-              const cls = idx === 0 ? "lab-firstcol cell-strong" : "lab-cell mono";
+              const tone = table.cellStyles?.[labCellKey(rowIndex, column)];
+              const toneClass = tone === "high" ? "lab-cell-high" : tone === "low" ? "lab-cell-low" : "";
+              const cls = [
+                idx === 0 ? "lab-firstcol cell-strong" : "lab-cell mono",
+                toneClass,
+              ].filter(Boolean).join(" ");
               const content = hasText(raw)
                 ? prewrap(raw)
                 : idx === 0
@@ -1154,6 +1162,18 @@ function baseStyles() {
     .lab-table .lab-firstcol { min-width: 64px; }
     .lab-cell { font-size: 10.5px; }
     .lab-empty { color: #94a3b8; }
+    .lab-cell-high {
+      background: #fee2e2;
+      color: #7f1d1d;
+      font-weight: 700;
+    }
+    .lab-cell-low {
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+    .lab-cell-high .lab-empty,
+    .lab-cell-low .lab-empty { color: inherit; opacity: 0.55; }
 
     /* ── Progress notes / SOAP ───────────────────────────────────────────── */
     /* A progress note can be tall (several SOAP tables); let it break across

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bold, Highlighter } from "lucide-react";
+import { Highlighter } from "lucide-react";
 import type { TextareaHTMLAttributes } from "react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,16 @@ export function ClinicalMarkupTextarea({
 }: ClinicalMarkupTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  function wrapSelection(before: string, after: string) {
+  function highlightSelection() {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selected = value.slice(start, end);
-    const fallback = before === "**" ? "강조할 finding" : "하이라이트할 finding";
+    const before = "==";
+    const after = "==";
+    const fallback = "하이라이트할 finding";
     const nextSelected = selected || fallback;
     const nextValue = `${value.slice(0, start)}${before}${nextSelected}${after}${value.slice(end)}`;
     const nextCursorStart = start + before.length;
@@ -52,18 +54,7 @@ export function ClinicalMarkupTextarea({
           variant="outline"
           size="sm"
           className="h-8 bg-white px-2.5"
-          onClick={() => wrapSelection("**", "**")}
-          title="선택한 텍스트를 굵게 표시"
-        >
-          <Bold className="h-4 w-4" />
-          Bold
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 bg-white px-2.5"
-          onClick={() => wrapSelection("==", "==")}
+          onClick={highlightSelection}
           title="선택한 텍스트를 하이라이트"
         >
           <Highlighter className="h-4 w-4" />

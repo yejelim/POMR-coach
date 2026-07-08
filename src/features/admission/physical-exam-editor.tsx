@@ -16,7 +16,7 @@ export function PhysicalExamEditor({
       value={value}
       rows={14}
       onChange={setValue}
-      helperText="PDF export에서 **bold**, ==highlight==가 반영됩니다."
+      helperText="PDF export에서 ==highlight==가 노란색으로 표시됩니다."
     />
   );
 }

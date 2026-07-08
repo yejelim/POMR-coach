@@ -4,15 +4,23 @@ import { ArrowLeft, ArrowRight, FileSpreadsheet, Plus, Trash2 } from "lucide-rea
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { defaultLabTable, type LabTable } from "@/lib/types";
+import {
+  labCellKey,
+  removeLabColumnStyles,
+  shiftLabCellStylesAfterRowRemoval,
+} from "@/lib/lab-table";
+import { cn } from "@/lib/utils";
+import { defaultLabTable, type LabCellTone, type LabTable } from "@/lib/types";
 
 export function LabTableEditor({ table }: { table?: LabTable | null }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const initial = useMemo(() => table ?? defaultLabTable, [table]);
   const [columns, setColumns] = useState(initial.columns);
   const [rows, setRows] = useState(initial.rows);
+  const [cellStyles, setCellStyles] = useState(initial.cellStyles ?? {});
+  const [selectedCell, setSelectedCell] = useState<{ rowIndex: number; column: string } | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
-  const labTable: LabTable = { schemaVersion: 1, columns, rows };
+  const labTable: LabTable = { schemaVersion: 1, columns, rows, cellStyles };
 
   function updateCell(rowIndex: number, column: string, value: string) {
     setRows((current) =>
@@ -30,6 +38,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
 
   function removeColumn(column: string) {
     setColumns((current) => current.filter((item) => item !== column));
+    setCellStyles((current) => removeLabColumnStyles(current, column));
+    setSelectedCell((current) => (current?.column === column ? null : current));
     setRows((current) =>
       current.map((row) => {
         const next = { ...row };
@@ -54,7 +64,30 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
     if (!confirmed) return;
     setColumns(defaultLabTable.columns);
     setRows([]);
+    setCellStyles({});
+    setSelectedCell(null);
     setImportMessage("Lab table을 초기화했습니다. 저장 버튼을 눌러 반영하세요.");
+  }
+
+  function removeRow(rowIndex: number) {
+    setRows((current) => current.filter((_, index) => index !== rowIndex));
+    setCellStyles((current) => shiftLabCellStylesAfterRowRemoval(current, rowIndex));
+    setSelectedCell((current) => {
+      if (!current) return null;
+      if (current.rowIndex === rowIndex) return null;
+      return current.rowIndex > rowIndex ? { ...current, rowIndex: current.rowIndex - 1 } : current;
+    });
+  }
+
+  function applyCellTone(tone: LabCellTone | null) {
+    if (!selectedCell) return;
+    const key = labCellKey(selectedCell.rowIndex, selectedCell.column);
+    setCellStyles((current) => {
+      if (tone) return { ...current, [key]: tone };
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   async function importWorkbook(file: File | undefined) {
@@ -83,6 +116,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
 
       setColumns(importedColumns);
       setRows(importedRows);
+      setCellStyles({});
+      setSelectedCell(null);
       setImportMessage(`${file.name}에서 ${importedRows.length}개 row를 불러왔습니다. 저장 버튼을 눌러 반영하세요.`);
     } catch (error) {
       console.error(error);
@@ -124,7 +159,43 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
           <Trash2 className="h-4 w-4" />
           전체삭제
         </Button>
+        <div className="mx-1 hidden h-8 w-px bg-app-border md:block" aria-hidden="true" />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+          onClick={() => applyCellTone("high")}
+          disabled={!selectedCell}
+          title="선택한 lab cell을 high value로 표시"
+        >
+          High
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800"
+          onClick={() => applyCellTone("low")}
+          disabled={!selectedCell}
+          title="선택한 lab cell을 low value로 표시"
+        >
+          Low
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => applyCellTone(null)}
+          disabled={!selectedCell}
+          title="선택한 lab cell의 색상 표시를 해제"
+        >
+          표시 해제
+        </Button>
       </div>
+      <p className="text-xs text-app-text-muted">
+        셀을 클릭한 뒤 High/Low를 누르면 export에서 해당 값이 빨간색/파란색 배경으로 표시됩니다.
+      </p>
       {importMessage ? (
         <div className="rounded-md border border-app-accent/20 bg-app-accent-soft px-3 py-2 text-sm text-app-text">
           {importMessage}
@@ -185,22 +256,41 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
                     variant="danger-ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setRows((current) => current.filter((_, index) => index !== rowIndex))}
+                    onClick={() => removeRow(rowIndex)}
                     aria-label={`Remove lab row ${rowIndex + 1}`}
                     title="행 삭제"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </td>
-                {columns.map((column) => (
-                  <td key={column} className="border-r border-t p-1 align-top">
-                    <Input
-                      className="min-w-32 border-0 shadow-none focus:ring-0"
-                      value={row[column] ?? ""}
-                      onChange={(event) => updateCell(rowIndex, column, event.target.value)}
-                    />
-                  </td>
-                ))}
+                {columns.map((column) => {
+                  const tone = cellStyles[labCellKey(rowIndex, column)];
+                  const isSelected =
+                    selectedCell?.rowIndex === rowIndex && selectedCell.column === column;
+
+                  return (
+                    <td
+                      key={column}
+                      className={cn(
+                        "border-r border-t p-1 align-top",
+                        tone === "high" && "bg-red-50",
+                        tone === "low" && "bg-blue-50",
+                        isSelected && "ring-2 ring-app-primary/30 ring-inset",
+                      )}
+                    >
+                      <Input
+                        className={cn(
+                          "min-w-32 border-0 bg-transparent shadow-none focus:ring-0",
+                          tone === "high" && "font-semibold text-red-900",
+                          tone === "low" && "font-semibold text-blue-900",
+                        )}
+                        value={row[column] ?? ""}
+                        onFocus={() => setSelectedCell({ rowIndex, column })}
+                        onChange={(event) => updateCell(rowIndex, column, event.target.value)}
+                      />
+                    </td>
+                  );
+                })}
               </tr>
             ))}
             {!rows.length ? (

@@ -27,7 +27,11 @@ export type LabTable = {
   schemaVersion: 1;
   columns: string[];
   rows: Array<Record<string, string>>;
+  cellStyles?: LabCellStyles;
 };
+
+export type LabCellTone = "high" | "low";
+export type LabCellStyles = Record<string, LabCellTone>;
 
 export type UploadedImage = {
   id: string;
@@ -57,6 +61,7 @@ export const defaultLabTable: LabTable = {
     "Interpretation",
   ],
   rows: [],
+  cellStyles: {},
 };
 
 export type TimelineDraft = {

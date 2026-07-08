@@ -1,4 +1,5 @@
 import { defaultLabTable, type LabTable } from "@/lib/types";
+import { normalizeLabCellStyles } from "@/lib/lab-table";
 
 export function labTableToText(table: unknown) {
   const labTable = normalizeLabTable(table);
@@ -36,5 +37,10 @@ export function normalizeLabTable(value: unknown): LabTable {
         return clean;
       })
     : [];
-  return { schemaVersion: 1, columns, rows };
+  return {
+    schemaVersion: 1,
+    columns,
+    rows,
+    cellStyles: normalizeLabCellStyles(candidate.cellStyles, columns, rows.length),
+  };
 }
