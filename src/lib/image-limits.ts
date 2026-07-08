@@ -6,6 +6,10 @@ export const ALLOWED_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB per image
 export const MAX_SECTION_BYTES = 10 * 1024 * 1024; // 10MB total per section
 export const MAX_IMAGES_PER_SECTION = 24; // generous hard cap to bound abuse
+export const IMAGE_COMPRESSION_TRIGGER_BYTES = 700 * 1024;
+export const MAX_IMAGE_EDGE_PX = 1800;
+export const COMPRESSED_IMAGE_MIME_TYPE = "image/jpeg";
+export const IMAGE_COMPRESSION_QUALITY = 0.84;
 
 // Only accept base64 data URLs for the allowed image types. This rejects, in
 // particular, external URLs (e.g. https://… tracking pixels) and non-image data

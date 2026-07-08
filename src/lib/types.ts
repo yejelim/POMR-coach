@@ -37,6 +37,11 @@ export type UploadedImage = {
   caption?: string;
   note?: string;
   createdAt?: string;
+  originalBytes?: number;
+  storedBytes?: number;
+  width?: number;
+  height?: number;
+  compressed?: boolean;
 };
 
 export const defaultLabTable: LabTable = {

@@ -11,7 +11,9 @@ import { z } from "zod";
 const str = z.string().default("").catch("");
 const optionalId = z.string().min(1).optional().catch(undefined);
 const optionalStr = z.string().optional().catch(undefined);
+const optionalBool = z.boolean().optional().catch(undefined);
 const num = (fallback: number) => z.coerce.number().default(fallback).catch(fallback);
+const optionalNum = z.coerce.number().optional().catch(undefined);
 
 const problemStatusValues = ["active", "improving", "worsening", "resolved", "background"] as const;
 const problemStatus = z.enum(problemStatusValues).default("active").catch("active");
@@ -60,6 +62,11 @@ const uploadedImageSchema = z.object({
   caption: optionalStr,
   note: optionalStr,
   createdAt: optionalStr,
+  originalBytes: optionalNum,
+  storedBytes: optionalNum,
+  width: optionalNum,
+  height: optionalNum,
+  compressed: optionalBool,
 });
 
 export const progressProblemDraftSchema = z.object({

@@ -7,11 +7,12 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { formatBytes, prepareImageForStorage } from "@/lib/client-image-compression";
 import type { UploadedImage } from "@/lib/types";
 import {
   ALLOWED_IMAGE_MIME_TYPES,
   estimateDataUrlBytes,
-  MAX_IMAGE_BYTES,
+  MAX_IMAGES_PER_SECTION,
   MAX_SECTION_BYTES,
 } from "@/lib/image-limits";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,9 @@ export function ImageAttachmentEditor({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const targetIdRef = useRef(Symbol(label));
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Keep a ref to the latest handler so the document-level paste listener can be
   // registered exactly once (stable deps) without capturing a stale closure.
@@ -67,17 +70,25 @@ export function ImageAttachmentEditor({
     const imageFiles = Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
     if (!imageFiles.length) return;
     setError("");
+    setNotice("");
+    setIsProcessing(true);
     try {
-      const existingBytes = images.reduce((total, image) => total + estimateDataUrlBytes(image.dataUrl), 0);
-      const nextFileBytes = imageFiles.reduce((total, file) => total + file.size, 0);
-      if (existingBytes + nextFileBytes > MAX_SECTION_BYTES) {
+      if (images.length + imageFiles.length > MAX_IMAGES_PER_SECTION) {
+        throw new Error(`이미지는 한 섹션당 최대 ${MAX_IMAGES_PER_SECTION}장까지 첨부할 수 있습니다.`);
+      }
+
+      const nextImages = await Promise.all(imageFiles.map(fileToUploadedImage));
+      const existingBytes = images.reduce((total, image) => total + storedImageBytes(image), 0);
+      const nextImageBytes = nextImages.reduce((total, image) => total + storedImageBytes(image), 0);
+      if (existingBytes + nextImageBytes > MAX_SECTION_BYTES) {
         throw new Error("이미지는 한 섹션당 총 10MB 이하로 첨부해주세요.");
       }
-      const nextImages = await Promise.all(imageFiles.map(fileToUploadedImage));
       onChange([...images, ...nextImages]);
+      setNotice(compressionNotice(nextImages));
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "이미지를 불러오지 못했습니다.");
     } finally {
+      setIsProcessing(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -154,13 +165,26 @@ export function ImageAttachmentEditor({
         <div className="text-xs leading-5 text-app-text-muted">
           파일 선택, 드래그앤드롭, 클릭 후 Ctrl/⌘+V 붙여넣기
         </div>
+        <div className="text-xs leading-5 text-app-text-muted">
+          큰 이미지는 저장 전 자동으로 축소/압축됩니다.
+        </div>
         <div className="max-w-md text-xs leading-5 text-app-text-muted">
           이 영역을 한 번 선택하면 다른 입력칸에서 이미지를 붙여넣어도 이곳에 임베드됩니다.
         </div>
       </div>
+      {isProcessing ? (
+        <p className="rounded-md border border-app-primary-soft bg-app-primary-muted px-3 py-2 text-sm text-app-primary">
+          이미지를 저장하기 좋은 크기로 줄이는 중입니다.
+        </p>
+      ) : null}
       {error ? (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {error}
+        </p>
+      ) : null}
+      {notice && !error ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {notice}
         </p>
       ) : null}
       {images.length ? (
@@ -189,7 +213,13 @@ export function ImageAttachmentEditor({
                   onChange={(event) => updateImage(index, { note: event.target.value })}
                 />
                 <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
-                  <span className="truncate">{image.fileName}</span>
+                  <div className="min-w-0">
+                    <div className="truncate">{image.fileName}</div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+                      <span>{formatBytes(storedImageBytes(image))}</span>
+                      {image.compressed ? <span>자동 압축됨</span> : null}
+                    </div>
+                  </div>
                   <Button
                     type="button"
                     variant="danger-ghost"
@@ -213,31 +243,42 @@ export function ImageAttachmentEditor({
   );
 }
 
-function fileToUploadedImage(file: File): Promise<UploadedImage> {
-  return new Promise((resolve, reject) => {
-    if (!acceptedImageTypes.includes(file.type)) {
-      reject(new Error("PNG, JPG, JPEG, WebP 파일만 첨부할 수 있습니다."));
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      reject(new Error("이미지는 파일당 5MB 이하로 첨부해주세요."));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve({
-        id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        fileName: file.name || `captured-image-${new Date().toISOString().replace(/[:.]/g, "-")}.png`,
-        mimeType: file.type,
-        dataUrl: String(reader.result ?? ""),
-        caption: "",
-        note: "",
-        createdAt: new Date().toISOString(),
-      });
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+async function fileToUploadedImage(file: File): Promise<UploadedImage> {
+  if (!acceptedImageTypes.includes(file.type)) {
+    throw new Error("PNG, JPG, JPEG, WebP 파일만 첨부할 수 있습니다.");
+  }
+
+  const prepared = await prepareImageForStorage(file);
+  return {
+    id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    fileName: prepared.fileName || `captured-image-${new Date().toISOString().replace(/[:.]/g, "-")}.jpg`,
+    mimeType: prepared.mimeType,
+    dataUrl: prepared.dataUrl,
+    caption: "",
+    note: "",
+    createdAt: new Date().toISOString(),
+    originalBytes: prepared.originalBytes,
+    storedBytes: prepared.storedBytes,
+    width: prepared.width,
+    height: prepared.height,
+    compressed: prepared.compressed,
+  };
+}
+
+function storedImageBytes(image: UploadedImage) {
+  return image.storedBytes ?? estimateDataUrlBytes(image.dataUrl);
+}
+
+function compressionNotice(images: UploadedImage[]) {
+  const compressedImages = images.filter((image) => image.compressed);
+  if (!compressedImages.length) return "";
+
+  const originalBytes = compressedImages.reduce(
+    (total, image) => total + (image.originalBytes ?? storedImageBytes(image)),
+    0,
+  );
+  const storedBytes = compressedImages.reduce((total, image) => total + storedImageBytes(image), 0);
+  return `이미지 ${compressedImages.length}장을 자동 압축했습니다. ${formatBytes(originalBytes)} → ${formatBytes(storedBytes)}`;
 }
 
 function filesFromDataTransfer(dataTransfer: DataTransfer | null) {
