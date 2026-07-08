@@ -3,6 +3,7 @@
 import { History, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { ClinicalMarkupTextarea } from "@/components/shared/clinical-markup-textarea";
 import { SaveBar } from "@/components/shared/save-bar";
 import { ImageAttachmentEditor } from "@/components/shared/image-attachment-editor";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
@@ -250,9 +251,9 @@ export function ProgressNoteEditor({
                   </div>
                 </SoapRow>
                 <SoapRow label="S">
-                  <Textarea
+                  <ClinicalMarkupTextarea
                     value={row.subjective}
-                    onChange={(event) => update(index, { subjective: event.target.value })}
+                    onChange={(value) => update(index, { subjective: value })}
                     rows={3}
                   />
                 </SoapRow>
@@ -271,9 +272,9 @@ export function ProgressNoteEditor({
                   </div>
                 </SoapRow>
                 <SoapRow label="A">
-                  <Textarea
+                  <ClinicalMarkupTextarea
                     value={row.assessment}
-                    onChange={(event) => update(index, { assessment: event.target.value })}
+                    onChange={(value) => update(index, { assessment: value })}
                     rows={4}
                   />
                 </SoapRow>
@@ -378,10 +379,10 @@ function DynamicSoapItems({
             onChange={(event) => updateItem(index, { label: event.target.value })}
             aria-label="SOAP subfield label"
           />
-          <Textarea
+          <ClinicalMarkupTextarea
             value={item.value}
             rows={3}
-            onChange={(event) => updateItem(index, { value: event.target.value })}
+            onChange={(value) => updateItem(index, { value })}
             aria-label={`${item.label} note`}
           />
           <Button

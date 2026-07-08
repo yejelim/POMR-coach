@@ -340,7 +340,7 @@ function formatClinicalMarkup(value: string) {
     if (value.startsWith("==", index)) {
       const end = value.indexOf("==", index + 2);
       if (end > index + 2) {
-        output += `<span class="text-highlight">${escapeHtml(value.slice(index + 2, end))}</span>`;
+        output += `<mark class="text-highlight">${escapeHtml(value.slice(index + 2, end))}</mark>`;
         index = end + 2;
         continue;
       }
@@ -357,46 +357,65 @@ function formatClinicalMarkup(value: string) {
  * Impression tables
  * ────────────────────────────────────────────────────────────────────────── */
 
+type ExportTableColumn<Row> = {
+  header: string;
+  colClassName?: string;
+  cellClassName?: string;
+  render: (row: Row) => string;
+};
+
 function impressionTableBody(rows: CaseBundle["impressionRows"], includeMissing: boolean) {
   const meaningfulRows = rows.filter((row) =>
     [row.title, row.evidence, row.evidenceAgainst, row.missingData, row.dxPlan, row.txPlan].some(hasText),
   );
   if (!meaningfulRows.length) return "";
 
+  const columns: Array<ExportTableColumn<(typeof meaningfulRows)[number]>> = [
+    {
+      header: "Rank",
+      colClassName: "col-rank",
+      cellClassName: "cell-rank",
+      render: (row) => `<span class="rank-chip">${escapeHtml(String(row.rank))}</span>`,
+    },
+    {
+      header: "Impression",
+      colClassName: "col-impression",
+      cellClassName: "cell-strong",
+      render: (row) => prewrap(row.title),
+    },
+  ];
+
+  if (meaningfulRows.some((row) => hasText(row.evidence))) {
+    columns.push({ header: "Evidence", render: (row) => prewrap(row.evidence) });
+  }
+  if (meaningfulRows.some((row) => hasText(row.evidenceAgainst))) {
+    columns.push({ header: "Against / uncertainty", render: (row) => prewrap(row.evidenceAgainst) });
+  }
+  if (includeMissing && meaningfulRows.some((row) => hasText(row.missingData))) {
+    columns.push({ header: "Missing data", render: (row) => prewrap(row.missingData) });
+  }
+  if (meaningfulRows.some((row) => hasText(row.dxPlan))) {
+    columns.push({ header: "Dx plan", render: (row) => prewrap(row.dxPlan) });
+  }
+  if (meaningfulRows.some((row) => hasText(row.txPlan))) {
+    columns.push({ header: "Tx plan", render: (row) => prewrap(row.txPlan) });
+  }
+
   return `<div class="table-wrap">
   <table class="clin-table impression-table">
-    <colgroup>
-      <col class="col-rank" />
-      <col class="col-impression" />
-      <col />
-      <col />
-      ${includeMissing ? "<col />" : ""}
-      <col />
-      <col />
-    </colgroup>
+    <colgroup>${columns.map((column) => `<col${column.colClassName ? ` class="${column.colClassName}"` : ""} />`).join("")}</colgroup>
     <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Impression</th>
-        <th>Evidence</th>
-        <th>Against / uncertainty</th>
-        ${includeMissing ? "<th>Missing data</th>" : ""}
-        <th>Dx plan</th>
-        <th>Tx plan</th>
-      </tr>
+      <tr>${columns.map((column) => `<th>${escapeHtml(column.header)}</th>`).join("")}</tr>
     </thead>
     <tbody>
       ${meaningfulRows
         .map(
-          (row) => `<tr>
-        <td class="cell-rank"><span class="rank-chip">${escapeHtml(String(row.rank))}</span></td>
-        <td class="cell-strong">${prewrap(row.title)}</td>
-        <td>${prewrap(row.evidence)}</td>
-        <td>${prewrap(row.evidenceAgainst)}</td>
-        ${includeMissing ? `<td>${prewrap(row.missingData)}</td>` : ""}
-        <td>${prewrap(row.dxPlan)}</td>
-        <td>${prewrap(row.txPlan)}</td>
-      </tr>`,
+          (row) => `<tr>${columns
+            .map(
+              (column) =>
+                `<td${column.cellClassName ? ` class="${column.cellClassName}"` : ""}>${column.render(row)}</td>`,
+            )
+            .join("")}</tr>`,
         )
         .join("")}
     </tbody>
@@ -453,33 +472,48 @@ function problemListBody(problems: CaseBundle["problems"]) {
   );
   if (!meaningfulProblems.length) return "";
 
+  const columns: Array<ExportTableColumn<(typeof meaningfulProblems)[number]>> = [
+    {
+      header: "Priority",
+      colClassName: "col-priority",
+      cellClassName: "cell-rank",
+      render: (problem) => `<span class="rank-chip">${escapeHtml(String(problem.priority))}</span>`,
+    },
+    {
+      header: "Problem",
+      colClassName: "col-problem",
+      cellClassName: "cell-strong",
+      render: (problem) => prewrap(problem.title),
+    },
+    {
+      header: "Status",
+      colClassName: "col-status",
+      cellClassName: "cell-status",
+      render: (problem) => statusBadge(String(problem.status ?? "")),
+    },
+  ];
+
+  if (meaningfulProblems.some((problem) => hasText(problem.evidence))) {
+    columns.push({ header: "Evidence", render: (problem) => prewrap(problem.evidence) });
+  }
+  if (meaningfulProblems.some((problem) => hasText(problem.notes))) {
+    columns.push({ header: "Notes", render: (problem) => prewrap(problem.notes) });
+  }
+
   return `<div class="table-wrap">
   <table class="clin-table problem-table">
-    <colgroup>
-      <col class="col-priority" />
-      <col class="col-problem" />
-      <col class="col-status" />
-      <col />
-      <col />
-    </colgroup>
+    <colgroup>${columns.map((column) => `<col${column.colClassName ? ` class="${column.colClassName}"` : ""} />`).join("")}</colgroup>
     <thead>
-      <tr>
-        <th>Priority</th>
-        <th>Problem</th>
-        <th>Status</th>
-        <th>Evidence</th>
-        <th>Notes</th>
-      </tr>
+      <tr>${columns.map((column) => `<th>${escapeHtml(column.header)}</th>`).join("")}</tr>
     </thead>
     <tbody>${meaningfulProblems
       .map(
-        (problem) => `<tr>
-        <td class="cell-rank"><span class="rank-chip">${escapeHtml(String(problem.priority))}</span></td>
-        <td class="cell-strong">${prewrap(problem.title)}</td>
-        <td class="cell-status">${statusBadge(String(problem.status ?? ""))}</td>
-        <td>${prewrap(problem.evidence)}</td>
-        <td>${prewrap(problem.notes)}</td>
-      </tr>`,
+        (problem) => `<tr>${columns
+          .map(
+            (column) =>
+              `<td${column.cellClassName ? ` class="${column.cellClassName}"` : ""}>${column.render(problem)}</td>`,
+          )
+          .join("")}</tr>`,
       )
       .join("")}</tbody>
   </table>
@@ -556,13 +590,13 @@ function renderSoapProblem(problem: CaseBundle["progressNotes"][number]["problem
     rows.push(["Status", `<div class="cell-badge">${statusBadge(String(problem.progressStatus))}</div>`]);
   }
   if (hasText(problem.subjective)) {
-    rows.push(["S", prewrap(problem.subjective)]);
+    rows.push(["S", prewrapRich(problem.subjective)]);
   }
   if (objectiveItems.length || objectiveImages.length) {
     rows.push(["O", `${soapSubfields(objectiveItems)}${renderImages("", objectiveImages)}`]);
   }
   if (hasText(problem.assessment)) {
-    rows.push(["A", prewrap(problem.assessment)]);
+    rows.push(["A", prewrapRich(problem.assessment)]);
   }
   if (planItems.length) {
     rows.push(["P", soapSubfields(planItems)]);
@@ -588,7 +622,7 @@ function soapSubfields(items: Array<{ label: string; value: string }>) {
   return `<div class="soap-fields">${items
     .map(
       (item) =>
-        `<div class="soap-field"><span class="soap-field-key">${escapeHtml(item.label || "Item")}</span>${prewrap(item.value)}</div>`,
+        `<div class="soap-field"><span class="soap-field-key">${escapeHtml(item.label || "Item")}</span>${prewrapRich(item.value)}</div>`,
     )
     .join("")}</div>`;
 }
@@ -697,6 +731,12 @@ function prewrap(value: unknown) {
   const text = String(value ?? "");
   if (!text.trim()) return "";
   return `<span class="pre">${escapeHtml(text)}</span>`;
+}
+
+function prewrapRich(value: unknown) {
+  const text = String(value ?? "");
+  if (!text.trim()) return "";
+  return `<span class="pre">${formatClinicalMarkup(text)}</span>`;
 }
 
 function compareNullableDateText(a: unknown, b: unknown) {
@@ -833,18 +873,14 @@ function baseStyles() {
     .sub-text { white-space: pre-wrap; margin: 0; }
 
     /* ── Highlight markup (preserved exactly) ────────────────────────────── */
+    mark.text-highlight,
     .text-highlight {
-      background-color: #fde68a;
+      background: #fde68a !important;
+      color: inherit;
       border-radius: 2px;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
-      box-shadow: inset 0 -0.85em 0 #fde68a;
       padding: 0 2px;
-      text-decoration: underline;
-      text-decoration-color: #fde68a;
-      text-decoration-skip-ink: none;
-      text-decoration-thickness: 0.85em;
-      text-underline-offset: -0.45em;
     }
     strong { font-weight: 700; color: var(--ink); }
 
@@ -1164,11 +1200,17 @@ function baseStyles() {
     .soap-field { margin: 0 0 2px; }
     .soap-field:last-child { margin-bottom: 0; }
     .soap-field-key {
+      display: inline-block;
       font-weight: 700;
       color: var(--navy);
-      font-size: 11px;
+      font-size: 10.5px;
+      line-height: 1.35;
       letter-spacing: 0.02em;
-      margin-right: 7px;
+      margin: 0 6px 2px 0;
+      padding: 1px 6px;
+      background: #dbeafe;
+      border: 1px solid #bfdbfe;
+      border-radius: 2px;
       vertical-align: baseline;
     }
 

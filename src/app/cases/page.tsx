@@ -137,7 +137,7 @@ function ProductIntroBlock() {
             />
             <ValuePoint
               icon={<Archive className="h-4 w-4" />}
-              text="내가 공부한 모든 케이스를 아카이빙/검색/조회"
+              text="내가 공부한 모든 케이스를 아카이빙/검색/조회할 수 있는 폴리클 최적의 앱"
             />
           </div>
         </div>
