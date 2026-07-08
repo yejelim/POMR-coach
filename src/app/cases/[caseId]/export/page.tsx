@@ -14,6 +14,8 @@ export default async function ExportPage({
   const user = await requireCurrentUser();
   const caseRecord = await getCaseBundleForOwner(caseId, ownerIdForQuery(user));
   if (!caseRecord) notFound();
+  const reverseChronological = renderExportHtmlVariants(caseRecord, false);
+  const chronological = renderExportHtmlVariants(caseRecord, true);
 
   return (
     <CasePageFrame
@@ -33,24 +35,37 @@ export default async function ExportPage({
       </div>
       <ExportPreview
         html={{
-          brandedFooter: renderSubmissionHtml(caseRecord, {
-            includeBranding: true,
-            includeFooter: true,
-          }),
-          branded: renderSubmissionHtml(caseRecord, {
-            includeBranding: true,
-            includeFooter: false,
-          }),
-          footer: renderSubmissionHtml(caseRecord, {
-            includeBranding: false,
-            includeFooter: true,
-          }),
-          plain: renderSubmissionHtml(caseRecord, {
-            includeBranding: false,
-            includeFooter: false,
-          }),
+          reverseChronological,
+          chronological,
         }}
       />
     </CasePageFrame>
   );
+}
+
+type ExportCaseRecord = NonNullable<Awaited<ReturnType<typeof getCaseBundleForOwner>>>;
+
+function renderExportHtmlVariants(caseRecord: ExportCaseRecord, progressChronological: boolean) {
+  return {
+    brandedFooter: renderSubmissionHtml(caseRecord, {
+      includeBranding: true,
+      includeFooter: true,
+      progressChronological,
+    }),
+    branded: renderSubmissionHtml(caseRecord, {
+      includeBranding: true,
+      includeFooter: false,
+      progressChronological,
+    }),
+    footer: renderSubmissionHtml(caseRecord, {
+      includeBranding: false,
+      includeFooter: true,
+      progressChronological,
+    }),
+    plain: renderSubmissionHtml(caseRecord, {
+      includeBranding: false,
+      includeFooter: false,
+      progressChronological,
+    }),
+  };
 }

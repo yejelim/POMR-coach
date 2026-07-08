@@ -22,6 +22,7 @@ export async function GET(
   const html = renderSubmissionHtml(caseRecord, {
     includeBranding: searchParams.get("branding") !== "0",
     includeFooter: searchParams.get("footer") !== "0",
+    progressChronological: searchParams.get("progressOrder") === "chronological",
   });
 
   return new NextResponse(html, {

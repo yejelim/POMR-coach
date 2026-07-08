@@ -11,6 +11,7 @@ type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/service
 export type SubmissionHtmlOptions = {
   includeBranding?: boolean;
   includeFooter?: boolean;
+  progressChronological?: boolean;
 };
 
 export function renderSubmissionHtml(caseRecord: CaseBundle, options: SubmissionHtmlOptions = {}) {
@@ -22,6 +23,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
   const diagnosticImages = parseStoredJson<UploadedImage[]>(data?.imageAttachments, []);
   const includeBranding = options.includeBranding ?? true;
   const includeFooter = options.includeFooter ?? true;
+  const progressChronological = options.progressChronological ?? false;
   const logoDataUri = includeBranding ? getLogoDataUri() : "";
 
   // Build each clinical section as a raw inner-HTML string (empty when it has no
@@ -71,7 +73,7 @@ export function renderSubmissionHtml(caseRecord: CaseBundle, options: Submission
     },
     {
       title: "Progress Notes",
-      body: progressNotesBody(caseRecord.progressNotes),
+      body: progressNotesBody(caseRecord.progressNotes, progressChronological),
     },
   ];
 
@@ -488,13 +490,29 @@ function problemListBody(problems: CaseBundle["problems"]) {
  * Progress notes + SOAP
  * ────────────────────────────────────────────────────────────────────────── */
 
-function progressNotesBody(notes: CaseBundle["progressNotes"]) {
-  const renderedNotes = notes
+function progressNotesBody(notes: CaseBundle["progressNotes"], chronological: boolean) {
+  const renderedNotes = sortProgressNotesForExport(notes, chronological)
     .map(renderProgressNote)
     .filter((note) => note.trim())
     .join("");
   if (!renderedNotes) return "";
   return renderedNotes;
+}
+
+function sortProgressNotesForExport(notes: CaseBundle["progressNotes"], chronological: boolean) {
+  if (!chronological) return notes;
+
+  return notes
+    .map((note, index) => ({ note, index }))
+    .sort((a, b) => compareProgressNotesChronologically(a.note, b.note) || a.index - b.index)
+    .map(({ note }) => note);
+}
+
+function compareProgressNotesChronologically(
+  a: CaseBundle["progressNotes"][number],
+  b: CaseBundle["progressNotes"][number],
+) {
+  return compareNullableDateText(a.date, b.date) || compareTimestamp(a.createdAt, b.createdAt);
 }
 
 function renderProgressNote(note: CaseBundle["progressNotes"][number]) {
@@ -679,6 +697,34 @@ function prewrap(value: unknown) {
   const text = String(value ?? "");
   if (!text.trim()) return "";
   return `<span class="pre">${escapeHtml(text)}</span>`;
+}
+
+function compareNullableDateText(a: unknown, b: unknown) {
+  const left = String(a ?? "").trim();
+  const right = String(b ?? "").trim();
+
+  if (!left && !right) return 0;
+  if (!left) return 1;
+  if (!right) return -1;
+
+  const leftTime = Date.parse(left);
+  const rightTime = Date.parse(right);
+  if (!Number.isNaN(leftTime) && !Number.isNaN(rightTime) && leftTime !== rightTime) {
+    return leftTime - rightTime;
+  }
+
+  return left.localeCompare(right, "ko");
+}
+
+function compareTimestamp(a: Date | string, b: Date | string) {
+  const left = new Date(a).getTime();
+  const right = new Date(b).getTime();
+
+  if (Number.isNaN(left) && Number.isNaN(right)) return 0;
+  if (Number.isNaN(left)) return 1;
+  if (Number.isNaN(right)) return -1;
+
+  return left - right;
 }
 
 function seoulParts(value: Date | string | null | undefined) {
