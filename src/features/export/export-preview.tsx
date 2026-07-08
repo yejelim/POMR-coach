@@ -1,41 +1,34 @@
 "use client";
 
 import { Printer } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-type HtmlVariants = {
-  brandedFooter: string;
-  branded: string;
-  footer: string;
-  plain: string;
-};
-
-type ExportHtmlVariants = {
-  reverseChronological: HtmlVariants;
-  chronological: HtmlVariants;
-};
-
-export function ExportPreview({ html }: { html: ExportHtmlVariants }) {
+export function ExportPreview({ caseId }: { caseId: string }) {
   const [includeBranding, setIncludeBranding] = useState(true);
   const [includeFooter, setIncludeFooter] = useState(true);
   const [progressChronological, setProgressChronological] = useState(false);
+  const previewRef = useRef<HTMLIFrameElement>(null);
 
-  const currentHtml = useMemo(() => {
-    const variants = progressChronological ? html.chronological : html.reverseChronological;
-    if (includeBranding && includeFooter) return variants.brandedFooter;
-    if (includeBranding) return variants.branded;
-    if (includeFooter) return variants.footer;
-    return variants.plain;
-  }, [html, includeBranding, includeFooter, progressChronological]);
+  const previewUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (!includeBranding) params.set("branding", "0");
+    if (!includeFooter) params.set("footer", "0");
+    if (progressChronological) params.set("progressOrder", "chronological");
+
+    const query = params.toString();
+    return `/api/export/cases/${encodeURIComponent(caseId)}/pdf${query ? `?${query}` : ""}`;
+  }, [caseId, includeBranding, includeFooter, progressChronological]);
 
   function printPreview() {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(currentHtml);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    const frameWindow = previewRef.current?.contentWindow;
+    if (frameWindow) {
+      frameWindow.focus();
+      frameWindow.print();
+      return;
+    }
+
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -83,8 +76,9 @@ export function ExportPreview({ html }: { html: ExportHtmlVariants }) {
         </div>
       </div>
       <iframe
+        ref={previewRef}
         title="Submission preview"
-        srcDoc={currentHtml}
+        src={previewUrl}
         className="h-[78vh] w-full rounded-xl border border-app-border bg-white"
       />
     </div>
