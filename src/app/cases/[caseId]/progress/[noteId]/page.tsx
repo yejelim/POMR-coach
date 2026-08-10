@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { saveProgressNoteAction } from "@/app/cases/actions";
 import {
   getLatestSoapProblemsByProblemIdForOwner,
+  getProgressNoteNavigationForOwner,
   getProgressNoteForOwner,
 } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
@@ -23,6 +24,7 @@ export default async function ProgressNotePage({
   const note = await getProgressNoteForOwner(noteId, ownerId);
   if (!note || note.caseId !== caseId) notFound();
   const latestProblems = await getLatestSoapProblemsByProblemIdForOwner(caseId, note.id, ownerId);
+  const noteNavigation = await getProgressNoteNavigationForOwner(caseId, note.id, ownerId);
   const nav = {
     currentHref: `/cases/${caseId}/progress/${note.id}`,
     previousHref: workflowNav(caseId, "progress").currentHref,
@@ -110,7 +112,27 @@ export default async function ProgressNotePage({
         currentHref={nav.currentHref}
         previousHref={nav.previousHref}
         nextHref={nav.nextHref}
+        previousNoteHref={
+          noteNavigation.previous
+            ? `/cases/${caseId}/progress/${noteNavigation.previous.id}`
+            : undefined
+        }
+        previousNoteLabel={
+          noteNavigation.previous ? formatProgressNoteNavLabel(noteNavigation.previous) : undefined
+        }
+        nextNoteHref={
+          noteNavigation.next
+            ? `/cases/${caseId}/progress/${noteNavigation.next.id}`
+            : undefined
+        }
+        nextNoteLabel={
+          noteNavigation.next ? formatProgressNoteNavLabel(noteNavigation.next) : undefined
+        }
       />
     </CasePageFrame>
   );
+}
+
+function formatProgressNoteNavLabel(note: { date: string; hospitalDay: string }) {
+  return [note.date || "날짜 미입력", note.hospitalDay || "HD 미입력"].join(" · ");
 }

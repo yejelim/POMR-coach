@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { RosTemplateGroup } from "@/config/templates/ros";
+import { cn } from "@/lib/utils";
 
 type RosItemState = {
   positive: boolean;
@@ -60,26 +61,33 @@ export function RosChecklistEditor({
                 return (
                   <div
                     key={key}
-                    className="grid gap-1 rounded-sm bg-app-surface-muted px-1.5 py-1 sm:grid-cols-[minmax(0,1fr)_auto]"
+                    className={cn(
+                      "rounded-md px-1.5 py-1.5 transition",
+                      state.positive
+                        ? "border border-app-primary-soft bg-app-primary-muted"
+                        : "border border-transparent bg-app-surface-muted",
+                    )}
                   >
-                    <div className="flex min-w-0 items-center gap-1.5">
+                    <div className="flex min-w-0 items-start gap-1.5">
                       <Button
                         type="button"
                         size="sm"
                         variant={state.positive ? "default" : "outline"}
-                        className="h-6 w-7 px-0 text-xs"
+                        className="h-6 w-7 shrink-0 px-0 text-xs"
                         onClick={() => updateItem(key, { positive: !state.positive })}
                         aria-pressed={state.positive}
                       >
                         {state.positive ? "+" : "-"}
                       </Button>
-                      <span className="truncate text-xs text-app-text-secondary">{item}</span>
+                      <span className="min-w-0 flex-1 text-xs leading-5 text-app-text-secondary">
+                        {item}
+                      </span>
                     </div>
                     {state.positive ? (
                       <Input
                         value={state.comment}
                         placeholder="comment"
-                        className="h-7 min-w-32 text-xs"
+                        className="mt-1 h-7 w-full text-xs"
                         onChange={(event) => updateItem(key, { comment: event.target.value })}
                       />
                     ) : null}

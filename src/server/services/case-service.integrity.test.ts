@@ -4,6 +4,7 @@ import {
   createCase,
   createProgressNote,
   getCaseBundleForOwner,
+  getProgressNoteNavigationForOwner,
   getProgressNoteForOwner,
   replaceImpressions,
   replaceProblems,
@@ -148,5 +149,29 @@ describe("collection saves preserve ids and FK links", () => {
     );
     after = await getProgressNoteForOwner(note.id, OWNER);
     expect(after!.problems[0].problemId).toBe(probId);
+  });
+
+  it("returns chronological progress note neighbors", async () => {
+    const c = await createCase({ title: "N", department: "IM", summary: "", tags: [], ownerId: OWNER });
+    const first = await createProgressNote(c.id, OWNER);
+    const second = await createProgressNote(c.id, OWNER);
+    const third = await createProgressNote(c.id, OWNER);
+
+    const baseInput = {
+      vitals: {},
+      diet: "",
+      io: "",
+      overnightEvent: "",
+      drainTube: "",
+      problems: [soapDraft()],
+    };
+
+    await updateProgressNote(first.id, { ...baseInput, date: "2026-01-01", hospitalDay: "1" }, OWNER);
+    await updateProgressNote(second.id, { ...baseInput, date: "2026-01-02", hospitalDay: "2" }, OWNER);
+    await updateProgressNote(third.id, { ...baseInput, date: "2026-01-03", hospitalDay: "3" }, OWNER);
+
+    const nav = await getProgressNoteNavigationForOwner(c.id, second.id, OWNER);
+    expect(nav.previous?.id).toBe(first.id);
+    expect(nav.next?.id).toBe(third.id);
   });
 });

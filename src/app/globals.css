@@ -2,6 +2,7 @@
 
 :root {
   --app-primary: #0f766e;
+  --app-primary-contrast: #ffffff;
   --app-primary-soft: #ccfbf1;
   --app-primary-muted: #e6fffa;
   --app-accent: #2563eb;
@@ -41,6 +42,7 @@
 
 [data-theme="warm-brown"] {
   --app-primary: #5c2e1a;
+  --app-primary-contrast: #ffffff;
   --app-primary-soft: #d8b89c;
   --app-primary-muted: #f4e7dc;
   --app-accent: #8b3f18;
@@ -68,6 +70,7 @@
 [data-theme="dark-slate"] {
   color-scheme: dark;
   --app-primary: #2dd4bf;
+  --app-primary-contrast: #042f2e;
   --app-primary-soft: #134e4a;
   --app-primary-muted: #042f2e;
   --app-accent: #60a5fa;
@@ -108,6 +111,7 @@
   --color-app-text-muted: var(--app-text-muted);
   --color-app-text-faint: var(--app-text-faint);
   --color-app-primary: var(--app-primary);
+  --color-app-primary-contrast: var(--app-primary-contrast);
   --color-app-primary-soft: var(--app-primary-soft);
   --color-app-primary-muted: var(--app-primary-muted);
   --color-app-accent: var(--app-accent);
@@ -273,6 +277,8 @@ select {
 [data-theme="dark-slate"] .text-teal-800,
 [data-theme="warm-brown"] .text-teal-900,
 [data-theme="dark-slate"] .text-teal-900,
+[data-theme="warm-brown"] .text-teal-950,
+[data-theme="dark-slate"] .text-teal-950,
 [data-theme="warm-brown"] .text-emerald-700,
 [data-theme="dark-slate"] .text-emerald-700,
 [data-theme="warm-brown"] .text-emerald-800,

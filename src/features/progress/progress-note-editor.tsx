@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, History, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { ClinicalMarkupTextarea } from "@/components/shared/clinical-markup-textarea";
@@ -60,6 +60,10 @@ export function ProgressNoteEditor({
   currentHref,
   previousHref,
   nextHref,
+  previousNoteHref,
+  previousNoteLabel,
+  nextNoteHref,
+  nextNoteLabel,
 }: {
   note: {
     date: string;
@@ -77,6 +81,10 @@ export function ProgressNoteEditor({
   currentHref?: string;
   previousHref?: string;
   nextHref?: string;
+  previousNoteHref?: string;
+  previousNoteLabel?: string;
+  nextNoteHref?: string;
+  nextNoteLabel?: string;
 }) {
   const [rows, setRows] = useState(
     note.problems.length ? note.problems.map(mergeLegacySoapFields) : [blankProblem()],
@@ -193,11 +201,11 @@ export function ProgressNoteEditor({
 
       {rows.map((row, index) => (
         <section key={index} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-teal-50 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-app-border bg-app-primary-muted px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-teal-950">Problem #{index + 1}</span>
+              <span className="text-sm font-semibold text-app-text">Problem #{index + 1}</span>
               <Select
-                className="h-8 w-52 bg-white"
+                className="h-8 w-52 bg-app-surface"
                 value={row.problemId ?? ""}
                 onChange={(event) => {
                   const selected = problemById.get(event.target.value);
@@ -216,7 +224,7 @@ export function ProgressNoteEditor({
                 ))}
               </Select>
               <Select
-                className="h-8 w-36 bg-white"
+                className="h-8 w-36 bg-app-surface"
                 value={row.progressStatus ?? "active"}
                 onChange={(event) => update(index, { progressStatus: event.target.value as ProblemStatus })}
                 aria-label="Progress problem status"
@@ -295,6 +303,39 @@ export function ProgressNoteEditor({
         <Plus className="h-4 w-4" />
         Add SOAP problem
       </Button>
+      {previousNoteHref || nextNoteHref ? (
+        <section className="flex flex-col gap-2 rounded-lg border border-app-border bg-app-surface-soft/70 p-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm font-medium text-app-text-secondary">날짜별 progress note 이동</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {previousNoteHref ? (
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                name="redirectTo"
+                value={withSaved(previousNoteHref)}
+                title={previousNoteLabel ? `저장 후 ${previousNoteLabel}로 이동` : "저장 후 이전 노트로 이동"}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Save & 이전 노트
+              </Button>
+            ) : null}
+            {nextNoteHref ? (
+              <Button
+                type="submit"
+                variant="secondary"
+                size="sm"
+                name="redirectTo"
+                value={withSaved(nextNoteHref)}
+                title={nextNoteLabel ? `저장 후 ${nextNoteLabel}로 이동` : "저장 후 다음 노트로 이동"}
+              >
+                Save & 다음 노트
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
       <SaveBar
         label="Save progress note"
         currentHref={currentHref}
@@ -303,6 +344,11 @@ export function ProgressNoteEditor({
       />
     </form>
   );
+}
+
+function withSaved(href: string) {
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}saved=1`;
 }
 
 function LoadLatestSoapButton({
@@ -317,7 +363,7 @@ function LoadLatestSoapButton({
       type="button"
       variant="outline"
       size="sm"
-      className="h-8 bg-white"
+      className="h-8 bg-app-surface"
       onClick={onClick}
       disabled={!latest}
       title={latest ? `${latest.sourceLabel || "이전 노트"}에서 불러오기` : "같은 problem의 이전 SOAP note가 없습니다."}

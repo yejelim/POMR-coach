@@ -68,7 +68,7 @@ export function ReleaseUpdateDialog() {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mt-4 rounded-xl border border-app-primary-soft bg-app-primary-muted px-4 py-3 text-sm leading-6 text-app-text-secondary">
+        <p className="mt-4 whitespace-pre-line rounded-xl border border-app-primary-soft bg-app-primary-muted px-4 py-3 text-sm leading-6 text-app-text-secondary">
           {currentRelease.body}
         </p>
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

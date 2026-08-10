@@ -1,6 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { Archive, ClipboardList, FilePlus2, Search } from "lucide-react";
+import { BookOpenText, FilePlus2, Search } from "lucide-react";
 import { listCasesForOwner } from "@/server/services/case-service";
 import { AiAssistToggle } from "@/components/shared/ai-assist-toggle";
 import { AppLogo } from "@/components/shared/app-logo";
@@ -72,7 +71,7 @@ export default async function CasesPage({
             </Button>
           </div>
         </div>
-        <ProductIntroBlock />
+        <FirstUseGuidePrompt />
         <form className="mb-5 flex max-w-xl gap-2">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -122,41 +121,16 @@ export default async function CasesPage({
   );
 }
 
-function ProductIntroBlock() {
+function FirstUseGuidePrompt() {
   return (
-    <section className="mb-5 rounded-2xl border border-app-border bg-app-surface p-4 shadow-sm shadow-slate-200/40 md:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-app-text">
-            POMR Coach는 아래 기능을 가진 무료 서비스입니다.
-          </p>
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
-            <ValuePoint
-              icon={<ClipboardList className="h-4 w-4" />}
-              text="EHR을 보며 기록한 내용을 그대로 제출용 POMR로 문서화"
-            />
-            <ValuePoint
-              icon={<Archive className="h-4 w-4" />}
-              text="내가 공부한 모든 케이스를 아카이빙/검색/조회할 수 있는 폴리클 최적의 앱"
-            />
-          </div>
-        </div>
-        <p className="max-w-sm text-sm leading-6 text-app-text-muted lg:text-right">
-          자세한 내용은 페이지 상단의 <span className="font-semibold text-app-text-secondary">사용법</span>을
-          눌러 확인해주세요.
-        </p>
-      </div>
+    <section className="mb-5 flex flex-col gap-3 rounded-xl border border-app-border bg-app-surface-soft/70 px-4 py-3 md:flex-row md:items-center md:justify-between">
+      <p className="flex min-w-0 items-start gap-2 text-sm leading-6 text-app-text-secondary">
+        <BookOpenText className="mt-0.5 h-4 w-4 shrink-0 text-app-primary" />
+        <span>
+          처음 사용한다면 케이스 생성 전, POMR 작성 흐름과 PDF 내보내기 방법을 먼저 확인해보세요.
+        </span>
+      </p>
+      <UsageGuideLink label="2분 사용법 보기" className="self-start bg-app-surface md:self-auto" />
     </section>
-  );
-}
-
-function ValuePoint({ icon, text }: { icon: ReactNode; text: string }) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-app-primary-soft bg-app-primary-muted px-3 py-2 text-sm font-medium text-app-text-secondary">
-      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-app-surface text-app-primary shadow-sm shadow-app-primary/10">
-        {icon}
-      </span>
-      <span>{text}</span>
-    </div>
   );
 }

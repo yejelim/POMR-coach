@@ -461,6 +461,33 @@ export async function getProgressNoteForOwner(noteId: string, ownerId?: string) 
   });
 }
 
+export async function getProgressNoteNavigationForOwner(
+  caseId: string,
+  currentNoteId: string,
+  ownerId?: string,
+) {
+  await assertCaseOwner(caseId, ownerId);
+
+  const notes = await prisma.progressNote.findMany({
+    where: { caseId },
+    select: {
+      id: true,
+      date: true,
+      hospitalDay: true,
+      createdAt: true,
+    },
+  });
+
+  const ordered = [...notes].sort(compareProgressNoteNavItems);
+  const currentIndex = ordered.findIndex((note) => note.id === currentNoteId);
+  if (currentIndex < 0) return { previous: null, next: null };
+
+  return {
+    previous: ordered[currentIndex - 1] ?? null,
+    next: ordered[currentIndex + 1] ?? null,
+  };
+}
+
 export async function getLatestSoapProblemsByProblemIdForOwner(
   caseId: string,
   excludeNoteId: string,
@@ -497,6 +524,18 @@ export async function getLatestSoapProblemsByProblemIdForOwner(
   }
 
   return Array.from(latestByProblemId.values());
+}
+
+function compareProgressNoteNavItems(
+  a: { date: string; createdAt: Date },
+  b: { date: string; createdAt: Date },
+) {
+  const leftDate = a.date.trim();
+  const rightDate = b.date.trim();
+  if (leftDate && rightDate && leftDate !== rightDate) return leftDate.localeCompare(rightDate);
+  if (leftDate && !rightDate) return -1;
+  if (!leftDate && rightDate) return 1;
+  return a.createdAt.getTime() - b.createdAt.getTime();
 }
 
 export async function updateProgressNote(
