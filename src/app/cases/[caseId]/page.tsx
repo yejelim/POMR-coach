@@ -6,6 +6,7 @@ import { getCaseShellForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -47,6 +48,19 @@ export default async function CaseOverviewPage({
       isAnonymous={user.isAnonymous}
       active="overview"
     >
+      <WorkflowGuidanceNote
+        title="POMR Coach가 훈련하려는 것"
+        points={[
+          "Admission은 진단을 위한 초기 database입니다.",
+          "Initial impression은 검사 전 감별진단을 먼저 세우는 훈련입니다.",
+          "Data는 처음 추론을 지지하거나 반박하는 새 정보입니다.",
+          "Problem list는 병동에서 추적할 문제를 명료하게 정의하는 단계입니다.",
+        ]}
+      >
+        POMR은 정답을 한 번에 맞히는 문서가 아니라, 정보가 쌓이는 순서대로 추론을
+        업데이트하는 사고 기록입니다. 먼저 직접 쓰고, 새 정보가 들어오면 impression과
+        plan을 다시 정리해보세요.
+      </WorkflowGuidanceNote>
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="grid gap-3 md:grid-cols-2">
           {workflowCards.map(([title, description, path]) => (

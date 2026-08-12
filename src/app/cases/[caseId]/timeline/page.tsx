@@ -3,8 +3,8 @@ import { saveTimelineAction } from "@/app/cases/actions";
 import { getTimelineCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
-import { CoachingNote } from "@/components/shared/coaching-note";
 import { TimelineEditor } from "@/features/timeline/timeline-editor";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { workflowNav } from "@/lib/workflow";
 
 export default async function TimelinePage({
@@ -34,11 +34,10 @@ export default async function TimelinePage({
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Timeline Memo</h2>
       </div>
-      {!caseRecord.timelineEntries.length ? (
-        <CoachingNote>
-          환자 문진 전에 EHR을 보며 주요 이벤트, 약물복용력, 수술력, 입원 경과를 자유롭게 메모하세요.
-        </CoachingNote>
-      ) : null}
+      <WorkflowGuidanceNote title="EHR을 보며 빠르게 맥락을 잡는 메모 공간">
+        모든 케이스를 완성형 POMR로 만들 필요는 없습니다. 외래, 협진, 간단한 follow-up
+        케이스는 중요한 사건과 질문만 메모해도 나중에 검색하고 복기하는 데 충분합니다.
+      </WorkflowGuidanceNote>
       <TimelineEditor
         entries={caseRecord.timelineEntries.map((entry) => ({
           id: entry.id,

@@ -6,6 +6,7 @@ import { getProgressNotesCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { DeleteProgressNoteButton } from "@/components/shared/delete-progress-note-button";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { Button } from "@/components/ui/button";
 
 export default async function ProgressNotesPage({
@@ -42,6 +43,10 @@ export default async function ProgressNotesPage({
           </Button>
         </form>
       </div>
+      <WorkflowGuidanceNote title="날짜별 병동 경과를 problem 중심으로 쌓는 공간">
+        같은 problem이라도 날짜가 바뀌면 상태와 plan이 달라질 수 있습니다. Progress note를
+        새로 만들고, 각 problem의 최신 SOAP note를 불러와 trend 중심으로 수정해보세요.
+      </WorkflowGuidanceNote>
       <div className="grid gap-3">
         {caseRecord.progressNotes.map((note) => (
           <article

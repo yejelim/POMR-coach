@@ -3,8 +3,8 @@ import { saveImpressionsAction } from "@/app/cases/actions";
 import { getImpressionCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
-import { CoachingNote } from "@/components/shared/coaching-note";
 import { ImpressionTable } from "@/features/impressions/impression-table";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { workflowNav } from "@/lib/workflow";
 
 export default async function InitialImpressionPage({
@@ -35,12 +35,16 @@ export default async function InitialImpressionPage({
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Pre-test Initial Impression</h2>
       </div>
-      {!caseRecord.impressionRows.some((row) => row.stage === "INITIAL") ? (
-        <CoachingNote>
-          검사 결과를 모두 보기 전에, 문진과 신체진찰을 바탕으로 initial impression을
-          먼저 작성해보세요.
-        </CoachingNote>
-      ) : null}
+      <WorkflowGuidanceNote
+        title="검사 결과를 보기 전에 먼저 감별진단을 세우는 단계"
+        points={[
+          "Hx, ROS, PE에서 어떤 증거가 있는지 분리해서 적습니다.",
+          "아직 모르는 정보와 확인할 검사 계획을 함께 남깁니다.",
+        ]}
+      >
+        Initial impression은 이후 검사 선택의 출발점입니다. 지금까지 모은 정보만으로 가능한
+        DDx를 ranked list로 정리하고, 각 가설을 어떻게 확인할지 생각해보세요.
+      </WorkflowGuidanceNote>
       <ImpressionTable
         stage="INITIAL"
         rows={caseRecord.impressionRows

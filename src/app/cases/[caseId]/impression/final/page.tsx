@@ -4,6 +4,7 @@ import { getImpressionCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { ImpressionTable } from "@/features/impressions/impression-table";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { workflowNav } from "@/lib/workflow";
 
 export default async function FinalImpressionPage({
@@ -34,6 +35,17 @@ export default async function FinalImpressionPage({
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Post-test Final Impression</h2>
       </div>
+      <WorkflowGuidanceNote
+        title="새 정보를 반영해 impression과 plan을 업데이트하는 단계"
+        points={[
+          "Final impression이 확정 전이라면 어떤 검사가 더 필요한지 씁니다.",
+          "Plan은 Dx, Tx, Education 관점에서 명료하게 세우는 연습을 합니다.",
+        ]}
+      >
+        좋은 plan은 진단을 어떻게 확인할지, 지금 어떤 치료를 시작할지, 환자에게 무엇을
+        설명할지까지 포함합니다. Lab과 image 이후 reasoning이 어떻게 바뀌었는지 드러나게
+        정리해보세요.
+      </WorkflowGuidanceNote>
       <ImpressionTable
         stage="FINAL"
         rows={caseRecord.impressionRows

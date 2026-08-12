@@ -9,6 +9,7 @@ import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { PhysicalExamEditor } from "@/features/admission/physical-exam-editor";
 import { RosChecklistEditor } from "@/features/admission/ros-checklist-editor";
 import type { Vitals } from "@/lib/types";
@@ -44,6 +45,16 @@ export default async function AdmissionPage({
       <div className="mb-5">
         <h2 className="text-xl font-semibold">Admission Workspace</h2>
       </div>
+      <WorkflowGuidanceNote
+        title="진단을 위한 초기 database를 만드는 단계"
+        points={[
+          "문진, ROS, PE는 initial impression의 질을 결정합니다.",
+          "이전 검사 기록도 현재 문제를 이해하는 단서가 될 수 있습니다.",
+        ]}
+      >
+        Admission은 환자가 치료를 시작하기 전의 정보를 최대한 모으는 공간입니다. 여기까지의
+        정보만으로 먼저 first impression을 세운다고 생각하고 작성해보세요.
+      </WorkflowGuidanceNote>
       <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5 rounded-lg border border-slate-200 bg-white p-4">
         <section>
           <h3 className="mb-3 text-base font-semibold">Initial vital signs</h3>

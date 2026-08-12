@@ -8,6 +8,7 @@ import {
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
 import { DeleteProgressNoteButton } from "@/components/shared/delete-progress-note-button";
+import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
 import { ProgressNoteEditor } from "@/features/progress/progress-note-editor";
 import { workflowNav } from "@/lib/workflow";
 import type { ProblemStatus, SoapSubfield, UploadedImage, Vitals } from "@/lib/types";
@@ -53,6 +54,16 @@ export default async function ProgressNotePage({
           redirectHref={`/cases/${caseId}/progress`}
         />
       </div>
+      <WorkflowGuidanceNote
+        title="Problem별로 환자의 변화를 해석하고 plan을 조정하는 단계"
+        points={[
+          "Assessment는 데이터를 반복하지 말고 improving, worsening, stable 여부를 해석합니다.",
+          "같은 problem은 최신 SOAP note를 불러와 trend 중심으로 수정할 수 있습니다.",
+        ]}
+      >
+        Progress note는 admission 이후 병동에서 환자가 어떻게 변하는지 보여주는 기록입니다.
+        Problem list를 기준으로 S/O를 모으고, A에서 현재 상태를 판단한 뒤 P를 조정해보세요.
+      </WorkflowGuidanceNote>
       <ProgressNoteEditor
         note={{
           date: note.date,
