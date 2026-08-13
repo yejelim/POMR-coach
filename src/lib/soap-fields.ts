@@ -2,7 +2,7 @@ import type { ProgressProblemDraft, SoapSubfield } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
 
 export const defaultObjectiveLabels = ["PE", "Lab", "Image / Procedure"];
-export const defaultPlanLabels = ["Dx", "Tx", "Edu"];
+export const defaultPlanLabels = ["Diagnosis", "Treatment", "Education"];
 
 export function makeSoapField(label: string, value = ""): SoapSubfield {
   return {
@@ -42,9 +42,9 @@ export function planItemsFromProblem(row: {
   if (stored.length) return stored;
 
   const defaults = [
-    makeSoapField("Dx", row.planDx ?? ""),
-    makeSoapField("Tx", row.planTx ?? ""),
-    makeSoapField("Edu", row.planEducation ?? ""),
+    makeSoapField("Diagnosis", row.planDx ?? ""),
+    makeSoapField("Treatment", row.planTx ?? ""),
+    makeSoapField("Education", row.planEducation ?? ""),
   ];
   if (row.planMonitoring) defaults.push(makeSoapField("Monitoring", row.planMonitoring));
   return defaults;
@@ -62,15 +62,23 @@ export function mergeLegacySoapFields(row: ProgressProblemDraft): ProgressProble
     objectiveImageProcedure: findValue(objectiveItems, "Image / Procedure"),
     objectiveDrain: findValue(objectiveItems, "Drain"),
     planItems,
-    planDx: findValue(planItems, "Dx"),
-    planTx: findValue(planItems, "Tx"),
-    planEducation: findValue(planItems, "Edu"),
+    planDx: findFirstValue(planItems, ["Diagnosis", "Dx"]),
+    planTx: findFirstValue(planItems, ["Treatment", "Tx"]),
+    planEducation: findFirstValue(planItems, ["Education", "Edu"]),
     planMonitoring: findValue(planItems, "Monitoring"),
   };
 }
 
 export function findValue(items: SoapSubfield[], label: string) {
   return items.find((item) => item.label === label)?.value ?? "";
+}
+
+function findFirstValue(items: SoapSubfield[], labels: string[]) {
+  for (const label of labels) {
+    const value = findValue(items, label);
+    if (value) return value;
+  }
+  return "";
 }
 
 function cryptoSafeId() {

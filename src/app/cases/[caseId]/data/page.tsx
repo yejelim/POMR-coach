@@ -4,6 +4,7 @@ import { getDiagnosticCaseForOwner } from "@/server/services/case-service";
 import { ownerIdForQuery, requireCurrentUser } from "@/server/auth/current-user";
 import { normalizeLabTable } from "@/ai/serializers/labTableToText";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { ClinicalSection } from "@/components/shared/clinical-form";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
 import { WorkflowGuidanceNote } from "@/components/shared/workflow-guidance-note";
@@ -53,35 +54,44 @@ export default async function DiagnosticDataPage({
         DDx를 강화하고, 어떤 결과가 다른 가능성을 낮추는지 summary에 짧게 해석해보세요.
       </WorkflowGuidanceNote>
       <form action={saveDiagnosticDataAction.bind(null, caseRecord.id)} className="space-y-5">
-        <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="mb-3 text-base font-semibold">Lab table</h3>
+        <ClinicalSection
+          title="Lab table"
+          description="검사 결과를 Date, Test, Unit, Value, Interpretation 중심으로 정리합니다."
+          eyebrow="Lab"
+        >
           <LabTableEditor table={normalizeLabTable(data?.labTable)} />
-        </section>
+        </ClinicalSection>
         <DiagnosticImageSection
           images={parseStoredJson<UploadedImage[]>(data?.imageAttachments, [])}
         />
-        <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-2">
-          <SectionTextarea
-            name="imageFindingsText"
-            label="Image findings text"
-            defaultValue={data?.imageFindingsText ?? ""}
-            rows={6}
-          />
-          <SectionTextarea
-            name="procedureFindingsText"
-            label="Procedure findings text"
-            defaultValue={data?.procedureFindingsText ?? ""}
-            rows={6}
-          />
-          <div className="md:col-span-2">
+        <ClinicalSection
+          title="Text findings"
+          description="영상/시술 report는 필요한 경우만 채우고, 핵심 해석은 summary에 짧게 정리합니다."
+          eyebrow="Report"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
             <SectionTextarea
-              name="summaryText"
-              label="Lab / image / procedure summary"
-              defaultValue={data?.summaryText ?? ""}
+              name="imageFindingsText"
+              label="Image report"
+              defaultValue={data?.imageFindingsText ?? ""}
               rows={5}
             />
+            <SectionTextarea
+              name="procedureFindingsText"
+              label="Procedure report"
+              defaultValue={data?.procedureFindingsText ?? ""}
+              rows={5}
+            />
+            <div className="md:col-span-2">
+              <SectionTextarea
+                name="summaryText"
+                label="Lab / image / procedure summary"
+                defaultValue={data?.summaryText ?? ""}
+                rows={4}
+              />
+            </div>
           </div>
-        </section>
+        </ClinicalSection>
         <SaveBar label="Save data" {...nav} />
       </form>
     </CasePageFrame>

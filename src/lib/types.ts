@@ -50,16 +50,7 @@ export type UploadedImage = {
 
 export const defaultLabTable: LabTable = {
   schemaVersion: 1,
-  columns: [
-    "Test",
-    "Unit",
-    "Ref Range",
-    "OPD",
-    "Admission",
-    "ERCP day",
-    "Post-ERCP D1",
-    "Interpretation",
-  ],
+  columns: ["Date", "Test", "Unit", "Value", "Interpretation"],
   rows: [],
   cellStyles: {},
 };

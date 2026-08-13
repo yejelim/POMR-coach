@@ -145,4 +145,76 @@ describe("renderSubmissionHtml", () => {
     expect(html).toContain('class="lab-cell mono lab-cell-high"');
     expect(html).toContain('class="lab-cell mono lab-cell-low"');
   });
+
+  it("renders ROS category notes with positives only", () => {
+    const html = renderSubmissionHtml(
+      baseCase({
+        admissionNote: {
+          cc: "",
+          hpi: "",
+          pmh: "",
+          psh: "",
+          medication: "",
+          allergy: "",
+          familyHistory: "",
+          socialHistory: "",
+          alcoholHistory: "",
+          smokingHistory: "",
+          ros: [
+            "[General]",
+            "- Fever (+): 38.2C",
+            "- Chill (-)",
+            "- Additional notes: symptoms started yesterday",
+            "[GI]",
+            "- Nausea (-)",
+            "- Abdominal pain (+): RUQ pain",
+          ].join("\n"),
+          physicalExam: "",
+          initialVitals: null,
+          imageProcedureText: "",
+        },
+      }),
+    );
+
+    expect(html).toContain("Fever (+): 38.2C");
+    expect(html).toContain("Notes: symptoms started yesterday");
+    expect(html).toContain("Abdominal pain (+): RUQ pain");
+    expect(html).not.toContain("Chill (-)");
+    expect(html).not.toContain("Nausea (-)");
+  });
+
+  it("limits exported lab columns and uses the local footer wording", () => {
+    const html = renderSubmissionHtml(
+      baseCase({
+        diagnosticData: {
+          labTable: {
+            schemaVersion: 1,
+            columns: ["Date", "Test", "Unit", "Value", "Interpretation", "C6", "C7", "C8", "C9"],
+            rows: [
+              {
+                Date: "2026-01-02",
+                Test: "CRP",
+                Unit: "mg/L",
+                Value: "12",
+                Interpretation: "elevated",
+                C6: "6",
+                C7: "7",
+                C8: "8",
+                C9: "9",
+              },
+            ],
+            cellStyles: {},
+          },
+          imageAttachments: "[]",
+          imageFindingsText: "",
+          procedureFindingsText: "",
+          summaryText: "",
+        },
+      }),
+    );
+
+    expect(html).toContain("AI 과의존을 예방하기 위한 POMR Coach로 직접 작성된 의무기록입니다.");
+    expect(html).toContain("<th>C8</th>");
+    expect(html).not.toContain("<th>C9</th>");
+  });
 });

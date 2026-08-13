@@ -9,6 +9,8 @@ import { parseStoredJson } from "@/lib/utils";
 
 type CaseBundle = NonNullable<Awaited<ReturnType<typeof import("@/server/services/case-service").getCaseBundle>>>;
 
+const MAX_EXPORT_LAB_COLUMNS = 8;
+
 export type SubmissionHtmlOptions = {
   includeBranding?: boolean;
   includeFooter?: boolean;
@@ -188,7 +190,7 @@ function runningFooter(input: { includeBranding: boolean; updatedAt: string }) {
   const { includeBranding, updatedAt } = input;
   const brand = includeBranding ? " &middot; POMR Coach" : "";
   return `<div class="running-footer">
-    <span class="rf-note">학습용 자료 &middot; 실제 진료기록 아님 &middot; Educational use only &middot; not a clinical record${brand}</span>
+    <span class="rf-note">AI 과의존을 예방하기 위한 POMR Coach로 직접 작성된 의무기록입니다.${brand}</span>
     <span class="rf-stamp">Last update ${escapeHtml(updatedAt)}</span>
   </div>`;
 }
@@ -268,15 +270,19 @@ function positiveRosToText(value: unknown) {
   const sections: string[] = [];
   let currentCategory = "";
   let currentPositiveLines: string[] = [];
+  let currentCategoryNotes: string[] = [];
   let inAdditionalNotes = false;
   let sawStructuredLine = false;
   const additionalLines: string[] = [];
 
   function flushCurrentCategory() {
-    if (currentCategory && currentPositiveLines.length) {
-      sections.push(`[${currentCategory}]\n${currentPositiveLines.join("\n")}`);
+    if (currentCategory && (currentPositiveLines.length || currentCategoryNotes.length)) {
+      sections.push(
+        `[${currentCategory}]\n${[...currentPositiveLines, ...currentCategoryNotes].join("\n")}`,
+      );
     }
     currentPositiveLines = [];
+    currentCategoryNotes = [];
   }
 
   for (const line of text.split("\n")) {
@@ -294,6 +300,14 @@ function positiveRosToText(value: unknown) {
 
     if (inAdditionalNotes) {
       additionalLines.push(trimmed);
+      continue;
+    }
+
+    const categoryNoteMatch = trimmed.match(/^- Additional notes: (.*)$/);
+    if (categoryNoteMatch) {
+      sawStructuredLine = true;
+      const note = categoryNoteMatch[1]?.trim();
+      if (note) currentCategoryNotes.push(`- Notes: ${note}`);
       continue;
     }
 
@@ -429,9 +443,10 @@ function impressionTableBody(rows: CaseBundle["impressionRows"], includeMissing:
  * ────────────────────────────────────────────────────────────────────────── */
 
 function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
+  const visibleColumns = table.columns.slice(0, MAX_EXPORT_LAB_COLUMNS);
   const meaningfulRows = table.rows
     .map((row, rowIndex) => ({ row, rowIndex }))
-    .filter(({ row }) => table.columns.some((column) => hasText(row[column])));
+    .filter(({ row }) => visibleColumns.some((column) => hasText(row[column])));
   if (!meaningfulRows.length) return "";
 
   // First column (typically "Test") gets a wider, left-anchored treatment; the
@@ -441,12 +456,12 @@ function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
   <div class="table-wrap">
   <table class="clin-table lab-table">
     <thead>
-      <tr>${table.columns.map((column, idx) => `<th${idx === 0 ? ' class="lab-firstcol"' : ""}>${escapeHtml(column)}</th>`).join("")}</tr>
+      <tr>${visibleColumns.map((column, idx) => `<th${idx === 0 ? ' class="lab-firstcol"' : ""}>${escapeHtml(column)}</th>`).join("")}</tr>
     </thead>
     <tbody>${meaningfulRows
       .map(
         ({ row, rowIndex }) =>
-          `<tr>${table.columns
+          `<tr>${visibleColumns
             .map((column, idx) => {
               const raw = row[column] ?? "";
               const tone = table.cellStyles?.[labCellKey(rowIndex, column)];
@@ -1155,12 +1170,20 @@ function baseStyles() {
     /* Lab table: content-sized columns so empty time-point columns stay narrow
        and the Interpretation column gets the room it needs (instead of the
        forced-equal widths of table-layout: fixed). */
-    .lab-table { table-layout: auto; }
-    .lab-table thead th { white-space: nowrap; }
+    .lab-table { table-layout: fixed; }
+    .lab-table thead th {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      font-size: 9.5px;
+      padding: 4px 5px;
+    }
     /* Let the Test column wrap if a name is long so it stops hogging width and
        value columns (e.g. Interpretation) get more room. */
     .lab-table .lab-firstcol { min-width: 64px; }
-    .lab-cell { font-size: 10.5px; }
+    .lab-cell {
+      font-size: 9.5px;
+      padding: 4px 5px;
+    }
     .lab-empty { color: #94a3b8; }
     .lab-cell-high {
       background: #fee2e2;

@@ -53,7 +53,7 @@ export function ClinicalMarkupTextarea({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 bg-white px-2.5"
+          className="h-8 bg-app-surface px-2.5"
           onClick={highlightSelection}
           title="선택한 텍스트를 하이라이트"
         >

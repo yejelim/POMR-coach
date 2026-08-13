@@ -12,9 +12,11 @@ import {
 import { cn } from "@/lib/utils";
 import { defaultLabTable, type LabCellTone, type LabTable } from "@/lib/types";
 
+const MAX_LAB_COLUMNS = 8;
+
 export function LabTableEditor({ table }: { table?: LabTable | null }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const initial = useMemo(() => table ?? defaultLabTable, [table]);
+  const initial = useMemo(() => normalizeInitialLabTable(table), [table]);
   const [columns, setColumns] = useState(initial.columns);
   const [rows, setRows] = useState(initial.rows);
   const [cellStyles, setCellStyles] = useState(initial.cellStyles ?? {});
@@ -29,6 +31,10 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
   }
 
   function addColumn() {
+    if (columns.length >= MAX_LAB_COLUMNS) {
+      window.alert(`Export 가독성을 위해 lab table은 최대 ${MAX_LAB_COLUMNS}개 column까지만 사용할 수 있습니다.`);
+      return;
+    }
     const name = window.prompt("Column name");
     if (!name?.trim()) return;
     const cleanName = name.trim();
@@ -105,7 +111,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         return;
       }
 
-      const importedColumns = normalizeImportedColumns(nonEmptyRows[0]);
+      const normalizedColumns = normalizeImportedColumns(nonEmptyRows[0]);
+      const importedColumns = normalizedColumns.slice(0, MAX_LAB_COLUMNS);
       const importedRows = nonEmptyRows.slice(1).map((row) => {
         const next: Record<string, string> = {};
         importedColumns.forEach((column, index) => {
@@ -118,7 +125,13 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
       setRows(importedRows);
       setCellStyles({});
       setSelectedCell(null);
-      setImportMessage(`${file.name}에서 ${importedRows.length}개 row를 불러왔습니다. 저장 버튼을 눌러 반영하세요.`);
+      setImportMessage(
+        `${file.name}에서 ${importedRows.length}개 row를 불러왔습니다. ${
+          normalizedColumns.length > MAX_LAB_COLUMNS
+            ? `Export 가독성을 위해 앞 ${MAX_LAB_COLUMNS}개 column만 가져왔습니다. `
+            : ""
+        }저장 버튼을 눌러 반영하세요.`,
+      );
     } catch (error) {
       console.error(error);
       setImportMessage("엑셀 파일을 읽지 못했습니다. .xlsx 형식인지 확인해주세요.");
@@ -194,7 +207,8 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
         </Button>
       </div>
       <p className="text-xs text-app-text-muted">
-        셀을 클릭한 뒤 High/Low를 누르면 export에서 해당 값이 빨간색/파란색 배경으로 표시됩니다.
+        기본 column은 Date, Test, Unit, Value, Interpretation입니다. 셀을 클릭한 뒤 High/Low를 누르면
+        export에서 해당 값이 빨간색/파란색 배경으로 표시됩니다. Export 가독성을 위해 최대 {MAX_LAB_COLUMNS}개 column까지만 사용합니다.
       </p>
       {importMessage ? (
         <div className="rounded-md border border-app-accent/20 bg-app-accent-soft px-3 py-2 text-sm text-app-text">
@@ -305,6 +319,15 @@ export function LabTableEditor({ table }: { table?: LabTable | null }) {
       </div>
     </div>
   );
+}
+
+function normalizeInitialLabTable(table?: LabTable | null) {
+  if (!table) return defaultLabTable;
+  const isEmptyLegacyDefault =
+    !table.rows.length &&
+    table.columns.includes("ERCP day") &&
+    table.columns.includes("Post-ERCP D1");
+  return isEmptyLegacyDefault ? defaultLabTable : table;
 }
 
 function normalizeImportedColumns(headerRow: string[]) {

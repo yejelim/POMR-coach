@@ -3,6 +3,7 @@
 import { ArrowLeft, ArrowRight, History, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
 import { ClinicalMarkupTextarea } from "@/components/shared/clinical-markup-textarea";
 import { SaveBar } from "@/components/shared/save-bar";
 import { ImageAttachmentEditor } from "@/components/shared/image-attachment-editor";
@@ -165,45 +166,59 @@ export function ProgressNoteEditor({
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="problems" value={JSON.stringify(rowsForSave)} />
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
+      <ClinicalSection
+        title="Daily progress header"
+        description="날짜, HD, diet, I/O와 overnight event를 먼저 정리합니다."
+        eyebrow="Progress note"
+      >
         <div className="grid gap-3 md:grid-cols-4">
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Date</span>
+          <ClinicalField label="Date">
             <Input name="date" type="date" defaultValue={note.date} />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">HD</span>
+          </ClinicalField>
+          <ClinicalField label="HD">
             <Input name="hospitalDay" defaultValue={note.hospitalDay} placeholder="HD#3" />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Diet</span>
+          </ClinicalField>
+          <ClinicalField label="Diet">
             <Input name="diet" defaultValue={note.diet} />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">I/O</span>
+          </ClinicalField>
+          <ClinicalField label="I/O">
             <Input name="io" defaultValue={note.io} />
-          </label>
+          </ClinicalField>
         </div>
         <div className="mt-4">
           <VitalsEditor values={note.vitals} />
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Overnight event</span>
+          <ClinicalField label="Overnight event">
             <Textarea name="overnightEvent" defaultValue={note.overnightEvent} rows={3} />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Drain / tube</span>
+          </ClinicalField>
+          <ClinicalField label="Drain / tube">
             <Textarea name="drainTube" defaultValue={note.drainTube} rows={3} />
-          </label>
+          </ClinicalField>
         </div>
-      </section>
+      </ClinicalSection>
 
       {rows.map((row, index) => (
-        <section key={index} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-          <div className="flex items-center justify-between border-b border-app-border bg-app-primary-muted px-4 py-3">
+        <ClinicalSection
+          key={index}
+          title={problemTitle(row) || `Problem #${index + 1}`}
+          eyebrow={`SOAP problem ${index + 1}`}
+          className="overflow-hidden"
+          contentClassName="p-0"
+          actions={
+            <Button
+              type="button"
+              variant="danger-ghost"
+              size="icon"
+              onClick={() => setRows((current) => current.filter((_, i) => i !== index))}
+              aria-label="Remove SOAP problem"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          }
+        >
+          <div className="flex items-center justify-between border-b border-app-border bg-app-surface-soft/65 px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-app-text">Problem #{index + 1}</span>
               <Select
                 className="h-8 w-52 bg-app-surface"
                 value={row.problemId ?? ""}
@@ -240,21 +255,12 @@ export function ProgressNoteEditor({
                 onClick={() => loadLatestSoap(index)}
               />
             </div>
-            <Button
-              type="button"
-              variant="danger-ghost"
-              size="icon"
-              onClick={() => setRows((current) => current.filter((_, i) => i !== index))}
-              aria-label="Remove SOAP problem"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-sm">
+            <table className="clinical-table min-w-full border-collapse text-sm">
               <tbody>
                 <SoapRow label="Problem name">
-                  <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                  <div className="rounded-lg border border-app-border bg-app-surface-muted px-3 py-2 text-sm font-medium text-app-text-secondary">
                     {problemTitle(row) || "Problems 탭에서 등록한 problem을 선택하세요."}
                   </div>
                 </SoapRow>
@@ -269,9 +275,10 @@ export function ProgressNoteEditor({
                   <DynamicSoapItems
                     items={row.objectiveItems ?? objectiveItemsFromProblem(row)}
                     addLabel="Add O item"
+                    helperText="Lab 결과, image finding, procedure finding, 신체진찰 같은 객관적 내용을 자유롭게 추가하세요."
                     onChange={(items) => updateItems(index, "objectiveItems", items)}
                   />
-                  <div className="mt-4 border-t border-slate-100 pt-4">
+                  <div className="mt-4 border-t border-app-border pt-4">
                     <ImageAttachmentEditor
                       images={row.objectiveImages ?? []}
                       onChange={(images) => update(index, { objectiveImages: images })}
@@ -290,13 +297,14 @@ export function ProgressNoteEditor({
                   <DynamicSoapItems
                     items={row.planItems ?? planItemsFromProblem(row)}
                     addLabel="Add P item"
+                    helperText="기본 항목은 Diagnosis, Treatment, Education입니다. 필요하면 Monitoring 등을 추가하세요."
                     onChange={(items) => updateItems(index, "planItems", items)}
                   />
                 </SoapRow>
               </tbody>
             </table>
           </div>
-        </section>
+        </ClinicalSection>
       ))}
 
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankProblem()])}>
@@ -376,11 +384,11 @@ function LoadLatestSoapButton({
 
 function SoapRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <tr className="border-b border-slate-200 last:border-b-0">
-      <th className="w-36 bg-slate-50 p-3 text-left align-top text-sm font-semibold text-slate-700">
+    <tr className="border-b border-app-border last:border-b-0">
+      <th className="w-36 bg-app-surface-muted p-4 text-left align-top text-sm font-semibold text-app-text-secondary">
         {label}
       </th>
-      <td className="p-3 align-top">{children}</td>
+      <td className="p-4 align-top">{children}</td>
     </tr>
   );
 }
@@ -406,10 +414,12 @@ function hasSoapDraftContent(row: ProgressProblemDraft) {
 function DynamicSoapItems({
   items,
   addLabel,
+  helperText,
   onChange,
 }: {
   items: SoapSubfield[];
   addLabel: string;
+  helperText?: string;
   onChange: (items: SoapSubfield[]) => void;
 }) {
   function updateItem(index: number, patch: Partial<SoapSubfield>) {
@@ -451,6 +461,7 @@ function DynamicSoapItems({
         <Plus className="h-4 w-4" />
         {addLabel}
       </Button>
+      {helperText ? <span className="ml-2 align-middle text-xs leading-5 text-app-text-muted">{helperText}</span> : null}
     </div>
   );
 }

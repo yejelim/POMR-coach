@@ -36,9 +36,9 @@ export function ExportPreview({ caseId }: { caseId: string }) {
       <div className="no-print rounded-xl border border-app-border bg-app-surface p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h3 className="text-base font-semibold text-app-text">PDF branding options</h3>
+            <h3 className="text-base font-semibold text-app-text">PDF 설정</h3>
             <p className="mt-1 text-sm text-app-text-muted">
-              제출용 문서에서는 POMR Coach branding을 숨길 수 있습니다.
+              제출용 문서에서는 POMR Coach 로고를 숨길 수 있습니다.
             </p>
             <div className="mt-3 flex flex-col gap-2 text-sm text-app-text-secondary sm:flex-row sm:flex-wrap sm:gap-x-4 sm:gap-y-2">
               <label className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export function ExportPreview({ caseId }: { caseId: string }) {
                   checked={includeBranding}
                   onChange={(event) => setIncludeBranding(event.target.checked)}
                 />
-                Include POMR Coach logo
+                POMR Coach 로고 넣기
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -55,16 +55,21 @@ export function ExportPreview({ caseId }: { caseId: string }) {
                   checked={includeFooter}
                   onChange={(event) => setIncludeFooter(event.target.checked)}
                 />
-                Include educational footer
+                하단 문구 “AI 과의존을 예방하기 위한 POMR Coach로 직접 작성된 의무기록입니다.” 넣기
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={progressChronological}
-                  onChange={(event) => setProgressChronological(event.target.checked)}
-                />
-                Progress SOAP note 시간순으로 내보내기
-              </label>
+              <div className="flex flex-col gap-1">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={progressChronological}
+                    onChange={(event) => setProgressChronological(event.target.checked)}
+                  />
+                  Progress SOAP note 시간순으로 내보내기
+                </label>
+                <span className="pl-5 text-xs leading-5 text-app-text-muted">
+                  기본 순서는 실제 EHR처럼 최신순입니다.
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">

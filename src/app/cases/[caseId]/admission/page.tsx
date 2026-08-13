@@ -6,6 +6,7 @@ import { genericTemplate } from "@/config/templates/generic";
 import { defaultPhysicalExamText } from "@/config/templates/physical-exam";
 import { rosTemplateGroups } from "@/config/templates/ros";
 import { CasePageFrame } from "@/components/shared/case-page-frame";
+import { ClinicalSection } from "@/components/shared/clinical-form";
 import { SaveBar } from "@/components/shared/save-bar";
 import { SectionTextarea } from "@/components/shared/section-textarea";
 import { VitalsEditor } from "@/components/shared/vitals-editor";
@@ -55,37 +56,51 @@ export default async function AdmissionPage({
         Admission은 환자가 치료를 시작하기 전의 정보를 최대한 모으는 공간입니다. 여기까지의
         정보만으로 먼저 first impression을 세운다고 생각하고 작성해보세요.
       </WorkflowGuidanceNote>
-      <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5 rounded-lg border border-slate-200 bg-white p-4">
-        <section>
-          <h3 className="mb-3 text-base font-semibold">Initial vital signs</h3>
-          <VitalsEditor
-            values={parseStoredJson<Vitals>(admission?.initialVitals, {})}
-            showAnthropometrics
-          />
-        </section>
-        <div className="grid gap-4 md:grid-cols-2">
-          {genericTemplate.admissionSections
-            .filter(([name]) => name !== "ros" && name !== "physicalExam")
-            .map(([name, label]) => (
-              <SectionTextarea
-                key={name}
-                name={name}
-                label={label}
-                defaultValue={admission?.[name] ?? ""}
-                rows={name === "hpi" ? 8 : 4}
-              />
-            ))}
-          <RosChecklistEditor groups={rosTemplateGroups} defaultValue={admission?.ros ?? ""} />
-          <div className="block space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-slate-700">Physical examination</span>
-            <p className="text-xs leading-5 text-app-text-muted">
-              필요한 finding만 남겨 수정하세요. 수행하지 않은 검진이나 불필요한 normal finding은 삭제해도 됩니다.
-            </p>
-            <PhysicalExamEditor
-              defaultValue={admission?.physicalExam?.trim() ? admission.physicalExam : defaultPhysicalExamText}
+      <form action={saveAdmissionAction.bind(null, caseRecord.id)} className="space-y-5">
+        <ClinicalSection
+          title="Patient interview"
+          description="입원 당시 확보한 기본 정보와 문진 내용을 정리합니다."
+          eyebrow="Admission"
+        >
+          <div className="mb-5">
+            <h4 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-app-text-faint">
+              Initial vital signs
+            </h4>
+            <VitalsEditor
+              values={parseStoredJson<Vitals>(admission?.initialVitals, {})}
+              showAnthropometrics
             />
           </div>
-        </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {genericTemplate.admissionSections
+              .filter(([name]) => name !== "ros" && name !== "physicalExam")
+              .map(([name, label]) => (
+                <SectionTextarea
+                  key={name}
+                  name={name}
+                  label={label}
+                  defaultValue={admission?.[name] ?? ""}
+                  rows={name === "hpi" ? 8 : 4}
+                />
+              ))}
+          </div>
+        </ClinicalSection>
+        <ClinicalSection
+          title="Review of systems"
+          description="Positive finding은 (+)로 바꾸고 필요한 경우 onset, NRS, duration 등을 짧게 메모하세요."
+          eyebrow="ROS"
+        >
+          <RosChecklistEditor groups={rosTemplateGroups} defaultValue={admission?.ros ?? ""} />
+        </ClinicalSection>
+        <ClinicalSection
+          title="Physical examination"
+          description="필요한 finding만 남겨 수정하세요. 수행하지 않은 검진이나 불필요한 normal finding은 삭제해도 됩니다."
+          eyebrow="PE"
+        >
+          <PhysicalExamEditor
+            defaultValue={admission?.physicalExam?.trim() ? admission.physicalExam : defaultPhysicalExamText}
+          />
+        </ClinicalSection>
         <SaveBar label="Save admission" {...nav} />
       </form>
     </CasePageFrame>

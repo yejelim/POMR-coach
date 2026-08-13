@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ClinicalField } from "@/components/shared/clinical-form";
 import { Input } from "@/components/ui/input";
 import type { Vitals } from "@/lib/types";
 
@@ -27,16 +28,14 @@ export function VitalsEditor({
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-5">
         {fields.map(([name, label]) => (
-          <label key={name} className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">{label}</span>
+          <ClinicalField key={name} label={label}>
             <Input name={name} defaultValue={values?.[name] ?? ""} />
-          </label>
+          </ClinicalField>
         ))}
       </div>
       {showAnthropometrics ? (
         <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Height (cm)</span>
+          <ClinicalField label="Height (cm)">
             <Input
               name="heightCm"
               inputMode="decimal"
@@ -44,9 +43,8 @@ export function VitalsEditor({
               placeholder="예: 170"
               onChange={(event) => setHeightCm(event.target.value)}
             />
-          </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Weight (kg)</span>
+          </ClinicalField>
+          <ClinicalField label="Weight (kg)">
             <Input
               name="weightKg"
               inputMode="decimal"
@@ -54,11 +52,10 @@ export function VitalsEditor({
               placeholder="예: 65"
               onChange={(event) => setWeightKg(event.target.value)}
             />
-          </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">BMI</span>
+          </ClinicalField>
+          <ClinicalField label="BMI">
             <Input name="bmi" value={bmi} readOnly placeholder="자동 계산" />
-          </label>
+          </ClinicalField>
         </div>
       ) : null}
     </div>

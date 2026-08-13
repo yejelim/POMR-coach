@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,18 +49,11 @@ export function ImpressionTable({
     <form action={action} className="space-y-4">
       <input type="hidden" name="rows" value={JSON.stringify(rows)} />
       {rows.map((row, index) => (
-        <div key={index} className="rounded-xl border border-app-border bg-app-surface p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-app-text-secondary">Rank</span>
-              <Input
-                className="w-20"
-                type="number"
-                min={1}
-                value={row.rank}
-                onChange={(event) => update(index, { rank: Number(event.target.value) })}
-              />
-            </div>
+        <ClinicalSection
+          key={index}
+          title={row.title || `${stage === "INITIAL" ? "Initial" : "Final"} impression #${index + 1}`}
+          eyebrow={`Ranked impression ${index + 1}`}
+          actions={
             <Button
               type="button"
               variant="danger-ghost"
@@ -69,48 +63,49 @@ export function ImpressionTable({
             >
               <Trash2 className="h-4 w-4" />
             </Button>
+          }
+        >
+          <div className="mb-4 grid gap-3 md:grid-cols-[110px_1fr]">
+            <ClinicalField label="Rank">
+              <Input
+                type="number"
+                min={1}
+                value={row.rank}
+                onChange={(event) => update(index, { rank: Number(event.target.value) })}
+              />
+            </ClinicalField>
+            <ClinicalField
+              label={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
+            >
+              <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
+            </ClinicalField>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="space-y-2 md:col-span-2">
-              <span className="text-sm font-medium text-app-text-secondary">
-                {stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
-              </span>
-              <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-app-text-secondary">
-                {stage === "INITIAL" ? "Evidence from Hx/ROS/PE" : "Supporting Data"}
-              </span>
+            <ClinicalField label={stage === "INITIAL" ? "Evidence from Hx/ROS/PE" : "Supporting Data"}>
               <Textarea value={row.evidence} onChange={(event) => update(index, { evidence: event.target.value })} />
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-app-text-secondary">
-                Evidence Against / Remaining Uncertainty
-              </span>
+            </ClinicalField>
+            <ClinicalField label="Evidence Against / Remaining Uncertainty">
               <Textarea
                 value={row.evidenceAgainst}
                 onChange={(event) => update(index, { evidenceAgainst: event.target.value })}
               />
-            </label>
+            </ClinicalField>
             {showMissingData ? (
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-app-text-secondary">Missing Data</span>
+              <ClinicalField label="Missing Data">
                 <Textarea
                   value={row.missingData ?? ""}
                   onChange={(event) => update(index, { missingData: event.target.value })}
                 />
-              </label>
+              </ClinicalField>
             ) : null}
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-app-text-secondary">Dx Plan</span>
+            <ClinicalField label="Dx Plan">
               <Textarea value={row.dxPlan} onChange={(event) => update(index, { dxPlan: event.target.value })} />
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-app-text-secondary">Tx Plan</span>
+            </ClinicalField>
+            <ClinicalField label="Tx Plan">
               <Textarea value={row.txPlan} onChange={(event) => update(index, { txPlan: event.target.value })} />
-            </label>
+            </ClinicalField>
           </div>
-        </div>
+        </ClinicalSection>
       ))}
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankRow(current.length + 1)])}>
         <Plus className="h-4 w-4" />

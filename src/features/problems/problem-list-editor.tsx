@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
 import { SaveBar } from "@/components/shared/save-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,23 +48,11 @@ export function ProblemListEditor({
     <form action={action} className="space-y-4">
       <input type="hidden" name="rows" value={JSON.stringify(rows)} />
       {rows.map((row, index) => (
-        <div key={index} className="rounded-lg border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="grid flex-1 gap-3 sm:grid-cols-[90px_1fr]">
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Priority</span>
-                <Input
-                  type="number"
-                  min={1}
-                  value={row.priority}
-                  onChange={(event) => update(index, { priority: Number(event.target.value) })}
-                />
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Problem title</span>
-                <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
-              </label>
-            </div>
+        <ClinicalSection
+          key={index}
+          title={row.title || `Problem #${index + 1}`}
+          eyebrow={`Problem list item ${index + 1}`}
+          actions={
             <Button
               type="button"
               variant="danger-ghost"
@@ -73,18 +62,29 @@ export function ProblemListEditor({
             >
               <Trash2 className="h-4 w-4" />
             </Button>
+          }
+        >
+          <div className="mb-4 grid gap-3 sm:grid-cols-[110px_1fr]">
+              <ClinicalField label="Priority">
+                <Input
+                  type="number"
+                  min={1}
+                  value={row.priority}
+                  onChange={(event) => update(index, { priority: Number(event.target.value) })}
+                />
+              </ClinicalField>
+              <ClinicalField label="Problem title">
+                <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
+              </ClinicalField>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Evidence</span>
+            <ClinicalField label="Evidence">
               <Textarea value={row.evidence} onChange={(event) => update(index, { evidence: event.target.value })} />
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Notes</span>
+            </ClinicalField>
+            <ClinicalField label="Notes">
               <Textarea value={row.notes} onChange={(event) => update(index, { notes: event.target.value })} />
-            </label>
-            <label className="space-y-2 md:col-span-2">
-              <span className="text-sm font-medium text-slate-700">Linked final impression</span>
+            </ClinicalField>
+            <ClinicalField label="Linked final impression" className="md:col-span-2">
               <Select
                 value={row.linkedImpressionRowId ?? ""}
                 onChange={(event) => update(index, { linkedImpressionRowId: event.target.value })}
@@ -96,9 +96,9 @@ export function ProblemListEditor({
                   </option>
                 ))}
               </Select>
-            </label>
+            </ClinicalField>
           </div>
-        </div>
+        </ClinicalSection>
       ))}
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankProblem(current.length + 1)])}>
         <Plus className="h-4 w-4" />

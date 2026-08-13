@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ClinicalField } from "@/components/shared/clinical-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +15,8 @@ type RosItemState = {
 
 type ParsedRos = {
   items: Record<string, RosItemState>;
-  additionalNotes: string;
+  categoryNotes: Record<string, string>;
+  legacyAdditionalNotes: string;
 };
 
 export function RosChecklistEditor({
@@ -26,8 +28,10 @@ export function RosChecklistEditor({
 }) {
   const initial = useMemo(() => parseRos(defaultValue, groups), [defaultValue, groups]);
   const [items, setItems] = useState(initial.items);
-  const [additionalNotes, setAdditionalNotes] = useState(initial.additionalNotes);
-  const serialized = serializeRos(groups, items, additionalNotes);
+  const [categoryNotes, setCategoryNotes] = useState(initial.categoryNotes);
+  const [legacyAdditionalNotes, setLegacyAdditionalNotes] = useState(initial.legacyAdditionalNotes);
+  const [showKorean, setShowKorean] = useState(false);
+  const serialized = serializeRos(groups, items, categoryNotes, legacyAdditionalNotes);
 
   function updateItem(key: string, patch: Partial<RosItemState>) {
     setItems((current) => {
@@ -39,33 +43,48 @@ export function RosChecklistEditor({
     });
   }
 
+  function updateCategoryNotes(category: string, value: string) {
+    setCategoryNotes((current) => ({ ...current, [category]: value }));
+  }
+
   return (
-    <section className="space-y-2 md:col-span-2">
+    <section className="space-y-4">
       <textarea name="ros" value={serialized} readOnly className="hidden" aria-hidden="true" />
-      <div>
-        <h3 className="text-sm font-semibold text-slate-800">ROS checklist</h3>
-        <p className="mt-1 text-xs leading-5 text-app-text-muted">
-          Positive finding은 (+)로 바꾸고 필요한 경우 onset, NRS, duration 등을 짧게 메모하세요.
+      <div className="flex flex-col gap-3 rounded-lg border border-app-border bg-app-surface-muted/45 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-app-text-muted">
+          General=전신, HEENT=Head/Eyes/Ears/Nose/Throat, GI=소화기, GU=비뇨생식기입니다.
         </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 bg-app-surface"
+          onClick={() => setShowKorean((current) => !current)}
+        >
+          {showKorean ? "영어로 보기" : "한국어로 보기"}
+        </Button>
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {groups.map((group) => (
-          <div key={group.category} className="rounded-md border border-app-border bg-app-surface p-2">
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-app-text-muted">
-              {group.category}
+          <div key={group.category} className="rounded-lg border border-app-border bg-app-surface-muted/45 p-2.5">
+            <div className="mb-2 px-1">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-faint">
+                {showKorean ? `${group.koreanCategory} · ${group.category}` : group.category}
+              </div>
+              <p className="mt-0.5 text-[11px] leading-4 text-app-text-muted">{group.description}</p>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {group.items.map((item) => {
-                const key = rosKey(group.category, item);
+                const key = rosKey(group.category, item.label);
                 const state = items[key] ?? { positive: false, comment: "" };
                 return (
                   <div
                     key={key}
                     className={cn(
-                      "rounded-md px-1.5 py-1.5 transition",
+                      "rounded-lg px-2 py-1.5 transition",
                       state.positive
                         ? "border border-app-primary-soft bg-app-primary-muted"
-                        : "border border-transparent bg-app-surface-muted",
+                        : "border border-transparent bg-app-surface",
                     )}
                   >
                     <div className="flex min-w-0 items-start gap-1.5">
@@ -80,7 +99,7 @@ export function RosChecklistEditor({
                         {state.positive ? "+" : "-"}
                       </Button>
                       <span className="min-w-0 flex-1 text-xs leading-5 text-app-text-secondary">
-                        {item}
+                        {showKorean ? item.korean : item.label}
                       </span>
                     </div>
                     {state.positive ? (
@@ -94,19 +113,25 @@ export function RosChecklistEditor({
                   </div>
                 );
               })}
+              <Input
+                value={categoryNotes[group.category] ?? ""}
+                placeholder={`${showKorean ? group.koreanCategory : group.category} notes`}
+                className="mt-2 h-8 text-xs"
+                onChange={(event) => updateCategoryNotes(group.category, event.target.value)}
+              />
             </div>
           </div>
         ))}
       </div>
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-slate-700">Additional ROS notes</span>
-        <Textarea
-          value={additionalNotes}
-          rows={3}
-          placeholder="체크리스트에 없는 증상이나 자유 문진 내용을 추가하세요."
-          onChange={(event) => setAdditionalNotes(event.target.value)}
-        />
-      </label>
+      {legacyAdditionalNotes ? (
+        <ClinicalField label="Legacy additional ROS notes">
+          <Textarea
+            value={legacyAdditionalNotes}
+            rows={3}
+            onChange={(event) => setLegacyAdditionalNotes(event.target.value)}
+          />
+        </ClinicalField>
+      ) : null}
     </section>
   );
 }
@@ -114,11 +139,12 @@ export function RosChecklistEditor({
 function parseRos(defaultValue: string, groups: RosTemplateGroup[]): ParsedRos {
   const items = Object.fromEntries(
     groups.flatMap((group) =>
-      group.items.map((item) => [rosKey(group.category, item), { positive: false, comment: "" }]),
+      group.items.map((item) => [rosKey(group.category, item.label), { positive: false, comment: "" }]),
     ),
   );
+  const categoryNotes = Object.fromEntries(groups.map((group) => [group.category, ""]));
 
-  const additionalLines: string[] = [];
+  const legacyAdditionalLines: string[] = [];
   let currentCategory = "";
   let sawStructuredLine = false;
   let inAdditionalNotes = false;
@@ -136,7 +162,14 @@ function parseRos(defaultValue: string, groups: RosTemplateGroup[]): ParsedRos {
     }
 
     if (inAdditionalNotes) {
-      additionalLines.push(trimmed);
+      legacyAdditionalLines.push(trimmed);
+      continue;
+    }
+
+    const categoryNoteMatch = trimmed.match(/^- Additional notes: (.*)$/);
+    if (categoryNoteMatch && currentCategory) {
+      categoryNotes[currentCategory] = categoryNoteMatch[1] ?? "";
+      sawStructuredLine = true;
       continue;
     }
 
@@ -151,31 +184,41 @@ function parseRos(defaultValue: string, groups: RosTemplateGroup[]): ParsedRos {
       }
     }
 
-    additionalLines.push(trimmed);
+    if (currentCategory && currentCategory in categoryNotes) {
+      categoryNotes[currentCategory] = [categoryNotes[currentCategory], trimmed].filter(Boolean).join("\n");
+    } else {
+      legacyAdditionalLines.push(trimmed);
+    }
   }
 
   return {
     items,
-    additionalNotes: sawStructuredLine ? additionalLines.join("\n") : defaultValue,
+    categoryNotes,
+    legacyAdditionalNotes: sawStructuredLine ? legacyAdditionalLines.join("\n") : defaultValue,
   };
 }
 
 function serializeRos(
   groups: RosTemplateGroup[],
   items: Record<string, RosItemState>,
-  additionalNotes: string,
+  categoryNotes: Record<string, string>,
+  legacyAdditionalNotes: string,
 ) {
-  const lines = groups.flatMap((group) => [
-    `[${group.category}]`,
-    ...group.items.map((item) => {
-      const state = items[rosKey(group.category, item)] ?? { positive: false, comment: "" };
+  const lines = groups.flatMap((group) => {
+    const note = categoryNotes[group.category]?.trim();
+    return [
+      `[${group.category}]`,
+      ...group.items.map((item) => {
+      const state = items[rosKey(group.category, item.label)] ?? { positive: false, comment: "" };
       const comment = state.positive && state.comment.trim() ? `: ${state.comment.trim()}` : "";
-      return `- ${item} (${state.positive ? "+" : "-"})${comment}`;
+      return `- ${item.label} (${state.positive ? "+" : "-"})${comment}`;
     }),
-  ]);
+      ...(note ? [`- Additional notes: ${note}`] : []),
+    ];
+  });
 
-  if (additionalNotes.trim()) {
-    lines.push("[Additional notes]", additionalNotes.trim());
+  if (legacyAdditionalNotes.trim()) {
+    lines.push("[Additional notes]", legacyAdditionalNotes.trim());
   }
 
   return lines.join("\n");

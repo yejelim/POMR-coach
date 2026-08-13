@@ -1,4 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
+import { ClinicalField } from "@/components/shared/clinical-form";
 
 export function SectionTextarea({
   label,
@@ -14,14 +15,13 @@ export function SectionTextarea({
   placeholder?: string;
 }) {
   return (
-    <label className="block space-y-2">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+    <ClinicalField label={label}>
       <Textarea
         name={name}
         defaultValue={defaultValue}
         rows={rows}
         placeholder={placeholder}
       />
-    </label>
+    </ClinicalField>
   );
 }
