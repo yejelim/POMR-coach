@@ -41,7 +41,7 @@ export function ImpressionTable({
   previousHref?: string;
   nextHref?: string;
 }) {
-  const [rows, setRows] = useState(initialRows.length ? initialRows : [blankRow(1)]);
+  const [rows, setRows] = useState(() => (initialRows.length ? initialRows : [blankRow(1)]));
   const showMissingData = stage === "INITIAL";
 
   function update(index: number, patch: Partial<ImpressionDraft>) {
@@ -57,7 +57,7 @@ export function ImpressionTable({
         <ClinicalSection
           key={index}
           title={row.title || `${stage === "INITIAL" ? "Initial" : "Final"} impression #${index + 1}`}
-          eyebrow={`Ranked impression ${index + 1}`}
+          eyebrow={`Impression ${index + 1}`}
           className="overflow-hidden"
           contentClassName="p-0"
           actions={
@@ -73,7 +73,7 @@ export function ImpressionTable({
           }
         >
           <ClinicalFormTable className="rounded-none border-0">
-            <ClinicalFormRow label="Rank / Impression">
+            <ClinicalFormRow label="순위와 Impression" hint="Rank · Differential diagnosis">
               <div className="grid gap-3 md:grid-cols-[96px_minmax(0,1fr)]">
                 <Input
                   type="number"
@@ -84,20 +84,23 @@ export function ImpressionTable({
                 />
                 <Input
                   value={row.title}
-                  aria-label={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
-                  placeholder={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
+                  aria-label={stage === "INITIAL" ? "Initial impression / Differential diagnosis" : "Final Impression"}
+                  placeholder={stage === "INITIAL" ? "Initial impression / Differential diagnosis" : "Final Impression"}
                   onChange={(event) => update(index, { title: event.target.value })}
                 />
               </div>
             </ClinicalFormRow>
-            <ClinicalFormRow label={stage === "INITIAL" ? "Evidence" : "Supporting Data"} hint={stage === "INITIAL" ? "Hx / ROS / PE" : "Lab / Image / Procedure"}>
+            <ClinicalFormRow
+              label={stage === "INITIAL" ? "근거" : "지지하는 검사 결과"}
+              hint={stage === "INITIAL" ? "History / Review of systems / Physical examination" : "Lab / Image / Procedure"}
+            >
               <Textarea
                 className="min-h-28"
                 value={row.evidence}
                 onChange={(event) => update(index, { evidence: event.target.value })}
               />
             </ClinicalFormRow>
-            <ClinicalFormRow label="Against / Uncertainty">
+            <ClinicalFormRow label="반대 근거 · 불확실성" hint="Against / uncertainty">
               <Textarea
                 className="min-h-24"
                 value={row.evidenceAgainst}
@@ -105,7 +108,7 @@ export function ImpressionTable({
               />
             </ClinicalFormRow>
             {showMissingData ? (
-              <ClinicalFormRow label="Missing Data">
+              <ClinicalFormRow label="추가로 필요한 정보" hint="Missing data">
                 <Textarea
                   className="min-h-24"
                   value={row.missingData ?? ""}
@@ -113,16 +116,16 @@ export function ImpressionTable({
                 />
               </ClinicalFormRow>
             ) : null}
-            <ClinicalFormRow label="Plan" hint="Dx / Tx">
+            <ClinicalFormRow label="계획" hint="Diagnosis · Treatment">
               <div className="grid gap-3 md:grid-cols-2">
-                <ClinicalField label="Dx Plan">
+                <ClinicalField label="진단 계획" hint="Diagnosis plan">
                   <Textarea
                     className="min-h-24"
                     value={row.dxPlan}
                     onChange={(event) => update(index, { dxPlan: event.target.value })}
                   />
                 </ClinicalField>
-                <ClinicalField label="Tx Plan">
+                <ClinicalField label="치료 계획" hint="Treatment plan">
                   <Textarea
                     className="min-h-24"
                     value={row.txPlan}
@@ -136,7 +139,7 @@ export function ImpressionTable({
       ))}
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankRow(current.length + 1)])}>
         <Plus className="h-4 w-4" />
-        Add impression
+        Impression 추가
       </Button>
       <SaveBar
         label="Save impressions"

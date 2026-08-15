@@ -3,7 +3,11 @@
 import { ArrowLeft, ArrowRight, History, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
+import {
+  ClinicalFormRow,
+  ClinicalFormTable,
+  ClinicalSection,
+} from "@/components/shared/clinical-form";
 import { ClinicalMarkupTextarea } from "@/components/shared/clinical-markup-textarea";
 import { SaveBar } from "@/components/shared/save-bar";
 import { ImageAttachmentEditor } from "@/components/shared/image-attachment-editor";
@@ -87,7 +91,7 @@ export function ProgressNoteEditor({
   nextNoteHref?: string;
   nextNoteLabel?: string;
 }) {
-  const [rows, setRows] = useState(
+  const [rows, setRows] = useState(() =>
     note.problems.length ? note.problems.map(mergeLegacySoapFields) : [blankProblem()],
   );
   const problemById = useMemo(
@@ -166,36 +170,63 @@ export function ProgressNoteEditor({
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="problems" value={JSON.stringify(rowsForSave)} />
+      <ProgressDateNavigator
+        previousNoteHref={previousNoteHref}
+        previousNoteLabel={previousNoteLabel}
+        nextNoteHref={nextNoteHref}
+        nextNoteLabel={nextNoteLabel}
+      />
       <ClinicalSection
-        title="Daily progress header"
-        description="날짜, HD, diet, I/O와 overnight event를 먼저 정리합니다."
+        title="Daily progress"
         eyebrow="Progress note"
+        className="overflow-hidden"
+        contentClassName="p-0"
       >
-        <div className="grid gap-3 md:grid-cols-4">
-          <ClinicalField label="Date">
-            <Input name="date" type="date" defaultValue={note.date} />
-          </ClinicalField>
-          <ClinicalField label="HD">
-            <Input name="hospitalDay" defaultValue={note.hospitalDay} placeholder="HD#3" />
-          </ClinicalField>
-          <ClinicalField label="Diet">
-            <Input name="diet" defaultValue={note.diet} />
-          </ClinicalField>
-          <ClinicalField label="I/O">
-            <Input name="io" defaultValue={note.io} />
-          </ClinicalField>
-        </div>
-        <div className="mt-4">
-          <VitalsEditor values={note.vitals} />
-        </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <ClinicalField label="Overnight event">
-            <Textarea name="overnightEvent" defaultValue={note.overnightEvent} rows={3} />
-          </ClinicalField>
-          <ClinicalField label="Drain / tube">
-            <Textarea name="drainTube" defaultValue={note.drainTube} rows={3} />
-          </ClinicalField>
-        </div>
+        <ClinicalFormTable className="rounded-none border-0">
+          <ClinicalFormRow label="날짜 · 입원 경과일" hint="Date · Hospital Day">
+            <div className="grid gap-3 md:grid-cols-2">
+              <CompactField label="Date">
+                <Input name="date" type="date" defaultValue={note.date} />
+              </CompactField>
+              <CompactField label="Hospital Day">
+                <Input name="hospitalDay" defaultValue={note.hospitalDay} placeholder="예: 3" />
+              </CompactField>
+            </div>
+          </ClinicalFormRow>
+          <ClinicalFormRow label="식이 · 입출량" hint="Diet · Intake / Output">
+            <div className="grid gap-3 md:grid-cols-2">
+              <CompactField label="Diet">
+                <Input name="diet" defaultValue={note.diet} />
+              </CompactField>
+              <CompactField label="Intake / Output">
+                <Input name="io" defaultValue={note.io} />
+              </CompactField>
+            </div>
+          </ClinicalFormRow>
+          <ClinicalFormRow label="활력징후" hint="Vital signs">
+            <VitalsEditor values={note.vitals} />
+          </ClinicalFormRow>
+          <ClinicalFormRow label="주요 경과 · 처치" hint="Overnight event · Drain / tube">
+            <div className="grid gap-3 md:grid-cols-2">
+              <CompactField label="Overnight event">
+                <Textarea
+                  name="overnightEvent"
+                  defaultValue={note.overnightEvent}
+                  rows={3}
+                  className="min-h-20"
+                />
+              </CompactField>
+              <CompactField label="Drain / tube">
+                <Textarea
+                  name="drainTube"
+                  defaultValue={note.drainTube}
+                  rows={3}
+                  className="min-h-20"
+                />
+              </CompactField>
+            </div>
+          </ClinicalFormRow>
+        </ClinicalFormTable>
       </ClinicalSection>
 
       {rows.map((row, index) => (
@@ -264,18 +295,18 @@ export function ProgressNoteEditor({
                     {problemTitle(row) || "Problems 탭에서 등록한 problem을 선택하세요."}
                   </div>
                 </SoapRow>
-                <SoapRow label="S">
+                <SoapRow label="Subjective (S)">
                   <ClinicalMarkupTextarea
                     value={row.subjective}
                     onChange={(value) => update(index, { subjective: value })}
                     rows={3}
                   />
                 </SoapRow>
-                <SoapRow label="O">
+                <SoapRow label="Objective (O)">
                   <DynamicSoapItems
                     items={row.objectiveItems ?? objectiveItemsFromProblem(row)}
-                    addLabel="Add O item"
-                    helperText="Lab 결과, image finding, procedure finding, 신체진찰 같은 객관적 내용을 자유롭게 추가하세요."
+                    addLabel="Objective 항목 추가"
+                    helperText="Lab · Image/Procedure · 신체진찰 등"
                     onChange={(items) => updateItems(index, "objectiveItems", items)}
                   />
                   <div className="mt-4 border-t border-app-border pt-4">
@@ -286,18 +317,18 @@ export function ProgressNoteEditor({
                     />
                   </div>
                 </SoapRow>
-                <SoapRow label="A">
+                <SoapRow label="Assessment (A)">
                   <ClinicalMarkupTextarea
                     value={row.assessment}
                     onChange={(value) => update(index, { assessment: value })}
                     rows={4}
                   />
                 </SoapRow>
-                <SoapRow label="P">
+                <SoapRow label="Plan (P)">
                   <DynamicSoapItems
                     items={row.planItems ?? planItemsFromProblem(row)}
-                    addLabel="Add P item"
-                    helperText="기본 항목은 Diagnosis, Treatment, Education입니다. 필요하면 Monitoring 등을 추가하세요."
+                    addLabel="Plan 항목 추가"
+                    helperText="기본: Diagnosis · Treatment · Education"
                     onChange={(items) => updateItems(index, "planItems", items)}
                   />
                 </SoapRow>
@@ -311,39 +342,6 @@ export function ProgressNoteEditor({
         <Plus className="h-4 w-4" />
         Add SOAP problem
       </Button>
-      {previousNoteHref || nextNoteHref ? (
-        <section className="flex flex-col gap-2 rounded-lg border border-app-border bg-app-surface-soft/70 p-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-medium text-app-text-secondary">날짜별 progress note 이동</p>
-          <div className="flex flex-wrap items-center gap-2">
-            {previousNoteHref ? (
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                name="redirectTo"
-                value={withSaved(previousNoteHref)}
-                title={previousNoteLabel ? `저장 후 ${previousNoteLabel}로 이동` : "저장 후 이전 노트로 이동"}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Save & 이전 노트
-              </Button>
-            ) : null}
-            {nextNoteHref ? (
-              <Button
-                type="submit"
-                variant="secondary"
-                size="sm"
-                name="redirectTo"
-                value={withSaved(nextNoteHref)}
-                title={nextNoteLabel ? `저장 후 ${nextNoteLabel}로 이동` : "저장 후 다음 노트로 이동"}
-              >
-                Save & 다음 노트
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
       <SaveBar
         label="Save progress note"
         currentHref={currentHref}
@@ -351,6 +349,65 @@ export function ProgressNoteEditor({
         nextHref={nextHref}
       />
     </form>
+  );
+}
+
+function ProgressDateNavigator({
+  previousNoteHref,
+  previousNoteLabel,
+  nextNoteHref,
+  nextNoteLabel,
+}: {
+  previousNoteHref?: string;
+  previousNoteLabel?: string;
+  nextNoteHref?: string;
+  nextNoteLabel?: string;
+}) {
+  if (!previousNoteHref && !nextNoteHref) return null;
+
+  return (
+    <section className="flex flex-col gap-2 rounded-xl border border-app-primary/20 bg-app-primary-muted/45 px-3 py-2.5 md:flex-row md:items-center md:justify-between">
+      <p className="text-xs font-semibold text-app-text-secondary">
+        날짜별 노트 <span className="font-normal text-app-text-muted">· 저장 후 이동</span>
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {previousNoteHref ? (
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            name="redirectTo"
+            value={withSaved(previousNoteHref)}
+            title={previousNoteLabel ? `저장 후 ${previousNoteLabel}로 이동` : "저장 후 이전 노트로 이동"}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            이전 날짜
+          </Button>
+        ) : null}
+        {nextNoteHref ? (
+          <Button
+            type="submit"
+            variant="default"
+            size="sm"
+            name="redirectTo"
+            value={withSaved(nextNoteHref)}
+            title={nextNoteLabel ? `저장 후 ${nextNoteLabel}로 이동` : "저장 후 다음 노트로 이동"}
+          >
+            다음 날짜
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function CompactField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="grid min-w-0 gap-1.5 sm:grid-cols-[104px_minmax(0,1fr)] sm:items-center">
+      <span className="text-xs font-medium text-app-text-muted">{label}</span>
+      {children}
+    </label>
   );
 }
 

@@ -51,7 +51,7 @@ export default async function NewCasePage() {
               name="department"
               defaultValue="General"
               list="department-suggestions"
-              placeholder="예: GI, Endocrinology, Surgery, 소화기내과"
+              placeholder="예: Gastroenterology, Endocrinology, Surgery, 소화기내과"
             />
             <datalist id="department-suggestions">
               {genericTemplate.departments.map((department) => (

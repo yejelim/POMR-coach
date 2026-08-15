@@ -385,56 +385,52 @@ function impressionTableBody(rows: CaseBundle["impressionRows"], includeMissing:
   );
   if (!meaningfulRows.length) return "";
 
-  const columns: Array<ExportTableColumn<(typeof meaningfulRows)[number]>> = [
-    {
-      header: "Rank",
-      colClassName: "col-rank",
-      cellClassName: "cell-rank",
-      render: (row) => `<span class="rank-chip">${escapeHtml(String(row.rank))}</span>`,
-    },
-    {
-      header: "Impression",
-      colClassName: "col-impression",
-      cellClassName: "cell-strong",
-      render: (row) => prewrap(row.title),
-    },
-  ];
-
-  if (meaningfulRows.some((row) => hasText(row.evidence))) {
-    columns.push({ header: "Evidence", render: (row) => prewrap(row.evidence) });
-  }
-  if (meaningfulRows.some((row) => hasText(row.evidenceAgainst))) {
-    columns.push({ header: "Against / uncertainty", render: (row) => prewrap(row.evidenceAgainst) });
-  }
-  if (includeMissing && meaningfulRows.some((row) => hasText(row.missingData))) {
-    columns.push({ header: "Missing data", render: (row) => prewrap(row.missingData) });
-  }
-  if (meaningfulRows.some((row) => hasText(row.dxPlan))) {
-    columns.push({ header: "Dx plan", render: (row) => prewrap(row.dxPlan) });
-  }
-  if (meaningfulRows.some((row) => hasText(row.txPlan))) {
-    columns.push({ header: "Tx plan", render: (row) => prewrap(row.txPlan) });
-  }
-
   return `<div class="table-wrap">
   <table class="clin-table impression-table">
-    <colgroup>${columns.map((column) => `<col${column.colClassName ? ` class="${column.colClassName}"` : ""} />`).join("")}</colgroup>
+    <colgroup><col class="col-rank" /><col /></colgroup>
     <thead>
-      <tr>${columns.map((column) => `<th>${escapeHtml(column.header)}</th>`).join("")}</tr>
+      <tr><th>Rank</th><th>Impression / clinical reasoning</th></tr>
     </thead>
     <tbody>
       ${meaningfulRows
         .map(
-          (row) => `<tr>${columns
-            .map(
-              (column) =>
-                `<td${column.cellClassName ? ` class="${column.cellClassName}"` : ""}>${column.render(row)}</td>`,
-            )
-            .join("")}</tr>`,
+          (row) => `<tr>
+            <td class="cell-rank"><span class="rank-chip">${escapeHtml(String(row.rank))}</span></td>
+            <td>${impressionDetailCell(row, includeMissing)}</td>
+          </tr>`,
         )
         .join("")}
     </tbody>
   </table>
+  </div>`;
+}
+
+function impressionDetailCell(
+  row: CaseBundle["impressionRows"][number],
+  includeMissing: boolean,
+) {
+  const details = [
+    ["Evidence", row.evidence],
+    ["Against / uncertainty", row.evidenceAgainst],
+    ...(includeMissing ? [["Missing data", row.missingData]] : []),
+    ["Diagnosis plan", row.dxPlan],
+    ["Treatment plan", row.txPlan],
+  ].filter((entry): entry is [string, string] => hasText(entry[1]));
+
+  return `<div class="impression-cell">
+    ${hasText(row.title) ? `<div class="impression-title">${prewrap(row.title)}</div>` : ""}
+    ${
+      details.length
+        ? `<div class="impression-details">${details
+            .map(
+              ([label, value]) => `<div class="impression-detail">
+                <span class="impression-detail-label">${escapeHtml(label)}</span>
+                ${prewrap(value)}
+              </div>`,
+            )
+            .join("")}</div>`
+        : ""
+    }
   </div>`;
 }
 
@@ -443,7 +439,10 @@ function impressionTableBody(rows: CaseBundle["impressionRows"], includeMissing:
  * ────────────────────────────────────────────────────────────────────────── */
 
 function labTableHtml(table: ReturnType<typeof normalizeLabTable>) {
-  const visibleColumns = table.columns.slice(0, MAX_EXPORT_LAB_COLUMNS);
+  const visibleColumns = table.columns
+    .filter((column) => table.rows.some((row) => hasText(row[column])))
+    .slice(0, MAX_EXPORT_LAB_COLUMNS);
+  if (!visibleColumns.length) return "";
   const meaningfulRows = table.rows
     .map((row, rowIndex) => ({ row, rowIndex }))
     .filter(({ row }) => visibleColumns.some((column) => hasText(row[column])));
@@ -1147,7 +1146,6 @@ function baseStyles() {
     .col-rank { width: 42px; }
     .col-priority { width: 58px; }
     .col-status { width: 84px; }
-    .col-impression { width: 21%; }
     .col-problem { width: 22%; }
     .col-soap { width: 56px; }
     .cell-rank { text-align: center; vertical-align: middle; }
@@ -1165,6 +1163,30 @@ function baseStyles() {
       font-size: 10px;
       font-weight: 700;
       line-height: 1;
+    }
+    .impression-title {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 11px;
+    }
+    .impression-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 12px;
+      margin-top: 6px;
+    }
+    .impression-detail {
+      min-width: 0;
+      padding-top: 5px;
+      border-top: 1px solid var(--rule-light);
+    }
+    .impression-detail-label {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--muted);
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
     }
 
     /* Lab table: content-sized columns so empty time-point columns stay narrow

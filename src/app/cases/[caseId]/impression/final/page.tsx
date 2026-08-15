@@ -39,7 +39,7 @@ export default async function FinalImpressionPage({
         title="새 정보를 반영해 impression과 plan을 업데이트하는 단계"
         points={[
           "Final impression이 확정 전이라면 어떤 검사가 더 필요한지 씁니다.",
-          "Plan은 Dx, Tx, Education 관점에서 명료하게 세우는 연습을 합니다.",
+          "Plan은 Diagnosis, Treatment, Education 관점에서 명료하게 세우는 연습을 합니다.",
         ]}
       >
         좋은 plan은 진단을 어떻게 확인할지, 지금 어떤 치료를 시작할지, 환자에게 무엇을

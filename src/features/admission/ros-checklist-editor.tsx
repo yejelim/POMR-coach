@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ClinicalField } from "@/components/shared/clinical-form";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ export function RosChecklistEditor({
           <div key={group.category} className="rounded-lg border border-app-border bg-app-surface-muted/45 p-2.5">
             <div className="mb-2 px-1">
               <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-faint">
-                {showKorean ? `${group.koreanCategory} · ${group.category}` : group.category}
+                {showKorean ? `${group.koreanCategory} · ${group.category}` : `${group.category} · ${group.koreanCategory}`}
               </div>
               <p className="mt-0.5 text-[11px] leading-4 text-app-text-muted">{group.description}</p>
             </div>
@@ -113,18 +114,25 @@ export function RosChecklistEditor({
                   </div>
                 );
               })}
-              <Input
-                value={categoryNotes[group.category] ?? ""}
-                placeholder={`${showKorean ? group.koreanCategory : group.category} notes`}
-                className="mt-2 h-8 text-xs"
-                onChange={(event) => updateCategoryNotes(group.category, event.target.value)}
-              />
+              <div className="mt-2 rounded-lg border border-dashed border-app-primary/30 bg-app-primary-muted/35 p-2">
+                <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-app-primary">
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  체크리스트에 없는 항목 직접 추가
+                </div>
+                <Textarea
+                  value={categoryNotes[group.category] ?? ""}
+                  rows={2}
+                  placeholder={`예: ${showKorean ? "실신 (+): 어제 1회" : "Syncope (+): once yesterday"}`}
+                  className="min-h-14 resize-y bg-app-surface px-2.5 py-2 text-xs leading-5"
+                  onChange={(event) => updateCategoryNotes(group.category, event.target.value)}
+                />
+              </div>
             </div>
           </div>
         ))}
       </div>
       {legacyAdditionalNotes ? (
-        <ClinicalField label="Legacy additional ROS notes">
+        <ClinicalField label="기존 계통문진 자유 메모">
           <Textarea
             value={legacyAdditionalNotes}
             rows={3}
@@ -168,7 +176,12 @@ function parseRos(defaultValue: string, groups: RosTemplateGroup[]): ParsedRos {
 
     const categoryNoteMatch = trimmed.match(/^- Additional notes: (.*)$/);
     if (categoryNoteMatch && currentCategory) {
-      categoryNotes[currentCategory] = categoryNoteMatch[1] ?? "";
+      categoryNotes[currentCategory] = [
+        categoryNotes[currentCategory],
+        categoryNoteMatch[1] ?? "",
+      ]
+        .filter(Boolean)
+        .join("\n");
       sawStructuredLine = true;
       continue;
     }
@@ -213,7 +226,13 @@ function serializeRos(
       const comment = state.positive && state.comment.trim() ? `: ${state.comment.trim()}` : "";
       return `- ${item.label} (${state.positive ? "+" : "-"})${comment}`;
     }),
-      ...(note ? [`- Additional notes: ${note}`] : []),
+      ...(note
+        ? note
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => `- Additional notes: ${line}`)
+        : []),
     ];
   });
 

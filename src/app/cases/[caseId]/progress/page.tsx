@@ -63,7 +63,7 @@ export default async function ProgressNotesPage({
                 <p className="mt-2 text-sm text-slate-600">SOAP problem {note._count.problems}개</p>
               </Link>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="text-sm text-slate-500">{note.hospitalDay || "HD 미입력"}</span>
+                <span className="text-sm text-slate-500">{formatHospitalDay(note.hospitalDay)}</span>
                 <DeleteProgressNoteButton
                   caseId={caseRecord.id}
                   noteId={note.id}
@@ -82,4 +82,11 @@ export default async function ProgressNotesPage({
       </div>
     </CasePageFrame>
   );
+}
+
+function formatHospitalDay(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "Hospital Day 미입력";
+  if (/^(HD|Hospital Day)/i.test(trimmed)) return trimmed;
+  return `Hospital Day ${trimmed}`;
 }

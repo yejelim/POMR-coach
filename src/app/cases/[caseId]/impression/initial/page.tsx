@@ -38,7 +38,7 @@ export default async function InitialImpressionPage({
       <WorkflowGuidanceNote
         title="검사 결과를 보기 전에 먼저 감별진단을 세우는 단계"
         points={[
-          "Hx, ROS, PE에서 어떤 증거가 있는지 분리해서 적습니다.",
+          "History, 계통문진(Review of systems), 신체진찰(Physical examination)에서 어떤 증거가 있는지 분리해서 적습니다.",
           "아직 모르는 정보와 확인할 검사 계획을 함께 남깁니다.",
         ]}
       >

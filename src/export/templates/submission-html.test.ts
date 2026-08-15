@@ -86,7 +86,7 @@ describe("renderSubmissionHtml", () => {
     expect(html).toContain("<strong>hydration</strong>");
   });
 
-  it("omits empty impression and problem list columns", () => {
+  it("omits empty impression details and problem list columns", () => {
     const html = renderSubmissionHtml(
       baseCase({
         impressionRows: [
@@ -113,12 +113,36 @@ describe("renderSubmissionHtml", () => {
       }),
     );
 
-    expect(html).toContain("<th>Evidence</th>");
-    expect(html).not.toContain("<th>Against / uncertainty</th>");
-    expect(html).not.toContain("<th>Missing data</th>");
-    expect(html).not.toContain("<th>Dx plan</th>");
-    expect(html).not.toContain("<th>Tx plan</th>");
+    expect(html).toContain('<span class="impression-detail-label">Evidence</span>');
+    expect(html).not.toContain('<span class="impression-detail-label">Against / uncertainty</span>');
+    expect(html).not.toContain('<span class="impression-detail-label">Missing data</span>');
+    expect(html).not.toContain('<span class="impression-detail-label">Diagnosis plan</span>');
+    expect(html).not.toContain('<span class="impression-detail-label">Treatment plan</span>');
     expect(html).not.toContain("<th>Notes</th>");
+  });
+
+  it("omits lab columns with no entered values", () => {
+    const html = renderSubmissionHtml(
+      baseCase({
+        diagnosticData: {
+          labTable: {
+            schemaVersion: 1,
+            columns: ["Date", "Test", "Unit", "Value", "Interpretation"],
+            rows: [{ Date: "", Test: "CRP", Unit: "mg/L", Value: "12", Interpretation: "" }],
+            cellStyles: {},
+          },
+          imageAttachments: "[]",
+          imageFindingsText: "",
+          procedureFindingsText: "",
+          summaryText: "",
+        },
+      }),
+    );
+
+    expect(html).toContain(">Test</th>");
+    expect(html).toContain("<th>Value</th>");
+    expect(html).not.toContain("<th>Date</th>");
+    expect(html).not.toContain("<th>Interpretation</th>");
   });
 
   it("renders lab cell high and low styles for export", () => {

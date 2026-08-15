@@ -5,14 +5,16 @@ export function WorkflowGuidanceNote({
   title,
   children,
   points = [],
+  defaultOpen = false,
 }: {
   title: string;
   children: ReactNode;
   points?: string[];
+  defaultOpen?: boolean;
 }) {
   return (
     <section className="mb-5 rounded-xl border border-app-border bg-app-surface px-4 py-3 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <details>
+      <details open={defaultOpen}>
         <summary className="flex cursor-pointer list-none items-center gap-3 text-app-text marker:hidden">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-app-primary-muted text-app-primary">
             <Lightbulb className="h-4 w-4" aria-hidden="true" />

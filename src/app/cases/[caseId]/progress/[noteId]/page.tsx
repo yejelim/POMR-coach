@@ -62,7 +62,7 @@ export default async function ProgressNotePage({
         ]}
       >
         Progress note는 admission 이후 병동에서 환자가 어떻게 변하는지 보여주는 기록입니다.
-        Problem list를 기준으로 S/O를 모으고, A에서 현재 상태를 판단한 뒤 P를 조정해보세요.
+        Problem list를 기준으로 Subjective와 Objective를 모으고, Assessment에서 현재 상태를 판단한 뒤 Plan을 조정해보세요.
       </WorkflowGuidanceNote>
       <ProgressNoteEditor
         note={{
@@ -117,7 +117,9 @@ export default async function ProgressNotePage({
           planTx: problem.planTx,
           planMonitoring: problem.planMonitoring,
           planEducation: problem.planEducation,
-          sourceLabel: [problem.sourceDate, problem.sourceHospitalDay].filter(Boolean).join(" "),
+          sourceLabel: [problem.sourceDate, problem.sourceHospitalDay ? formatHospitalDay(problem.sourceHospitalDay) : ""]
+            .filter(Boolean)
+            .join(" "),
         }))}
         action={saveProgressNoteAction.bind(null, caseId, note.id)}
         currentHref={nav.currentHref}
@@ -145,5 +147,12 @@ export default async function ProgressNotePage({
 }
 
 function formatProgressNoteNavLabel(note: { date: string; hospitalDay: string }) {
-  return [note.date || "날짜 미입력", note.hospitalDay || "HD 미입력"].join(" · ");
+  return [note.date || "날짜 미입력", formatHospitalDay(note.hospitalDay)].join(" · ");
+}
+
+function formatHospitalDay(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "Hospital Day 미입력";
+  if (/^(HD|Hospital Day)/i.test(trimmed)) return trimmed;
+  return `Hospital Day ${trimmed}`;
 }

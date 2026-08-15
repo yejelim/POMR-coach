@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import type { Vitals } from "@/lib/types";
 
 const fields = [
-  ["bt", "BT"],
-  ["bp", "BP"],
-  ["pr", "PR"],
-  ["rr", "RR"],
-  ["spo2", "SpO2"],
+  ["bt", "체온", "Body temperature / BT"],
+  ["bp", "혈압", "Blood pressure / BP"],
+  ["pr", "맥박", "Pulse rate / PR"],
+  ["rr", "호흡수", "Respiratory rate / RR"],
+  ["spo2", "산소포화도", "SpO2"],
 ] as const;
 
 export function VitalsEditor({
@@ -27,15 +27,15 @@ export function VitalsEditor({
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-5">
-        {fields.map(([name, label]) => (
-          <ClinicalField key={name} label={label}>
+        {fields.map(([name, label, hint]) => (
+          <ClinicalField key={name} label={label} hint={hint}>
             <Input name={name} defaultValue={values?.[name] ?? ""} />
           </ClinicalField>
         ))}
       </div>
       {showAnthropometrics ? (
         <div className="grid gap-3 sm:grid-cols-3">
-          <ClinicalField label="Height (cm)">
+          <ClinicalField label="키" hint="Height, cm">
             <Input
               name="heightCm"
               inputMode="decimal"
@@ -44,7 +44,7 @@ export function VitalsEditor({
               onChange={(event) => setHeightCm(event.target.value)}
             />
           </ClinicalField>
-          <ClinicalField label="Weight (kg)">
+          <ClinicalField label="몸무게" hint="Weight, kg">
             <Input
               name="weightKg"
               inputMode="decimal"
@@ -53,7 +53,7 @@ export function VitalsEditor({
               onChange={(event) => setWeightKg(event.target.value)}
             />
           </ClinicalField>
-          <ClinicalField label="BMI">
+          <ClinicalField label="체질량지수" hint="BMI">
             <Input name="bmi" value={bmi} readOnly placeholder="자동 계산" />
           </ClinicalField>
         </div>

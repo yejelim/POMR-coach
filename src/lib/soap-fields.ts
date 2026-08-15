@@ -1,7 +1,7 @@
 import type { ProgressProblemDraft, SoapSubfield } from "@/lib/types";
 import { parseStoredJson } from "@/lib/utils";
 
-export const defaultObjectiveLabels = ["PE", "Lab", "Image / Procedure"];
+export const defaultObjectiveLabels = ["Physical examination", "Lab", "Image / Procedure"];
 export const defaultPlanLabels = ["Diagnosis", "Treatment", "Education"];
 
 export function makeSoapField(label: string, value = ""): SoapSubfield {
@@ -20,10 +20,10 @@ export function objectiveItemsFromProblem(row: {
   objectiveDrain?: string;
 }) {
   const stored = parseStoredJson<SoapSubfield[]>(row.objectiveItems, []);
-  if (stored.length) return stored;
+  if (stored.length) return stored.map(normalizeObjectiveLabel);
 
   const defaults = [
-    makeSoapField("PE", row.objectivePe ?? ""),
+    makeSoapField("Physical examination", row.objectivePe ?? ""),
     makeSoapField("Lab", row.objectiveLab ?? ""),
     makeSoapField("Image / Procedure", row.objectiveImageProcedure ?? ""),
   ];
@@ -39,7 +39,7 @@ export function planItemsFromProblem(row: {
   planEducation?: string;
 }) {
   const stored = parseStoredJson<SoapSubfield[]>(row.planItems, []);
-  if (stored.length) return stored;
+  if (stored.length) return stored.map(normalizePlanLabel);
 
   const defaults = [
     makeSoapField("Diagnosis", row.planDx ?? ""),
@@ -57,7 +57,7 @@ export function mergeLegacySoapFields(row: ProgressProblemDraft): ProgressProble
   return {
     ...row,
     objectiveItems,
-    objectivePe: findValue(objectiveItems, "PE"),
+    objectivePe: findFirstValue(objectiveItems, ["Physical examination", "Physical Exam", "PE"]),
     objectiveLab: findValue(objectiveItems, "Lab"),
     objectiveImageProcedure: findValue(objectiveItems, "Image / Procedure"),
     objectiveDrain: findValue(objectiveItems, "Drain"),
@@ -79,6 +79,20 @@ function findFirstValue(items: SoapSubfield[], labels: string[]) {
     if (value) return value;
   }
   return "";
+}
+
+function normalizeObjectiveLabel(item: SoapSubfield): SoapSubfield {
+  if (item.label === "PE" || item.label === "Physical Exam") {
+    return { ...item, label: "Physical examination" };
+  }
+  return item;
+}
+
+function normalizePlanLabel(item: SoapSubfield): SoapSubfield {
+  if (item.label === "Dx") return { ...item, label: "Diagnosis" };
+  if (item.label === "Tx") return { ...item, label: "Treatment" };
+  if (item.label === "Edu") return { ...item, label: "Education" };
+  return item;
 }
 
 function cryptoSafeId() {
