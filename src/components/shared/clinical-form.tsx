@@ -86,6 +86,50 @@ export function ClinicalFieldGroup({
   );
 }
 
+export function ClinicalFormTable({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("overflow-hidden rounded-lg border border-app-border bg-app-surface", className)}>
+      <div className="divide-y divide-app-border">{children}</div>
+    </div>
+  );
+}
+
+export function ClinicalFormRow({
+  label,
+  hint,
+  children,
+  className,
+  labelClassName,
+  contentClassName,
+}: {
+  label: string;
+  hint?: string;
+  children: ReactNode;
+  className?: string;
+  labelClassName?: string;
+  contentClassName?: string;
+}) {
+  return (
+    <div className={cn("grid md:grid-cols-[184px_minmax(0,1fr)]", className)}>
+      <div
+        className={cn(
+          "border-b border-app-border bg-app-surface-muted px-4 py-3 md:border-b-0 md:border-r",
+          labelClassName,
+        )}
+      >
+        <FieldLabel label={label} hint={hint} />
+      </div>
+      <div className={cn("min-w-0 p-3", contentClassName)}>{children}</div>
+    </div>
+  );
+}
+
 function FieldLabel({ label, hint }: { label: string; hint?: string }) {
   return (
     <span className="block">

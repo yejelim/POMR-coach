@@ -2,13 +2,25 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
+import {
+  ClinicalFormRow,
+  ClinicalFormTable,
+  ClinicalSection,
+} from "@/components/shared/clinical-form";
 import { SaveBar } from "@/components/shared/save-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { ProblemDraft } from "@/lib/types";
+import type { ProblemDraft, ProblemStatus } from "@/lib/types";
+
+const problemStatuses: Array<{ value: ProblemStatus; label: string }> = [
+  { value: "active", label: "active" },
+  { value: "improving", label: "improving" },
+  { value: "worsening", label: "worsening" },
+  { value: "resolved", label: "resolved" },
+  { value: "background", label: "background" },
+];
 
 function blankProblem(priority: number): ProblemDraft {
   return {
@@ -52,6 +64,8 @@ export function ProblemListEditor({
           key={index}
           title={row.title || `Problem #${index + 1}`}
           eyebrow={`Problem list item ${index + 1}`}
+          className="overflow-hidden"
+          contentClassName="p-0"
           actions={
             <Button
               type="button"
@@ -64,40 +78,66 @@ export function ProblemListEditor({
             </Button>
           }
         >
-          <div className="mb-4 grid gap-3 sm:grid-cols-[110px_1fr]">
-              <ClinicalField label="Priority">
+          <ClinicalFormTable className="rounded-none border-0">
+            <ClinicalFormRow label="Priority / Problem">
+              <div className="grid gap-3 md:grid-cols-[96px_minmax(0,1fr)]">
                 <Input
                   type="number"
                   min={1}
                   value={row.priority}
+                  aria-label="Priority"
                   onChange={(event) => update(index, { priority: Number(event.target.value) })}
                 />
-              </ClinicalField>
-              <ClinicalField label="Problem title">
-                <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
-              </ClinicalField>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <ClinicalField label="Evidence">
-              <Textarea value={row.evidence} onChange={(event) => update(index, { evidence: event.target.value })} />
-            </ClinicalField>
-            <ClinicalField label="Notes">
-              <Textarea value={row.notes} onChange={(event) => update(index, { notes: event.target.value })} />
-            </ClinicalField>
-            <ClinicalField label="Linked final impression" className="md:col-span-2">
-              <Select
-                value={row.linkedImpressionRowId ?? ""}
-                onChange={(event) => update(index, { linkedImpressionRowId: event.target.value })}
-              >
-                <option value="">None</option>
-                {finalImpressions.map((impression) => (
-                  <option key={impression.id} value={impression.id}>
-                    #{impression.rank} {impression.title || "Untitled impression"}
-                  </option>
-                ))}
-              </Select>
-            </ClinicalField>
-          </div>
+                <Input
+                  value={row.title}
+                  aria-label="Problem title"
+                  placeholder="Problem title"
+                  onChange={(event) => update(index, { title: event.target.value })}
+                />
+              </div>
+            </ClinicalFormRow>
+            <ClinicalFormRow label="Status / Link">
+              <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+                <Select
+                  value={row.status}
+                  aria-label="Problem status"
+                  onChange={(event) => update(index, { status: event.target.value as ProblemStatus })}
+                >
+                  {problemStatuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
+                </Select>
+                <Select
+                  value={row.linkedImpressionRowId ?? ""}
+                  aria-label="Linked final impression"
+                  onChange={(event) => update(index, { linkedImpressionRowId: event.target.value })}
+                >
+                  <option value="">Linked final impression 없음</option>
+                  {finalImpressions.map((impression) => (
+                    <option key={impression.id} value={impression.id}>
+                      #{impression.rank} {impression.title || "Untitled impression"}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </ClinicalFormRow>
+            <ClinicalFormRow label="Evidence">
+              <Textarea
+                className="min-h-28"
+                value={row.evidence}
+                onChange={(event) => update(index, { evidence: event.target.value })}
+              />
+            </ClinicalFormRow>
+            <ClinicalFormRow label="Notes">
+              <Textarea
+                className="min-h-24"
+                value={row.notes}
+                onChange={(event) => update(index, { notes: event.target.value })}
+              />
+            </ClinicalFormRow>
+          </ClinicalFormTable>
         </ClinicalSection>
       ))}
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankProblem(current.length + 1)])}>

@@ -2,7 +2,12 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ClinicalField, ClinicalSection } from "@/components/shared/clinical-form";
+import {
+  ClinicalField,
+  ClinicalFormRow,
+  ClinicalFormTable,
+  ClinicalSection,
+} from "@/components/shared/clinical-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,6 +58,8 @@ export function ImpressionTable({
           key={index}
           title={row.title || `${stage === "INITIAL" ? "Initial" : "Final"} impression #${index + 1}`}
           eyebrow={`Ranked impression ${index + 1}`}
+          className="overflow-hidden"
+          contentClassName="p-0"
           actions={
             <Button
               type="button"
@@ -65,46 +72,66 @@ export function ImpressionTable({
             </Button>
           }
         >
-          <div className="mb-4 grid gap-3 md:grid-cols-[110px_1fr]">
-            <ClinicalField label="Rank">
-              <Input
-                type="number"
-                min={1}
-                value={row.rank}
-                onChange={(event) => update(index, { rank: Number(event.target.value) })}
-              />
-            </ClinicalField>
-            <ClinicalField
-              label={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
-            >
-              <Input value={row.title} onChange={(event) => update(index, { title: event.target.value })} />
-            </ClinicalField>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <ClinicalField label={stage === "INITIAL" ? "Evidence from Hx/ROS/PE" : "Supporting Data"}>
-              <Textarea value={row.evidence} onChange={(event) => update(index, { evidence: event.target.value })} />
-            </ClinicalField>
-            <ClinicalField label="Evidence Against / Remaining Uncertainty">
+          <ClinicalFormTable className="rounded-none border-0">
+            <ClinicalFormRow label="Rank / Impression">
+              <div className="grid gap-3 md:grid-cols-[96px_minmax(0,1fr)]">
+                <Input
+                  type="number"
+                  min={1}
+                  value={row.rank}
+                  aria-label="Rank"
+                  onChange={(event) => update(index, { rank: Number(event.target.value) })}
+                />
+                <Input
+                  value={row.title}
+                  aria-label={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
+                  placeholder={stage === "INITIAL" ? "Initial Impression / DDx" : "Final Impression"}
+                  onChange={(event) => update(index, { title: event.target.value })}
+                />
+              </div>
+            </ClinicalFormRow>
+            <ClinicalFormRow label={stage === "INITIAL" ? "Evidence" : "Supporting Data"} hint={stage === "INITIAL" ? "Hx / ROS / PE" : "Lab / Image / Procedure"}>
               <Textarea
+                className="min-h-28"
+                value={row.evidence}
+                onChange={(event) => update(index, { evidence: event.target.value })}
+              />
+            </ClinicalFormRow>
+            <ClinicalFormRow label="Against / Uncertainty">
+              <Textarea
+                className="min-h-24"
                 value={row.evidenceAgainst}
                 onChange={(event) => update(index, { evidenceAgainst: event.target.value })}
               />
-            </ClinicalField>
+            </ClinicalFormRow>
             {showMissingData ? (
-              <ClinicalField label="Missing Data">
+              <ClinicalFormRow label="Missing Data">
                 <Textarea
+                  className="min-h-24"
                   value={row.missingData ?? ""}
                   onChange={(event) => update(index, { missingData: event.target.value })}
                 />
-              </ClinicalField>
+              </ClinicalFormRow>
             ) : null}
-            <ClinicalField label="Dx Plan">
-              <Textarea value={row.dxPlan} onChange={(event) => update(index, { dxPlan: event.target.value })} />
-            </ClinicalField>
-            <ClinicalField label="Tx Plan">
-              <Textarea value={row.txPlan} onChange={(event) => update(index, { txPlan: event.target.value })} />
-            </ClinicalField>
-          </div>
+            <ClinicalFormRow label="Plan" hint="Dx / Tx">
+              <div className="grid gap-3 md:grid-cols-2">
+                <ClinicalField label="Dx Plan">
+                  <Textarea
+                    className="min-h-24"
+                    value={row.dxPlan}
+                    onChange={(event) => update(index, { dxPlan: event.target.value })}
+                  />
+                </ClinicalField>
+                <ClinicalField label="Tx Plan">
+                  <Textarea
+                    className="min-h-24"
+                    value={row.txPlan}
+                    onChange={(event) => update(index, { txPlan: event.target.value })}
+                  />
+                </ClinicalField>
+              </div>
+            </ClinicalFormRow>
+          </ClinicalFormTable>
         </ClinicalSection>
       ))}
       <Button type="button" variant="secondary" onClick={() => setRows((current) => [...current, blankRow(current.length + 1)])}>
